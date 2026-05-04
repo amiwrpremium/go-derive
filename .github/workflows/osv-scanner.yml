@@ -4,6 +4,13 @@ name: osv-scanner
 # (osv.dev) and uploads SARIF to GitHub code scanning. It complements
 # govulncheck (which only sees Go-affecting CVEs) by covering the full
 # transitive graph including non-Go components.
+#
+# Calls the maintainer-recommended reusable workflow
+# (.github/workflows/osv-scanner-reusable.yml) at the job level — that
+# workflow does its own checkout, runs the scanner, and uploads SARIF.
+# Reusable-workflow callers can't add their own steps, so step-security/
+# harden-runner is not in this file; the reusable workflow is
+# google-maintained and uses pinned actions internally.
 
 on:
   push:
@@ -19,42 +26,26 @@ permissions: read-all
 jobs:
   scan-pr:
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: read
       security-events: write
-    steps:
-      - uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
-        with:
-          egress-policy: audit
-
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - uses: google/osv-scanner-action/.github/actions/osv-scanner-action@98b584ee2ed2da3935ccce10e06739d54cdcd20b # v2.0.0
-        with:
-          scan-args: |-
-            --recursive
-            --skip-git
-            ./
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@c51854704019a247608d928f370c98740469d4b5 # v2.3.5
+    with:
+      scan-args: |-
+        --recursive
+        --skip-git
+        ./
 
   scan-scheduled:
     if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: read
       security-events: write
-    steps:
-      - uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
-        with:
-          egress-policy: audit
-
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - uses: google/osv-scanner-action/.github/actions/osv-scanner-action@98b584ee2ed2da3935ccce10e06739d54cdcd20b # v2.0.0
-        with:
-          scan-args: |-
-            --recursive
-            --skip-git
-            ./
-      - uses: github/codeql-action/upload-sarif@0daab03d71ff584ef619d027a3fd9146679c5d84 # v3
-        if: always()
-        with:
-          sarif_file: results.sarif
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@c51854704019a247608d928f370c98740469d4b5 # v2.3.5
+    with:
+      scan-args: |-
+        --recursive
+        --skip-git
+        ./
