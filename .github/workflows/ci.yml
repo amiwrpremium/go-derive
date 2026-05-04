@@ -122,7 +122,12 @@ jobs:
           CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
         run: |
           set -euo pipefail
-          bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.txt
+          # Codacy's reporter accepts LCOV / JaCoCo XML / Cobertura XML —
+          # not Go's atomic-covermode format. Convert via jandelgado/gcov2lcov
+          # (a single-binary Go tool) before upload.
+          go install github.com/jandelgado/gcov2lcov@v1.1.1
+          gcov2lcov -infile coverage.txt -outfile coverage.lcov
+          bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.lcov
 
   govulncheck:
     name: govulncheck
