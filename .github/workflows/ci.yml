@@ -38,6 +38,7 @@ jobs:
           if [ -n "$unformatted" ]; then
             echo "::error::The following files are not gofmt'd:"
             echo "$unformatted"
+            # shellcheck disable=SC2086 # word-split on newlines is intentional — pass each filename as a separate arg.
             gofmt -d $unformatted
             exit 1
           fi
@@ -103,6 +104,7 @@ jobs:
           set -euo pipefail
           PKGS=$(go list ./... | grep -v '/examples/' | paste -sd, -)
           TESTABLE=$(go list ./... | grep -v '/examples/')
+          # shellcheck disable=SC2086 # word-split on $TESTABLE is intentional — pass each package as a separate arg.
           go test -race -coverprofile=coverage.txt -covermode=atomic \
                   -coverpkg="$PKGS" $TESTABLE
       - name: Upload coverage to Codecov

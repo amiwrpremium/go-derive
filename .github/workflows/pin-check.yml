@@ -46,7 +46,7 @@ jobs:
                      | grep -vE 'uses:\s+[a-zA-Z0-9._/-]+@[0-9a-f]{40}\b' \
                      || true)
           if [ -n "$unpinned" ]; then
-            echo "::error::found unpinned `uses:` references — every action must be pinned to a full 40-char commit SHA:"
+            echo "::error::found unpinned uses: references — every action must be pinned to a full 40-char commit SHA:"
             echo "$unpinned" | sed 's/^/  /'
             exit 1
           fi

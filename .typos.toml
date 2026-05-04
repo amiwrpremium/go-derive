@@ -28,6 +28,12 @@ KMS = "KMS"
 # Stocks / instruments terminology.
 RFQ = "RFQ"
 mtm = "mtm"
+Pn = "Pn"           # part of PnL (profit-and-loss)
+PnL = "PnL"         # profit-and-loss
+
+# Third-party tools / proper nouns.
+intoto = "intoto"   # in-toto attestation framework filename suffix
+Hashi = "Hashi"     # part of HashiCorp
 
 [files]
 # Don't lint binaries, vendored deps, or coverage output.
