@@ -1,0 +1,74 @@
+name: integration
+
+# Integration tests hit Derive's live testnet. They run on manual dispatch
+# only — never on push or PR — so PRs don't depend on testnet availability.
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_live_orders:
+        description: "Run live order-placement tests (requires private creds)"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+env:
+  GO_VERSION: '1.25'
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Compile integration test binaries
+        run: go test -tags=integration -count=1 -run='^$' ./test/...
+
+      - name: Run public integration subset
+        run: |
+          set -euo pipefail
+          go test -tags=integration -count=1 -v -timeout=5m \
+            -run='^TestPublic_|^TestWS_PublicConnect|^TestWS_OrderBookSubscribe|^TestWS_TickerSubscribe|^TestWS_TradesSubscribe|^TestCross_' \
+            ./test/...
+
+      - name: Run private integration subset
+        if: ${{ env.DERIVE_SESSION_KEY != '' }}
+        env:
+          DERIVE_NETWORK:    testnet
+          DERIVE_INSTRUMENT: ${{ vars.DERIVE_INSTRUMENT }}
+          DERIVE_SESSION_KEY: ${{ secrets.DERIVE_SESSION_KEY }}
+          DERIVE_OWNER:       ${{ secrets.DERIVE_OWNER }}
+          DERIVE_SUBACCOUNT:  ${{ vars.DERIVE_SUBACCOUNT }}
+        run: |
+          set -euo pipefail
+          go test -tags=integration -count=1 -v -timeout=5m \
+            -run='^TestPrivate_|^TestWS_(Login|Orders|Balances|Positions)Subscribe' \
+            ./test/...
+
+      - name: Run live-order placement tests
+        if: ${{ inputs.run_live_orders && env.DERIVE_SESSION_KEY != '' }}
+        env:
+          DERIVE_NETWORK:        testnet
+          DERIVE_INSTRUMENT:     ${{ vars.DERIVE_INSTRUMENT }}
+          DERIVE_SESSION_KEY:    ${{ secrets.DERIVE_SESSION_KEY }}
+          DERIVE_OWNER:          ${{ secrets.DERIVE_OWNER }}
+          DERIVE_SUBACCOUNT:     ${{ vars.DERIVE_SUBACCOUNT }}
+          DERIVE_BASE_ASSET:     ${{ vars.DERIVE_BASE_ASSET }}
+          DERIVE_RUN_LIVE_ORDERS: "1"
+        run: |
+          set -euo pipefail
+          go test -tags=integration -count=1 -v -timeout=5m \
+            -run='^TestPrivate_PlaceAndCancel|^TestPrivate_OrderEventsArrive' \
+            ./test/...

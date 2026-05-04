@@ -1,0 +1,40 @@
+name: gosec
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  gosec:
+    name: gosec security scanner
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version: '1.25'
+          cache: true
+      - name: Run Gosec
+        # gosec releases work like this: maintainers tag e.g. v2.26.1, then push a
+        # follow-up commit on master that bumps the action's bundled gosec binary
+        # to that version. Pinning to the post-release master commit is therefore
+        # *newer* than pinning to the tag itself; pinning to the tag would run an
+        # older gosec. Renovate should keep this on the latest such post-release SHA.
+        uses: securego/gosec@5f4eec95fa28ce5dc6cf555de8c242cb57545f01 # v2.26.1+1 (master)
+        with:
+          args: '-no-fail -fmt sarif -out gosec.sarif -exclude-dir=examples -exclude-dir=test ./...'
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@0daab03d71ff584ef619d027a3fd9146679c5d84 # v3
+        if: always()
+        with:
+          sarif_file: gosec.sarif

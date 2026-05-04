@@ -1,0 +1,41 @@
+name: dependency-review
+
+# Dependency-Review: blocks PRs that introduce dependencies with known
+# vulnerabilities, restrictive licenses, or that get bumped to a major
+# version that flips license terms.
+#
+# The action talks to GitHub's vulnerability database (the same source
+# Dependabot uses) and the Open Source Insights API.
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: review
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
+        with:
+          # Hard-fail on Critical or High severity vulns introduced by the PR.
+          fail-on-severity: high
+          # Reject the PR if it pulls a dep under one of these licenses —
+          # incompatible with our MIT distribution.
+          deny-licenses: AGPL-1.0, AGPL-3.0, GPL-2.0-only, GPL-3.0-only, GPL-2.0, GPL-3.0
+          # Surface a comment on the PR with the diff summary.
+          comment-summary-in-pr: on-failure

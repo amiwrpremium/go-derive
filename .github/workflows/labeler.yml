@@ -1,0 +1,31 @@
+name: labeler
+
+# Apply path-based labels (`area:auth`, `area:rest`, …) to every PR.
+# The mapping lives in `.github/labeler.yml`; the label palette is
+# declared in `.github/settings.yml`. Runs on `pull_request_target`
+# so it can label PRs from forks (the workflow file from base, not
+# the PR head, runs — never executes untrusted PR code).
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label:
+    name: apply labels
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+      - uses: actions/labeler@634933edcd8ababfe52f92936142cc22ac488b1b # v6.0.1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/labeler.yml
+          sync-labels: true
+          dot: true

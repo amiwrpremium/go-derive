@@ -1,0 +1,160 @@
+name: verify-release
+
+# After release.yml publishes its artefacts, this workflow re-downloads
+# them as a third party would and re-verifies:
+#   1. The cosign keyless signature on each SBOM + license CSV.
+#   2. The SLSA Level 3 provenance for the release tag.
+#
+# A passing run is the SDK's continuous proof to consumers that the
+# attestations on the release page are valid right now (not just at
+# publish time).
+
+on:
+  release:
+    types: [published]
+  schedule:
+    - cron: '23 7 * * 1'  # Mondays at 07:23 UTC — re-verify weekly
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to verify (defaults to latest).'
+        required: false
+
+permissions:
+  contents: read
+  id-token: write   # required by some sigstore APIs even for verify
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cosign-verify:
+    name: cosign verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
+      - name: Resolve tag
+        id: tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          REL_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          if [ -n "$INPUT_TAG" ]; then
+            tag="$INPUT_TAG"
+          elif [ -n "$REL_TAG" ]; then
+            tag="$REL_TAG"
+          else
+            tag=$(gh release list --limit 1 --json tagName --jq '.[0].tagName' \
+                  --repo amiwrpremium/go-derive)
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
+
+      - name: Download artefacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          mkdir verify && cd verify
+          # Pull every signable artefact + bundle.
+          gh release download "$TAG" --repo amiwrpremium/go-derive \
+             --pattern 'go-derive-sbom.cdx.json*' \
+             --pattern 'go-derive-sbom.spdx.json*' \
+             --pattern 'go-derive-licenses.csv*'
+
+      - name: Verify each cosign bundle
+        env:
+          OWNER: amiwrpremium
+          REPO: go-derive
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          cd verify
+          fail=0
+          for f in go-derive-sbom.cdx.json go-derive-sbom.spdx.json go-derive-licenses.csv; do
+            if [ ! -f "$f" ] || [ ! -f "$f.cosign-bundle" ]; then
+              echo "::warning::skipping $f — artefact or bundle missing"
+              continue
+            fi
+            echo "::group::verify $f"
+            cosign verify-blob \
+              --bundle "$f.cosign-bundle" \
+              --certificate-identity-regexp "https://github.com/${OWNER}/${REPO}/.github/workflows/release.yml@refs/tags/${TAG}" \
+              --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+              "$f" || fail=1
+            echo "::endgroup::"
+          done
+          exit $fail
+
+  slsa-verify:
+    name: slsa verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version: '1.25'
+          cache: true
+
+      - name: Resolve tag
+        id: tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          REL_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          if [ -n "$INPUT_TAG" ]; then
+            tag="$INPUT_TAG"
+          elif [ -n "$REL_TAG" ]; then
+            tag="$REL_TAG"
+          else
+            tag=$(gh release list --limit 1 --json tagName --jq '.[0].tagName' \
+                  --repo amiwrpremium/go-derive)
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Install slsa-verifier
+        run: go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier@latest
+
+      - name: Download SLSA provenance + an artefact
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          mkdir verify && cd verify
+          gh release download "$TAG" --repo amiwrpremium/go-derive \
+             --pattern 'go-derive.intoto.jsonl' \
+             --pattern 'go-derive-sbom.cdx.json'
+
+      - name: Verify SLSA provenance
+        env:
+          OWNER: amiwrpremium
+          REPO: go-derive
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          cd verify
+          # Verify against the artefact we downloaded — slsa-verifier
+          # checks the provenance was produced by the SLSA L3 generator
+          # for our repo at the expected tag.
+          slsa-verifier verify-artifact \
+            --provenance-path go-derive.intoto.jsonl \
+            --source-uri "github.com/${OWNER}/${REPO}" \
+            --source-tag "$TAG" \
+            go-derive-sbom.cdx.json

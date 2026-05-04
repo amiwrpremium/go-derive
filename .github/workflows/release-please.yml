@@ -1,0 +1,33 @@
+name: release-please
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+      - uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4
+        id: release
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: .github/release-please-config.json
+          manifest-file: .github/.release-please-manifest.json
+          target-branch: master
+
+      # When a release is cut, also push a Go-style "vX.Y.Z" tag for module
+      # consumers (release-please tags as "vX.Y.Z" already by default for Go).
+      - name: Notify on release
+        if: ${{ steps.release.outputs.release_created }}
+        run: echo "Released ${{ steps.release.outputs.tag_name }}"

@@ -1,0 +1,10 @@
+# actionlint configuration — https://github.com/rhysd/actionlint
+#
+# actionlint runs shellcheck against every `run:` block automatically.
+# To configure shellcheck, see the `shellcheck` section. To configure
+# actionlint itself, see the top-level keys.
+
+self-hosted-runner:
+  labels: []
+
+config-variables: null

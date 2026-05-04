@@ -1,0 +1,61 @@
+name: semgrep
+
+# Semgrep: semantic static analysis with curated security rule sets.
+#
+# We run three rule packs:
+#   - p/security-audit  — language-agnostic security patterns
+#   - p/golang          — Go-specific anti-patterns and CWE coverage
+#   - p/secrets         — overlapping with Gitleaks/TruffleHog (defence in depth)
+#
+# Running Semgrep via the official Docker image (no GitHub Action) keeps
+# the supply-chain surface tiny — the action that used to live in
+# `returntocorp/semgrep-action` is now deprecated, with the maintainer
+# pointing users at the CLI / Docker.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    - cron: '11 6 * * 1'  # Mondays at 06:11 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+  security-events: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  semgrep:
+    name: semgrep
+    runs-on: ubuntu-latest
+    container:
+      # Pinned by digest below; same provenance as `semgrep --version`
+      # at the corresponding tag. Bumped via Renovate.
+      image: returntocorp/semgrep@sha256:e62f88be7e15ed25c8c2e3e90f1c45e16a82cb9b07a2a7c4d22cfbc2f9e1ab3b
+    steps:
+      - uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Run Semgrep security audit + Go pack + secrets pack
+        run: |
+          set -euo pipefail
+          semgrep ci --config p/security-audit --config p/golang --config p/secrets \
+            --sarif --output semgrep.sarif || true
+          # `|| true` so the next step always runs and uploads the SARIF;
+          # findings appear in the GitHub Security tab regardless.
+
+      - name: Upload Semgrep results to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@0daab03d71ff584ef619d027a3fd9146679c5d84 # v3
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep

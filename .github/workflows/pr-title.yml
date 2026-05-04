@@ -1,0 +1,63 @@
+name: pr-title
+
+# Validate that PR titles follow Conventional Commits — the same types
+# release-please consumes from `master`'s commit log. With squash-merge,
+# the PR title becomes the commit title, so a typo here breaks the
+# changelog or version bump silently.
+
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  title:
+    name: conventional commit title
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@e32d7e603df1aa1ba07e981f2a23455dee596825 # v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Allowed types — must match release-please-config.json.
+          types: |
+            feat
+            fix
+            perf
+            deps
+            revert
+            docs
+            refactor
+            test
+            build
+            ci
+            chore
+          # Optional scope (e.g. `feat(rest): ...`); when present must be one of:
+          scopes: |
+            auth
+            channels
+            contracts
+            derive
+            enums
+            errors
+            methods
+            rest
+            transport
+            types
+            ws
+            ci
+            docs
+            examples
+            security
+            test
+          requireScope: false
+          subjectPattern: ^[a-z].+$
+          subjectPatternError: |
+            The subject "{subject}" must start with a lowercase letter and not be empty.
+            Example: feat(rest): add GetFundingRateHistory
+          # When the PR is the auto-generated release-please bump, skip the lint.
+          ignoreLabels: |
+            autorelease: pending
+            autorelease: tagged

@@ -1,0 +1,53 @@
+name: pin-check
+
+# Refuse to merge any PR that introduces an `uses:` line in a workflow
+# without a 40-character SHA pin. Tag-based pins (`@v3`) are the most
+# common supply-chain attack vector — a tag can be re-pointed by the
+# action's owner (or hijacker) at any time.
+#
+# This is the same rule OpenSSF Scorecard's `Pinned-Dependencies` check
+# enforces; running it as a PR-time gate gives faster feedback.
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - '.github/workflows/**'
+      - '.github/actions/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: enforce SHA pinning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Verify every `uses:` carries a 40-char SHA
+        run: |
+          set -euo pipefail
+          # Match `uses:` lines whose ref is a tag/branch (`@v1`, `@main`)
+          # rather than a 40-hex-char SHA. Local refs (`./` or `docker://`)
+          # and reusable workflows in this repo (also start with `./`) pass.
+          unpinned=$(grep -rEn 'uses:\s+[a-zA-Z0-9._/-]+@[^[:space:]]+' .github/workflows .github/actions 2>/dev/null \
+                     | grep -vE 'uses:\s+\./' \
+                     | grep -vE 'uses:\s+docker://' \
+                     | grep -vE 'uses:\s+[a-zA-Z0-9._/-]+@[0-9a-f]{40}\b' \
+                     || true)
+          if [ -n "$unpinned" ]; then
+            echo "::error::found unpinned `uses:` references — every action must be pinned to a full 40-char commit SHA:"
+            echo "$unpinned" | sed 's/^/  /'
+            exit 1
+          fi
+          echo "all uses: lines are SHA-pinned ✓"

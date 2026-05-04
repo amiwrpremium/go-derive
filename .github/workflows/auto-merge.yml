@@ -1,0 +1,70 @@
+name: auto-merge
+
+# Auto-merge eligible Dependabot PRs once required checks pass.
+#
+# Renovate already automerges its own PRs (see renovate.json). This
+# workflow handles Dependabot:
+#
+#   - patch / minor: enable auto-merge, --squash
+#   - major:         leave alone, comment a reminder
+#   - review-required label present (set by the dependabot.yml rules
+#     for go-ethereum and gorilla/websocket): always leave alone
+#
+# Auto-merge is gated by branch protection / rulesets — the PR only
+# actually merges once `required` (the ci.yml rollup) and the other
+# required checks are green.
+#
+# `pull_request_target` runs the workflow file from the base branch
+# (not the PR head), so it has the secrets and write permission it
+# needs without executing untrusted code.
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  dependabot:
+    name: dependabot auto-merge
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+      - id: meta
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: skip if labeled review-required
+        if: contains(github.event.pull_request.labels.*.name, 'review-required')
+        run: |
+          set -euo pipefail
+          echo "PR is labeled review-required — leaving for manual review."
+          exit 0
+
+      - name: enable auto-merge for patch and minor
+        if: |
+          steps.meta.outputs.update-type == 'version-update:semver-patch' ||
+          steps.meta.outputs.update-type == 'version-update:semver-minor'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          set -euo pipefail
+          gh pr merge --auto --squash "$PR_URL"
+
+      - name: comment on major bumps
+        if: steps.meta.outputs.update-type == 'version-update:semver-major'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          set -euo pipefail
+          gh pr comment "$PR_URL" --body \
+            "Major version bump detected — auto-merge skipped. A maintainer will review and merge manually."

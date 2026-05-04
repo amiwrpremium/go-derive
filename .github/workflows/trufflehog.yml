@@ -1,0 +1,47 @@
+name: trufflehog
+
+# TruffleHog: entropy + verifier-based secret scanning. Complements
+# Gitleaks (regex-based) by catching high-entropy strings even when
+# they don't match a known token format, and by *verifying* secrets
+# against the real provider API where possible.
+#
+# Two scanners covering the same surface lower the false-negative rate
+# on a crypto SDK where leaked keys are catastrophic.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    - cron: '47 4 * * 1' # Mondays at 04:47 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    name: scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+
+      - uses: trufflesecurity/trufflehog@17456f8c7d042d8c82c9a8ca9e937231f9f42e26 # v3.95.2
+        with:
+          # `--only-verified` keeps signal high — TruffleHog actively
+          # tests detected secrets against the issuing provider before
+          # reporting. Unverified high-entropy hits show up at job-log
+          # level if they need investigation.
+          extra_args: --only-verified --fail

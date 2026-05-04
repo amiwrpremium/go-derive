@@ -1,0 +1,56 @@
+name: scorecard
+
+# OpenSSF Scorecard runs a battery of security best-practices checks and
+# uploads the results to the GitHub code-scanning UI. The schedule keeps
+# the public scorecard at https://securityscorecards.dev/ fresh.
+
+on:
+  branch_protection_rule:
+  schedule:
+    - cron: '23 5 * * 1'
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  analysis:
+    name: scorecard analysis
+    runs-on: ubuntu-latest
+    permissions:
+      # Required by github/codeql-action/upload-sarif.
+      security-events: write
+      # Required by ossf/scorecard-action to read repo state.
+      id-token: write
+      contents: read
+      actions: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Run Scorecard
+        uses: ossf/scorecard-action@4eaacf0543bb3f2c246792bd56e8cdeffafb205a # v2.4.3
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          # Publish the score so the public badge in README.md works.
+          publish_results: true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: SARIF file
+          path: results.sarif
+          retention-days: 5
+
+      - name: Upload to code-scanning
+        uses: github/codeql-action/upload-sarif@0daab03d71ff584ef619d027a3fd9146679c5d84 # v3
+        with:
+          sarif_file: results.sarif

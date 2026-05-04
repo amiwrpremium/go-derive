@@ -1,0 +1,61 @@
+name: license-check
+
+# Runs go-licenses against the entire dependency graph and fails the
+# build if any transitive dep declares a license that's incompatible
+# with our MIT distribution.
+#
+# Permissive allow-list: MIT, BSD-2/3, Apache-2.0, ISC, MPL-2.0, Unlicense.
+# Anything else (GPL, AGPL, proprietary, unknown) trips the build.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GO_VERSION: '1.25'
+
+jobs:
+  check:
+    name: go-licenses
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Install go-licenses
+        run: go install github.com/google/go-licenses@latest
+
+      - name: Allow-list check
+        # `check` exits non-zero if any dep falls outside the allow-list.
+        run: |
+          set -euo pipefail
+          go-licenses check ./... \
+            --ignore github.com/amiwrpremium/go-derive \
+            --allowed_licenses=Apache-2.0,BSD-2-Clause,BSD-3-Clause,ISC,MIT,MPL-2.0,Unlicense
+
+      - name: Generate inventory CSV
+        run: go-licenses csv ./... > licenses.csv 2>/dev/null || true
+
+      - name: Upload inventory
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: licenses-csv
+          path: licenses.csv
+          retention-days: 30

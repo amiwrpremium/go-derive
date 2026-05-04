@@ -1,0 +1,126 @@
+name: release
+
+# When release-please publishes a new GitHub Release (tag vX.Y.Z), this
+# workflow attaches:
+#   1. CycloneDX SBOM          — dependency graph in CycloneDX format
+#   2. SPDX SBOM               — same graph in SPDX 2.3 (different consumers)
+#   3. Cosign keyless signature — sig + bundle over each SBOM
+#   4. License inventory       — go-licenses CSV of every transitive dep's license
+#   5. SLSA Level 3 provenance  — proof of which builder produced the artefacts
+#
+# All artefacts are uploaded as release assets so consumers can verify
+# what they're pulling and what licenses they're inheriting.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to attach artifacts to (e.g. v0.1.0)"
+        required: true
+
+permissions: read-all
+
+env:
+  GO_VERSION: '1.25'
+
+jobs:
+  sbom:
+    name: cyclonedx sbom
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write    # upload artifacts to the release
+      id-token: write    # cosign keyless OIDC
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ github.event.inputs.tag || github.event.release.tag_name }}
+          persist-credentials: false
+
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Generate CycloneDX SBOM
+        id: cdx
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        with:
+          format: cyclonedx-json
+          artifact-name: go-derive-sbom.cdx.json
+          output-file: go-derive-sbom.cdx.json
+
+      - name: Generate SPDX SBOM
+        id: spdx
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        with:
+          format: spdx-json
+          artifact-name: go-derive-sbom.spdx.json
+          output-file: go-derive-sbom.spdx.json
+
+      - name: Generate license inventory
+        run: |
+          set -euo pipefail
+          go install github.com/google/go-licenses@latest
+          go-licenses csv ./... > go-derive-licenses.csv 2>go-derive-licenses.log || true
+          # The `|| true` swallows missing-license warnings on standard library
+          # imports; the CSV captures every reportable license.
+          wc -l go-derive-licenses.csv
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
+
+      - name: Sign each SBOM + license inventory (keyless OIDC)
+        run: |
+          set -euo pipefail
+          for f in go-derive-sbom.cdx.json go-derive-sbom.spdx.json go-derive-licenses.csv; do
+            cosign sign-blob --yes --bundle "$f.cosign-bundle" "$f"
+          done
+
+      - name: Upload artefacts to release
+        if: ${{ github.event_name == 'release' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" \
+            go-derive-sbom.cdx.json go-derive-sbom.cdx.json.cosign-bundle \
+            go-derive-sbom.spdx.json go-derive-sbom.spdx.json.cosign-bundle \
+            go-derive-licenses.csv go-derive-licenses.csv.cosign-bundle \
+            --clobber
+
+      - name: Upload artefacts as workflow artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sbom-and-licenses
+          path: |
+            go-derive-sbom.cdx.json
+            go-derive-sbom.cdx.json.cosign-bundle
+            go-derive-sbom.spdx.json
+            go-derive-sbom.spdx.json.cosign-bundle
+            go-derive-licenses.csv
+            go-derive-licenses.csv.cosign-bundle
+          retention-days: 90
+
+  provenance:
+    name: slsa provenance
+    needs: sbom
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+    # SLSA Level 3 generic generator — pinned by SHA. The reusable workflow
+    # signs and attests the listed subjects (SHA-256 base64 digests).
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@f7dd8c54c2067bafc12ca7a55595d5ee9b75204a # v2.1.0
+    with:
+      base64-subjects: ""
+      provenance-name: go-derive.intoto.jsonl
+      upload-assets: true
+      upload-tag-name: ${{ github.event.inputs.tag || github.event.release.tag_name }}

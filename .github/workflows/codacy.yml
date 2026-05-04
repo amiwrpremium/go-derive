@@ -1,0 +1,42 @@
+name: codacy
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    - cron: '23 4 * * 0'
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  codacy-analysis:
+    name: codacy security scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Run Codacy Analysis CLI
+        # codacy-analysis-cli-action's last tagged release is v4.4.7 (Jul 2025);
+        # master has continued to receive security improvements (notably the
+        # SHA-pinning sweep in #146, 2026-03-25). Pinning to the latest master
+        # commit gets those fixes; pinning to v4.4.7 would lock us to stale code.
+        # Renovate keeps this on the newest master SHA.
+        uses: codacy/codacy-analysis-cli-action@d43360362776a6789b47b99ae8973510854e2d3d # master (post-v4.4.7)
+        with:
+          output: results.sarif
+          format: sarif
+          gh-code-scanning-compat: true
+          max-allowed-issues: 2147483647
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@0daab03d71ff584ef619d027a3fd9146679c5d84 # v3
+        if: always()
+        with:
+          sarif_file: results.sarif
