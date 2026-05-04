@@ -35,8 +35,24 @@ jobs:
           format: sarif
           gh-code-scanning-compat: true
           max-allowed-issues: 2147483647
+
+      - name: Disambiguate SARIF runs for GitHub Code Scanning
+        # GitHub's 2025-07-21 SARIF behavior change rejects uploads where
+        # multiple `runs` share the same (category, automationDetails.id).
+        # Codacy bundles each analyzer (gosec, staticcheck, revive, ...)
+        # as its own `run`, all without an automationDetails.id, so they
+        # collide. Set automationDetails.id on each run to its tool name
+        # so the upload's `category: codacy` plus the per-run id makes
+        # every run distinct in GitHub's eyes.
+        run: |
+          set -euo pipefail
+          jq '.runs |= map(. + {automationDetails: {id: (.tool.driver.name + "/")}})' \
+             results.sarif > results-fixed.sarif
+          mv results-fixed.sarif results.sarif
+
       - name: Upload SARIF results
         uses: github/codeql-action/upload-sarif@0daab03d71ff584ef619d027a3fd9146679c5d84 # v3
         if: always()
         with:
           sarif_file: results.sarif
+          category: codacy
