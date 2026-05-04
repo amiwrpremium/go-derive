@@ -1,0 +1,34 @@
+package private
+
+import (
+	"encoding/json"
+	"fmt"
+
+	"github.com/amiwrpremium/go-derive/pkg/types"
+)
+
+// Balances subscribes to collateral and total-equity updates on one
+// subaccount.
+//
+// The dotted server-side channel name is:
+//
+//	subaccount.{id}.balances
+//
+// Pair this descriptor with T = [types.Balance] (a single struct, not a
+// slice) when calling [github.com/amiwrpremium/go-derive/pkg/ws.Subscribe].
+type Balances struct {
+	// SubaccountID scopes the stream to one subaccount.
+	SubaccountID int64
+}
+
+// Name returns the dotted server-side channel string.
+func (b Balances) Name() string { return fmt.Sprintf("subaccount.%d.balances", b.SubaccountID) }
+
+// Decode parses an inbound notification payload into a [types.Balance].
+func (Balances) Decode(raw json.RawMessage) (any, error) {
+	var bal types.Balance
+	if err := json.Unmarshal(raw, &bal); err != nil {
+		return nil, err
+	}
+	return bal, nil
+}
