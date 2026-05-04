@@ -134,9 +134,9 @@ action ref isn't a 40-char SHA pin. Fast — no external tools needed.
 
 ### `verify-release.yml`
 
-After a release publishes (and weekly), re-verifies the cosign signatures
-+ SLSA L3 provenance on the release artifacts. Catches retroactive
-tampering of release assets.
+After a release publishes (and weekly), re-verifies the cosign
+signatures and the SLSA L3 provenance on the release artifacts.
+Catches retroactive tampering of release assets.
 
 ### `release.yml`
 
