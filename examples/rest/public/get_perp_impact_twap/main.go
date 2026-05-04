@@ -14,10 +14,10 @@ import (
 )
 
 type impactResp struct {
-	Currency        string `json:"currency"`
-	MidDiff         string `json:"mid_price_diff_twap"`
-	AskImpactDiff   string `json:"ask_impact_diff_twap"`
-	BidImpactDiff   string `json:"bid_impact_diff_twap"`
+	Currency      string `json:"currency"`
+	MidDiff       string `json:"mid_price_diff_twap"`
+	AskImpactDiff string `json:"ask_impact_diff_twap"`
+	BidImpactDiff string `json:"bid_impact_diff_twap"`
 }
 
 func main() {
