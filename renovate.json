@@ -1,0 +1,64 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":semanticCommitTypeAll(deps)",
+    ":enableVulnerabilityAlertsWithLabel(security)",
+    "group:allNonMajor",
+    "schedule:weekly",
+    ":automergeMinor",
+    ":automergePatch",
+    ":automergeDigest",
+    "helpers:pinGitHubActionDigestsToSemver"
+  ],
+  "labels": ["dependencies"],
+  "baseBranches": ["master"],
+  "rangeStrategy": "bump",
+  "postUpdateOptions": ["gomodTidy", "gomodUpdateImportPaths"],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 5am on Monday"]
+  },
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "automerge": false
+  },
+  "packageRules": [
+    {
+      "matchManagers": ["gomod"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "groupName": "go modules (non-major)"
+    },
+    {
+      "matchManagers": ["gomod"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["dependencies", "major"]
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github actions",
+      "automerge": true
+    },
+    {
+      "matchPackageNames": ["github.com/ethereum/go-ethereum"],
+      "automerge": false,
+      "labels": ["dependencies", "review-required"],
+      "description": "go-ethereum touches signing — require manual review"
+    },
+    {
+      "matchPackageNames": ["github.com/gorilla/websocket"],
+      "automerge": false,
+      "labels": ["dependencies", "review-required"],
+      "description": "gorilla/websocket carries the WS transport — require manual review"
+    }
+  ],
+  "go": {
+    "postUpdateOptions": ["gomodTidy"]
+  },
+  "prHourlyLimit": 4,
+  "prConcurrentLimit": 10
+}
