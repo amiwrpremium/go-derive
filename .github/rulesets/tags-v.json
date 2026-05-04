@@ -1,0 +1,40 @@
+{
+  "_comment": "Tag ruleset for release tags `v*` — bypassed by github-actions[bot] (the actor when release-please.yml runs with GITHUB_TOKEN) and the repo admin role. Imported via `gh api repos/amiwrpremium/go-derive/rulesets --method POST --input .github/rulesets/tags-v.json`.",
+  "name": "release-tag-protection",
+  "target": "tag",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "include": ["refs/tags/v*"],
+      "exclude": []
+    }
+  },
+  "bypass_actors": [
+    {
+      "actor_id": 15368,
+      "actor_type": "Integration",
+      "bypass_mode": "always",
+      "_comment": "github-actions[bot] App ID — release-please.yml runs with GITHUB_TOKEN, so its commits/tags are authored by this app. Switch to a different App ID if you install the standalone release-please GitHub App and configure the workflow to use its token instead."
+    },
+    {
+      "actor_id": 5,
+      "actor_type": "RepositoryRole",
+      "bypass_mode": "always",
+      "_comment": "Repo admin role — GitHub's built-in admin role ID is 5. Lets repo admins create/move/delete release tags directly when needed."
+    }
+  ],
+  "rules": [
+    {
+      "type": "creation"
+    },
+    {
+      "type": "update"
+    },
+    {
+      "type": "deletion"
+    },
+    {
+      "type": "required_signatures"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+# Auto-assign reviewers and assignees on incoming PRs.
+# Consumed by `kentaro-m/auto-assign-action` (see
+# `.github/workflows/auto-assign.yml`).
+#
+# Bots (dependabot, renovate, release-please, github-actions) are
+# skipped via the `skipKeywords` mechanism in the workflow itself —
+# this file is only consulted for human-authored PRs.
+
+addReviewers: true
+addAssignees: author
+
+reviewers:
+  - amiwrpremium
+
+# Number of reviewers picked from the list above (0 = all).
+numberOfReviewers: 0

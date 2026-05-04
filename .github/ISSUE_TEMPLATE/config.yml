@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Derive API documentation
+    url: https://docs.derive.xyz/
+    about: Reference for endpoints, channels, and signing — please check here first.
+  - name: Discussions
+    url: https://github.com/amiwrpremium/go-derive/discussions
+    about: Questions, ideas, and general support.

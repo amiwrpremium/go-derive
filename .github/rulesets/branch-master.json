@@ -1,0 +1,69 @@
+{
+  "_comment": "Branch ruleset for `master`. Imported once via `gh api repos/amiwrpremium/go-derive/rulesets --method POST --input .github/rulesets/branch-master.json`. Update in place: `gh api repos/.../rulesets/<id> --method PUT --input ...`. The ruleset supersedes the legacy branch-protection block in `.github/settings.yml`. Required-check names match jobs in `.github/workflows/ci.yml` (`required` rollup), `lint.yml`, `codeql.yml`, `gosec.yml`, and `pr-title.yml`.",
+  "name": "master-branch-protection",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "include": ["refs/heads/master"],
+      "exclude": []
+    }
+  },
+  "bypass_actors": [],
+  "rules": [
+    {
+      "type": "deletion"
+    },
+    {
+      "type": "non_fast_forward"
+    },
+    {
+      "type": "required_linear_history"
+    },
+    {
+      "type": "required_signatures"
+    },
+    {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 1,
+        "dismiss_stale_reviews_on_push": true,
+        "require_code_owner_review": true,
+        "require_last_push_approval": false,
+        "required_review_thread_resolution": true
+      }
+    },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": true,
+        "required_status_checks": [
+          { "context": "required" },
+          { "context": "extra-lint required" },
+          { "context": "golangci-lint" },
+          { "context": "staticcheck" },
+          { "context": "CodeQL / analyze (go)" },
+          { "context": "gosec security scanner" },
+          { "context": "conventional commit title" },
+          { "context": "go-licenses" },
+          { "context": "review" },
+          { "context": "enforce SHA pinning" },
+          { "context": "trivy filesystem" },
+          { "context": "trivy secrets" },
+          { "context": "scan history" },
+          { "context": "scan" },
+          { "context": "semgrep" }
+        ]
+      }
+    },
+    {
+      "type": "commit_message_pattern",
+      "parameters": {
+        "name": "Conventional Commits",
+        "negate": false,
+        "operator": "regex",
+        "pattern": "^(feat|fix|perf|deps|revert|docs|refactor|test|build|ci|chore)(\\([a-z-]+\\))?!?: .+"
+      }
+    }
+  ]
+}

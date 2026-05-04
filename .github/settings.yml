@@ -1,0 +1,222 @@
+# Repository settings — declarative, picked up by the
+# repository-settings/app GitHub App (the maintained fork of
+# probot/settings). Authoritative source of truth for repo
+# metadata, features, merge policy, the label palette, and a
+# fallback branch-protection rule on `master`.
+#
+# Branch and tag *rulesets* (newer, more powerful than branch
+# protection) live separately in `.github/rulesets/*.json` and
+# are imported via the GitHub REST API. The `branches:` block
+# below is kept as a safety net for installs where rulesets
+# have not yet been bootstrapped.
+#
+# Once installed, every push to `master` that touches this file
+# is reconciled against the live repo state. Drift detected →
+# corrected.
+
+repository:
+  name: go-derive
+  description: Go SDK for the Derive exchange — REST + WebSocket, EIP-712 signing, typed errors, full JSON-RPC coverage.
+  homepage: https://docs.derive.xyz
+  topics: >-
+    go, golang, derive, derivatives, lyra, options, perpetuals,
+    websocket, jsonrpc, eip712, ethereum, l2, sdk, trading, crypto,
+    derivatives-trading, derive-xyz
+
+  private: false
+  has_issues: true
+  has_projects: false
+  has_wiki: false
+  has_downloads: true
+  has_discussions: true
+
+  default_branch: master
+
+  allow_squash_merge: true
+  allow_merge_commit: false
+  allow_rebase_merge: false
+
+  squash_merge_commit_title: PR_TITLE
+  squash_merge_commit_message: PR_BODY
+
+  allow_auto_merge: true
+  delete_branch_on_merge: true
+  allow_update_branch: true
+
+  archived: false
+
+# ---------------------------------------------------------------------------
+# Label palette — every label referenced anywhere in the repo (issue
+# templates, Dependabot, Renovate, the labeler workflow, the auto-merge
+# workflow, the stale workflow) MUST appear here. Color choices follow
+# GitHub's default-palette intuitions: red = bad, blue = informational,
+# green = good, purple = meta/process, yellow = waiting, grey = neutral.
+# ---------------------------------------------------------------------------
+labels:
+  # ---- Type ----
+  - name: bug
+    color: d73a4a
+    description: Something isn't working
+  - name: enhancement
+    color: a2eeef
+    description: New feature or request
+  - name: documentation
+    color: 0075ca
+    description: Improvements or additions to documentation
+  - name: question
+    color: d876e3
+    description: Further information is requested
+  - name: security
+    color: b60205
+    description: Security-sensitive issue or fix
+
+  # ---- Status ----
+  - name: needs-review
+    color: fbca04
+    description: Awaiting maintainer review
+  - name: needs-triage
+    color: ededed
+    description: New, not yet triaged
+  - name: needs-info
+    color: ededed
+    description: More information needed from reporter
+  - name: blocked
+    color: e99695
+    description: Blocked by another issue or external dependency
+  - name: wontfix
+    color: ffffff
+    description: This will not be worked on
+  - name: duplicate
+    color: cfd3d7
+    description: This issue or pull request already exists
+  - name: invalid
+    color: e4e669
+    description: This doesn't seem right
+  - name: stale
+    color: cfd3d7
+    description: Marked as stale by automation; will be closed soon
+
+  # ---- Flow ----
+  - name: breaking-change
+    color: b60205
+    description: Introduces a breaking API change
+  - name: automerge
+    color: 0e8a16
+    description: Eligible for auto-merge once required checks pass
+  - name: do-not-merge
+    color: b60205
+    description: Block merging — work in progress or under discussion
+  - name: good first issue
+    color: 7057ff
+    description: Good for newcomers
+  - name: help wanted
+    color: 008672
+    description: Extra attention is needed
+  - name: release-blocker
+    color: b60205
+    description: Must be resolved before the next release
+  - name: pinned
+    color: 5319e7
+    description: Exempt from stale automation
+
+  # ---- Area (one per pkg/internal package + cross-cutting concerns) ----
+  - name: 'area:auth'
+    color: 1d76db
+    description: pkg/auth — EIP-191 / EIP-712 signing, session keys
+  - name: 'area:rest'
+    color: 1d76db
+    description: pkg/rest — REST client and JSON-RPC-over-HTTP transport
+  - name: 'area:ws'
+    color: 1d76db
+    description: pkg/ws — WebSocket client, subscriptions, reconnect
+  - name: 'area:transport'
+    color: 1d76db
+    description: internal/transport — shared transport interface and impls
+  - name: 'area:errors'
+    color: 1d76db
+    description: pkg/errors — Derive error codes, sentinels, APIError
+  - name: 'area:enums'
+    color: 1d76db
+    description: pkg/enums — generated and curated enumerations
+  - name: 'area:types'
+    color: 1d76db
+    description: pkg/types — request/response payload structs
+  - name: 'area:channels'
+    color: 1d76db
+    description: pkg/channels — typed subscription descriptors
+  - name: 'area:contracts'
+    color: 1d76db
+    description: pkg/contracts — on-chain contract addresses and helpers
+  - name: 'area:derive'
+    color: 1d76db
+    description: pkg/derive — top-level facade that wires REST + WS
+  - name: 'area:methods'
+    color: 1d76db
+    description: internal/methods — JSON-RPC method registry shared by transports
+  - name: 'area:codec'
+    color: 1d76db
+    description: internal/codec — wire-format encode/decode
+  - name: 'area:retry'
+    color: 1d76db
+    description: internal/retry — backoff, jitter, attempt policy
+  - name: 'area:netconf'
+    color: 1d76db
+    description: internal/netconf — testnet vs mainnet endpoints
+  - name: 'area:examples'
+    color: 1d76db
+    description: examples/ — runnable example programs
+  - name: 'area:docs'
+    color: 1d76db
+    description: docs/ and root *.md files
+  - name: 'area:ci'
+    color: 1d76db
+    description: .github/ — workflows, settings, rulesets
+
+  # ---- Dependencies ----
+  - name: dependencies
+    color: 0366d6
+    description: Pull requests that update a dependency
+  - name: go
+    color: 00add8
+    description: Go module update
+  - name: github-actions
+    color: 000000
+    description: GitHub Actions workflow update
+  - name: major
+    color: b60205
+    description: Major version bump — manual review required
+  - name: review-required
+    color: fbca04
+    description: Manual review required (auto-merge skipped)
+
+# ---------------------------------------------------------------------------
+# Branch protection — fallback. The newer rulesets in
+# `.github/rulesets/branch-master.json` supersede this block once
+# imported, but having it here means a fresh fork is sane out of
+# the box. Required-status-check names match the jobs that actually
+# run on PRs (see `.github/workflows/ci.yml`'s `required` rollup).
+# ---------------------------------------------------------------------------
+branches:
+  - name: master
+    protection:
+      required_pull_request_reviews:
+        required_approving_review_count: 1
+        dismiss_stale_reviews: true
+        require_code_owner_reviews: true
+        require_last_push_approval: false
+      required_status_checks:
+        strict: true
+        contexts:
+          - required
+          - golangci-lint
+          - staticcheck
+          - 'CodeQL / analyze (go)'
+          - 'gosec security scanner'
+          - 'conventional commit title'
+      enforce_admins: false
+      required_linear_history: true
+      allow_force_pushes: false
+      allow_deletions: false
+      required_conversation_resolution: true
+      required_signatures: true
+      restrictions: null

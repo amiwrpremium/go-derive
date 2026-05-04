@@ -1,0 +1,108 @@
+# Path-based PR labels — consumed by actions/labeler@v6.
+#
+# Each top-level key is a label name (must exist in
+# `.github/settings.yml`). The match object uses v6 syntax:
+# `changed-files: [{ any-glob-to-any-file: [...] }]` — at least
+# one of the listed globs must match at least one changed file.
+#
+# Globs use minimatch (`**`, `*`, `!`); the `dot: true` default
+# means leading-dot paths like `.github/` match `**` patterns.
+
+'area:auth':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'pkg/auth/**'
+          - 'examples/auth/**'
+
+'area:rest':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'pkg/rest/**'
+          - 'examples/rest/**'
+
+'area:ws':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'pkg/ws/**'
+          - 'examples/ws/**'
+
+'area:transport':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'internal/transport/**'
+
+'area:errors':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'pkg/errors/**'
+
+'area:enums':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'pkg/enums/**'
+
+'area:types':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'pkg/types/**'
+
+'area:channels':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'pkg/channels/**'
+
+'area:contracts':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'pkg/contracts/**'
+
+'area:derive':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'pkg/derive/**'
+          - 'examples/derive/**'
+
+'area:methods':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'internal/methods/**'
+
+'area:codec':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'internal/codec/**'
+
+'area:retry':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'internal/retry/**'
+
+'area:netconf':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'internal/netconf/**'
+
+'area:examples':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'examples/**'
+
+'area:docs':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'docs/**'
+          - '*.md'
+          - 'AUTHORS'
+
+'area:ci':
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**'
+          - '.editorconfig'
+          - 'renovate.json'
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'go.mod'
+          - 'go.sum'

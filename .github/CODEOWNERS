@@ -1,0 +1,11 @@
+# Default owner for everything in the repo.
+*                                   @amiwrpremium
+
+# Auth and signing changes touch private keys — review carefully.
+/pkg/auth/                          @amiwrpremium
+/internal/codec/                    @amiwrpremium
+
+# CI / release config changes affect every commit.
+/.github/                           @amiwrpremium
+/renovate.json                      @amiwrpremium
+/CHANGELOG.md                       @amiwrpremium
