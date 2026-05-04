@@ -40,6 +40,14 @@ jobs:
 
       - uses: trufflesecurity/trufflehog@17456f8c7d042d8c82c9a8ca9e937231f9f42e26 # v3.95.2
         with:
+          # On pull_request: scan the diff between PR base and head.
+          # On push (incl. initial push to a fresh branch where
+          # github.event.before is all-zeros): scan from the empty-tree
+          # SHA so the action's BASE==HEAD check passes — this is the
+          # canonical "scan all history" base.
+          # On schedule / workflow_dispatch: same full-history fallback.
+          base: ${{ github.event.pull_request.base.sha || github.event.before || '4b825dc642cb6eb9a060e54bf8d69288fbee4904' }}
+          head: ${{ github.event.pull_request.head.sha || github.event.after || github.sha }}
           # `--only-verified` keeps signal high — TruffleHog actively
           # tests detected secrets against the issuing provider before
           # reporting. Unverified high-entropy hits show up at job-log
