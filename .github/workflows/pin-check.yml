@@ -47,6 +47,7 @@ jobs:
                      || true)
           if [ -n "$unpinned" ]; then
             echo "::error::found unpinned uses: references — every action must be pinned to a full 40-char commit SHA:"
+            # shellcheck disable=SC2001 # parameter expansion ${var//search/replace} doesn't handle multi-line streams.
             echo "$unpinned" | sed 's/^/  /'
             exit 1
           fi
