@@ -1,0 +1,46 @@
+# typos configuration — https://github.com/crate-ci/typos
+#
+# Catches common English spelling mistakes in code and docs. Allow-list
+# entries below are technical terms / library names / acronyms that the
+# default dictionary flags as typos but are correct here.
+
+[default]
+extend-ignore-identifiers-re = [
+  # Hex addresses / hashes / SHAs in code or docs.
+  "^0x[0-9a-fA-F]{4,}$",
+  # Go module paths use lowercase identifiers that occasionally collide
+  # with dictionary words. The path itself is never a typo.
+]
+
+[default.extend-words]
+# Domain / dependency names typos sometimes flags.
+nd = "nd"
+ws = "ws"
+mmp = "mmp"
+nse = "nse"
+
+# Crypto / EVM acronyms.
+EIP = "EIP"
+RLP = "RLP"
+EVM = "EVM"
+KMS = "KMS"
+
+# Stocks / instruments terminology.
+RFQ = "RFQ"
+mtm = "mtm"
+
+[files]
+# Don't lint binaries, vendored deps, or coverage output.
+extend-exclude = [
+  "vendor/",
+  "node_modules/",
+  "coverage.txt",
+  "coverage.html",
+  "go.sum",
+  "*.svg",
+  "*.png",
+  "*.ico",
+  ".git/",
+  # The Contributor Covenant text is verbatim third-party content.
+  "CODE_OF_CONDUCT.md",
+]

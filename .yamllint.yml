@@ -1,0 +1,42 @@
+---
+# yamllint configuration — https://yamllint.readthedocs.io/
+extends: default
+
+rules:
+  # GitHub Actions workflows often exceed 80 columns; relax.
+  line-length:
+    max: 200
+    level: warning
+
+  # `on:` is a YAML "true"-equivalent; GitHub Actions requires it as a key.
+  truthy:
+    check-keys: false
+
+  # Allow either `---` document start or none — both styles appear in the
+  # codebase historically. Keeping it permissive avoids churn for a stylistic.
+  document-start: disable
+
+  # Indentation: 2 spaces (matches .editorconfig). Allow sequences indented
+  # the same as their parent (common in GitHub Actions and Probot Settings).
+  indentation:
+    spaces: 2
+    indent-sequences: consistent
+    check-multi-line-strings: false
+
+  # Comments need a space after `#`, but allow no leading space.
+  comments:
+    require-starting-space: true
+    min-spaces-from-content: 1
+
+  comments-indentation: enable
+
+  # Allow column-aligned env: blocks (`KEY:    value`) for readability
+  # in workflow files.
+  colons:
+    max-spaces-after: -1
+    max-spaces-before: 0
+
+ignore: |
+  # vendored or generated data we don't own
+  vendor/
+  node_modules/

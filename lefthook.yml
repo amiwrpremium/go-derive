@@ -1,0 +1,189 @@
+# Lefthook — git hooks for go-derive.
+#
+# Install once:
+#   brew install lefthook   # or: go install github.com/evilmartians/lefthook@latest
+#   lefthook install
+#
+# Run a hook on demand without committing:
+#   lefthook run pre-commit
+#   lefthook run pre-push
+#
+# Bypass for one commit (use sparingly):
+#   LEFTHOOK=0 git commit ...
+#   LEFTHOOK=0 git push ...
+#
+# Tools the hooks need (install via `make tools`):
+#   goimports     golang.org/x/tools/cmd/goimports
+#   golangci-lint github.com/golangci/golangci-lint/v2/cmd/golangci-lint  # v2.x
+#   govulncheck   golang.org/x/vuln/cmd/govulncheck
+
+min_version: 1.7.0
+
+# ---------------------------------------------------------------------------
+# pre-commit — run on staged files. Cheap, parallel, auto-fix where safe.
+# Local mirror of `ci.yml`'s fmt + vet + lint jobs scoped to changed code.
+# ---------------------------------------------------------------------------
+pre-commit:
+  parallel: true
+  commands:
+
+    gofmt:
+      tags: format go
+      glob: '*.go'
+      stage_fixed: true
+      run: |
+        files="{staged_files}"
+        [ -z "$files" ] && exit 0
+        bad=$(gofmt -l $files)
+        if [ -n "$bad" ]; then
+          echo "gofmt rewrote:"
+          echo "$bad"
+          gofmt -w $bad
+          exit 1
+        fi
+
+    goimports:
+      tags: format go
+      glob: '*.go'
+      stage_fixed: true
+      run: |
+        files="{staged_files}"
+        [ -z "$files" ] && exit 0
+        if ! command -v goimports >/dev/null 2>&1; then
+          echo "goimports not installed. Run: make tools"
+          exit 1
+        fi
+        bad=$(goimports -l -local github.com/amiwrpremium/go-derive $files)
+        if [ -n "$bad" ]; then
+          echo "goimports rewrote:"
+          echo "$bad"
+          goimports -w -local github.com/amiwrpremium/go-derive $bad
+          exit 1
+        fi
+
+    govet:
+      tags: lint go
+      glob: '*.go'
+      run: |
+        files="{staged_files}"
+        [ -z "$files" ] && exit 0
+        # Vet only the package directories that actually changed.
+        pkgs=$(printf '%s\n' $files | xargs -n1 dirname 2>/dev/null \
+               | sort -u | sed 's|^|./|')
+        [ -z "$pkgs" ] && exit 0
+        go vet $pkgs
+
+    golangci-lint:
+      tags: lint go
+      glob: '*.go'
+      run: |
+        files="{staged_files}"
+        [ -z "$files" ] && exit 0
+        if ! command -v golangci-lint >/dev/null 2>&1; then
+          echo "golangci-lint not installed. Run: make tools"
+          exit 1
+        fi
+        # `--new-from-rev=HEAD` shows only issues introduced by the staged
+        # change, not pre-existing ones in the same file.
+        golangci-lint run --new-from-rev=HEAD --timeout=2m ./...
+
+    hygiene:
+      tags: hygiene
+      run: |
+        files="{staged_files}"
+        [ -z "$files" ] && exit 0
+        rc=0
+        for f in $files; do
+          [ -f "$f" ] || continue   # deletions
+          # Binary files: skip text-content checks.
+          if file -b --mime-encoding "$f" 2>/dev/null | grep -q binary; then
+            size=$(wc -c < "$f")
+            if [ "$size" -gt 524288 ]; then
+              echo "hygiene: $f is $(($size/1024))KB (> 500KB) — consider Git LFS"
+              rc=1
+            fi
+            continue
+          fi
+          # 1) Trailing whitespace.
+          if grep -nE ' +$' "$f"; then
+            echo "hygiene: trailing whitespace in $f"; rc=1
+          fi
+          # 2) Byte-order mark (UTF-8 BOM).
+          if head -c 3 "$f" | LC_ALL=C grep -q $'\xef\xbb\xbf'; then
+            echo "hygiene: UTF-8 BOM in $f"; rc=1
+          fi
+          # 3) Merge-conflict markers.
+          if grep -nE '^(<<<<<<< |>>>>>>> |=======$)' "$f"; then
+            echo "hygiene: merge-conflict markers in $f"; rc=1
+          fi
+          # 4) Large text files.
+          size=$(wc -c < "$f")
+          if [ "$size" -gt 524288 ]; then
+            echo "hygiene: $f is $(($size/1024))KB (> 500KB)"; rc=1
+          fi
+        done
+        exit $rc
+
+# ---------------------------------------------------------------------------
+# commit-msg — enforce Conventional Commits locally so that release-please
+# (which reads commit titles on `master`) and the master ruleset's
+# commit_message_pattern never reject your work after the fact. Same regex
+# as `.github/rulesets/branch-master.json` and `.github/workflows/pr-title.yml`.
+# ---------------------------------------------------------------------------
+commit-msg:
+  commands:
+    conventional:
+      run: |
+        msg_file="{1}"
+        # First non-comment, non-empty line.
+        msg=$(grep -vE '^\s*#' "$msg_file" | sed '/./,$!d' | head -1)
+        case "$msg" in
+          'Merge '*|'Revert "'*|'fixup! '*|'squash! '*|'amend! '*)
+            exit 0 ;;
+          '')
+            exit 0 ;;
+        esac
+        regex='^(feat|fix|perf|deps|revert|docs|refactor|test|build|ci|chore)(\([a-z-]+\))?!?: .+'
+        if ! printf '%s' "$msg" | grep -qE "$regex"; then
+          printf 'Commit message does not match Conventional Commits.\n\n'
+          printf '  Got:      %s\n' "$msg"
+          printf '  Expected: <type>[(scope)][!]: <description>\n'
+          printf '  Types:    feat fix perf deps revert docs refactor test build ci chore\n'
+          printf '  Scopes:   auth channels contracts derive enums errors methods rest\n'
+          printf '            transport types ws ci docs examples security test\n\n'
+          printf '  Examples:\n'
+          printf '    feat(rest): add GetFundingRateHistory\n'
+          printf '    fix(ws): drop ping when conn is nil\n'
+          printf '    docs: clarify session-key lifetime\n'
+          exit 1
+        fi
+
+# ---------------------------------------------------------------------------
+# pre-push — heavyweight pre-flight check before code reaches the remote.
+# Mirrors the CI required-checks rollup so a green pre-push means CI
+# almost certainly passes.
+# ---------------------------------------------------------------------------
+pre-push:
+  parallel: false
+  commands:
+
+    build:
+      run: go build ./...
+
+    vet:
+      run: go vet ./...
+
+    test:
+      # Skip examples/ — they are runnable demos with no _test.go files,
+      # so `go test ./...` only emits `[no test files]` noise for them.
+      run: |
+        TESTABLE=$(go list ./... | grep -v '/examples/')
+        go test -race -count=1 $TESTABLE
+
+    govulncheck:
+      run: |
+        if ! command -v govulncheck >/dev/null 2>&1; then
+          echo "govulncheck not installed. Run: make tools"
+          exit 1
+        fi
+        govulncheck ./...

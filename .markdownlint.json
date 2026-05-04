@@ -1,0 +1,38 @@
+{
+  "$schema": "https://raw.githubusercontent.com/DavidAnson/markdownlint/main/schema/markdownlint-config-schema.json",
+  "default": true,
+
+  "MD013": false,
+  "_MD013_comment": "Disable hard line-length limit. Many docs are table-heavy or quote third-party text (Contributor Covenant) that we cannot reflow.",
+
+  "MD033": {
+    "allowed_elements": ["details", "summary", "kbd", "br", "sub", "sup", "img", "a", "p"]
+  },
+  "_MD033_comment": "Allow common inline HTML used in issue templates and folded sections.",
+
+  "MD024": {
+    "siblings_only": true
+  },
+  "_MD024_comment": "Allow duplicate headings as long as they're under different parents (e.g. multiple ## Examples sections).",
+
+  "MD041": false,
+  "_MD041_comment": "Allow first-line content other than H1 — several docs lead with HTML comments or badges.",
+
+  "MD036": false,
+  "_MD036_comment": "Allow emphasis-as-heading; we use **bold** for inline section titles inside lists.",
+
+  "MD046": {
+    "style": "fenced"
+  },
+
+  "MD040": true,
+  "_MD040_comment": "Require fenced code blocks to declare a language for syntax highlighting.",
+
+  "MD060": false,
+  "_MD060_comment": "Disable strict table-column-style — existing tables mix compact (`| a | b |`) and padded (`| a   | b   |`) layouts; one style across the repo isn't worth the diff churn.",
+
+  "MD012": {
+    "maximum": 2
+  },
+  "_MD012_comment": "Allow up to 2 consecutive blank lines (default 1). Lets sections breathe in long docs."
+}

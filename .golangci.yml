@@ -1,0 +1,51 @@
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - misspell
+    - revive
+    - bodyclose
+    - errorlint
+    - gocritic
+    - prealloc
+    - unconvert
+    - unparam
+    # security-focused additions
+    - bidichk        # bidi/RTL trojan-source detection (CVE-2021-42574)
+    - gosec          # security audit (also has its own workflow w/ SARIF)
+    - asasalint      # forbids passing []any to ...any{} variadic
+    - durationcheck  # catches multiplication of two durations
+    - nilerr         # catches `if err != nil { return nil }` mistakes
+  settings:
+    revive:
+      rules:
+        - name: exported
+          arguments:
+            - disableStutteringCheck
+  exclusions:
+    paths:
+      - examples
+    rules:
+      - path: _test\.go
+        linters:
+          - errcheck
+          - gocritic
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/amiwrpremium/go-derive

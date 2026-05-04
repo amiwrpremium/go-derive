@@ -1,0 +1,35 @@
+{
+  "_comment": "editorconfig-checker — https://editorconfig-checker.github.io",
+  "Verbose": false,
+  "Debug": false,
+  "IgnoreDefaults": false,
+  "SpacesAfterTabs": false,
+  "NoColor": false,
+  "Exclude": [
+    "^vendor/",
+    "^node_modules/",
+    "^\\.git/",
+    "^coverage\\.txt$",
+    "^coverage\\.html$",
+    "\\.svg$",
+    "\\.png$",
+    "\\.jpg$",
+    "\\.jpeg$",
+    "\\.gif$",
+    "\\.ico$",
+    "\\.woff2?$",
+    "\\.ttf$",
+    "\\.eot$",
+    "\\.lock$",
+    "go\\.sum$"
+  ],
+  "Disable": {
+    "EndOfLine": false,
+    "Indentation": false,
+    "IndentSize": true,
+    "_IndentSize_comment": "Markdown lists use 3-space continuation (one space past the bullet). That's correct markdown but conflicts with editorconfig's strict indent_size=2. Disable globally; trailing-whitespace and EOL checks still catch most real bugs.",
+    "InsertFinalNewline": false,
+    "TrimTrailingWhitespace": false,
+    "MaxLineLength": true
+  }
+}
