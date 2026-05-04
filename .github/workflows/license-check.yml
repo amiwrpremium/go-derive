@@ -44,10 +44,17 @@ jobs:
 
       - name: Allow-list check
         # `check` exits non-zero if any dep falls outside the allow-list.
+        # go-ethereum is dual-licensed: most subpackages (including the
+        # ones we import — crypto, common) are LGPL-3.0, but the module
+        # root carries GPL-3.0 fragments. go-licenses reports the worst
+        # module-level license, so we ignore the module here. LGPL-3.0
+        # is link-compatible with MIT (we link dynamically/statically
+        # against the binary, no source-derivative concern).
         run: |
           set -euo pipefail
           go-licenses check ./... \
             --ignore github.com/amiwrpremium/go-derive \
+            --ignore github.com/ethereum/go-ethereum \
             --allowed_licenses=Apache-2.0,BSD-2-Clause,BSD-3-Clause,ISC,MIT,MPL-2.0,Unlicense
 
       - name: Generate inventory CSV
