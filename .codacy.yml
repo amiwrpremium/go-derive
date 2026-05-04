@@ -1,0 +1,54 @@
+---
+# Codacy configuration — https://docs.codacy.com/repositories-configure/codacy-configuration-file/
+#
+# Notes
+#   - Tools cannot be enabled / disabled here. Use the Codacy web UI for that
+#     (Settings → Code patterns). The blocks under `engines:` only configure
+#     tools that the UI has already enabled.
+#   - When this file is present, it takes precedence over UI-based ignore
+#     patterns for the paths it covers.
+#   - Codacy always reads the copy of this file on the **default branch**.
+
+# Global path exclusions — applied to every analysis tool.
+exclude_paths:
+  - 'examples/**'             # runnable demos, not unit code
+  - 'test/**'                 # build-tagged integration tests
+  - 'internal/testutil/**'    # mocks & helpers used only by tests
+  - '**/*_test.go'            # all test sources
+  - '**/example_*.go'         # godoc Example_* functions
+  - 'docs/**'                 # markdown
+  - 'vendor/**'               # vendored deps if ever introduced
+  - 'go.sum'                  # checksum database
+
+# Per-tool configuration. Each block applies only if the tool is enabled
+# in the Codacy UI.
+engines:
+  gosec:
+    exclude_paths:
+      - 'examples/**'
+      - 'test/**'
+      - 'internal/testutil/**'
+
+  staticcheck:
+    exclude_paths:
+      - 'examples/**'
+      - 'test/**'
+      - 'internal/testutil/**'
+
+  revive:
+    exclude_paths:
+      - 'examples/**'
+      - 'test/**'
+      - 'internal/testutil/**'
+
+  gofmt:
+    exclude_paths:
+      - 'examples/**'
+      - 'vendor/**'
+
+  duplication:
+    exclude_paths:
+      - 'examples/**'         # examples deliberately repeat boilerplate
+      - 'test/**'
+      - '**/*_test.go'
+      - 'docs/**'

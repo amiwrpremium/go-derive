@@ -1,0 +1,109 @@
+# Codecov configuration — https://docs.codecov.com/docs/codecovyml-reference
+#
+# Validate this file before pushing:
+#   curl -fsSL --data-binary @codecov.yml https://codecov.io/validate
+
+codecov:
+  require_ci_to_pass: true
+  notify:
+    wait_for_ci: true
+    after_n_builds: 1
+  max_report_age: 12h
+
+coverage:
+  precision: 2
+  round: down
+  range: '70...100'
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+        informational: false
+        if_ci_failed: error
+    patch:
+      default:
+        target: 80%
+        threshold: 1%
+        informational: false
+        if_ci_failed: error
+
+# GitHub Checks integration — annotate uncovered lines on the PR.
+github_checks:
+  annotations: true
+
+# Language-specific parsing.
+parsers:
+  go:
+    # Treat partial-line coverage as fully hit. Avoids penalising
+    # branches like `if err != nil { return err }` where Go's coverage
+    # profile reports two regions for one line.
+    partials_as_hits: true
+
+comment:
+  layout: 'header, diff, flags, components, files, footer'
+  behavior: default
+  require_changes: false
+  show_carryforward_flags: false
+
+# Coverage by component / area. Each flag shows up separately in the
+# PR comment and as its own status check.
+flags:
+  unittests:
+    paths:
+      - pkg/
+      - internal/
+    carryforward: true
+
+# Files Codecov should not count toward coverage at all.
+ignore:
+  - 'examples/**'           # runnable demos, not unit code
+  - 'test/**'               # build-tagged integration tests
+  - 'internal/testutil/**'  # mocks & helpers used only by tests
+  - '**/*_test.go'          # all test sources
+  - '**/example_*.go'       # godoc Example_* functions
+  - 'docs/**'               # markdown
+
+component_management:
+  default_rules:
+    statuses:
+      - type: project
+        target: auto
+        threshold: 1%
+  individual_components:
+    - component_id: rest
+      name: pkg/rest
+      paths:
+        - pkg/rest/**
+    - component_id: ws
+      name: pkg/ws
+      paths:
+        - pkg/ws/**
+    - component_id: auth
+      name: pkg/auth
+      paths:
+        - pkg/auth/**
+    - component_id: errors
+      name: pkg/errors
+      paths:
+        - pkg/errors/**
+    - component_id: types
+      name: pkg/types
+      paths:
+        - pkg/types/**
+    - component_id: channels
+      name: pkg/channels
+      paths:
+        - pkg/channels/**
+    - component_id: transport
+      name: internal/transport
+      paths:
+        - internal/transport/**
+    - component_id: methods
+      name: internal/methods
+      paths:
+        - internal/methods/**
+    - component_id: jsonrpc
+      name: internal/jsonrpc
+      paths:
+        - internal/jsonrpc/**
