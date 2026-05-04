@@ -35,9 +35,10 @@ jobs:
     name: semgrep
     runs-on: ubuntu-latest
     container:
-      # Pinned by digest below; same provenance as `semgrep --version`
-      # at the corresponding tag. Bumped via Renovate.
-      image: returntocorp/semgrep@sha256:e62f88be7e15ed25c8c2e3e90f1c45e16a82cb9b07a2a7c4d22cfbc2f9e1ab3b
+      # Canonical Semgrep namespace — `returntocorp/semgrep` is the legacy
+      # mirror, kept for backward compatibility. Both publish identical
+      # content. Pinned by manifest digest; bumped via Renovate.
+      image: semgrep/semgrep@sha256:7810f1d7884974ab6dda7bef8f4a2c8e165ea2142fd8260515d380e4f1407263
     steps:
       - uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
         with:
