@@ -7,6 +7,14 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.2.1](https://github.com/amiwrpremium/go-derive/compare/v0.2.0...v0.2.1) (2026-05-05)
+
+
+### Bug Fixes
+
+* **ci:** scope GITHUB_TOKEN permissions per-job (Scorecard TokenPermissions) ([#14](https://github.com/amiwrpremium/go-derive/issues/14)) ([a5d6ead](https://github.com/amiwrpremium/go-derive/commit/a5d6eadd2cb21ef8327ed2bb6dd6a550e8c7a0af))
+* **ci:** suppress 32 Codacy markdown/CI alerts via .codacy.yml ([#12](https://github.com/amiwrpremium/go-derive/issues/12)) ([7e3a934](https://github.com/amiwrpremium/go-derive/commit/7e3a9349026a9f02841020cc80629e8433c71621))
+
 ## [0.2.0](https://github.com/amiwrpremium/go-derive/compare/v0.1.3...v0.2.0) (2026-05-05)
 
 
