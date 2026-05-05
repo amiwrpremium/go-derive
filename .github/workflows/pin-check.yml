@@ -38,11 +38,18 @@ jobs:
         run: |
           set -euo pipefail
           # Match `uses:` lines whose ref is a tag/branch (`@v1`, `@main`)
-          # rather than a 40-hex-char SHA. Local refs (`./` or `docker://`)
-          # and reusable workflows in this repo (also start with `./`) pass.
+          # rather than a 40-hex-char SHA. Skip:
+          #   - Local refs (`./` or `docker://`).
+          #   - Reusable workflows in this repo (also start with `./`).
+          #   - slsa-framework/slsa-github-generator/* — its builder-fetch
+          #     step explicitly rejects SHA refs and requires the @vX.Y.Z
+          #     tag form. Their security model relies on TUF + sigstore
+          #     signature verification of the builder binary, not the
+          #     consumer's SHA-pin defence. Documented upstream.
           unpinned=$(grep -rEn 'uses:\s+[a-zA-Z0-9._/-]+@[^[:space:]]+' .github/workflows .github/actions 2>/dev/null \
                      | grep -vE 'uses:\s+\./' \
                      | grep -vE 'uses:\s+docker://' \
+                     | grep -vE 'uses:\s+slsa-framework/slsa-github-generator/' \
                      | grep -vE 'uses:\s+[a-zA-Z0-9._/-]+@[0-9a-f]{40}\b' \
                      || true)
           if [ -n "$unpinned" ]; then

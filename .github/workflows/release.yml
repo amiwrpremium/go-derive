@@ -130,42 +130,17 @@ jobs:
       actions: read
       id-token: write
       contents: write
-    # SLSA Level 3 generic generator — pinned by SHA. The reusable workflow
-    # signs and attests the listed subjects (SHA-256 base64 digests).
-    #
-    # upload-assets: false because the reusable workflow's
-    # softprops/action-gh-release call internally computes its `files:`
-    # input as empty, even when given valid subjects + tag — exit 27 in
-    # the final job. We download the generated provenance artifact and
-    # upload it manually in attach-provenance below.
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@f7dd8c54c2067bafc12ca7a55595d5ee9b75204a # v2.1.0
+    # SLSA Level 3 generic generator. Referenced by tag (@v2.1.0) instead
+    # of SHA — this is the one documented exception to the 40-char-SHA
+    # pin rule that pin-check.yml enforces. The generator's builder-fetch
+    # step explicitly rejects SHA refs ("Invalid ref ... Expected ref of
+    # the form refs/tags/vX.Y.Z"); its security model relies on TUF +
+    # sigstore signature verification of the builder binary instead, so
+    # the SHA-pin defence isn't applicable. See the slsa-framework
+    # README and pin-check.yml's allow-list for the rationale.
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
     with:
       base64-subjects: ${{ needs.sbom.outputs.hashes }}
       provenance-name: go-derive.intoto.jsonl
-      upload-assets: false
-
-  attach-provenance:
-    name: attach provenance to release
-    needs: provenance
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Harden runner
-        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
-        with:
-          egress-policy: audit
-
-      - name: Download SLSA provenance artifact
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
-        with:
-          name: ${{ needs.provenance.outputs.provenance-name }}
-
-      - name: Upload provenance to GitHub release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.event.release.tag_name || github.event.inputs.tag }}
-          PROV: ${{ needs.provenance.outputs.provenance-name }}
-        run: |
-          set -euo pipefail
-          gh release upload "$TAG" "$PROV" --clobber --repo "$GITHUB_REPOSITORY"
+      upload-assets: true
+      upload-tag-name: ${{ github.event.inputs.tag || github.event.release.tag_name }}
