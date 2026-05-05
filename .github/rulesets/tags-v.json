@@ -1,5 +1,5 @@
 {
-  "_comment": "Tag ruleset for release tags `v*` — bypassed by github-actions[bot] (the actor when release-please.yml runs with GITHUB_TOKEN) and the repo admin role. Imported via `gh api repos/amiwrpremium/go-derive/rulesets --method POST --input .github/rulesets/tags-v.json`.",
+  "_comment": "Tag ruleset for release tags `v*`. Bypass is the repo admin role only — release-please.yml uses RELEASE_PLEASE_TOKEN (a maintainer-owned PAT), so tag creation runs *as the maintainer* (admin), not as github-actions[bot]. The Integration bypass for App ID 15368 was rejected at import time anyway: GitHub only honours bypass-actor entries of type Integration on org-level rulesets, not repo-level. Imported via `gh api repos/amiwrpremium/go-derive/rulesets --method POST --input .github/rulesets/tags-v.json`.",
   "name": "release-tag-protection",
   "target": "tag",
   "enforcement": "active",
@@ -11,16 +11,10 @@
   },
   "bypass_actors": [
     {
-      "actor_id": 15368,
-      "actor_type": "Integration",
-      "bypass_mode": "always",
-      "_comment": "github-actions[bot] App ID — release-please.yml runs with GITHUB_TOKEN, so its commits/tags are authored by this app. Switch to a different App ID if you install the standalone release-please GitHub App and configure the workflow to use its token instead."
-    },
-    {
       "actor_id": 5,
       "actor_type": "RepositoryRole",
       "bypass_mode": "always",
-      "_comment": "Repo admin role — GitHub's built-in admin role ID is 5. Lets repo admins create/move/delete release tags directly when needed."
+      "_comment": "Repo admin role — GitHub's built-in admin role ID is 5. Covers maintainer-driven tag creation via release-please (PAT-authenticated as the admin) and emergency tag operations."
     }
   ],
   "rules": [
