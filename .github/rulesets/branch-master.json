@@ -1,5 +1,5 @@
 {
-  "_comment": "Branch ruleset for `master`. Imported once via `gh api repos/amiwrpremium/go-derive/rulesets --method POST --input .github/rulesets/branch-master.json`. Update in place: `gh api repos/.../rulesets/<id> --method PUT --input ...`. The ruleset supersedes the legacy branch-protection block in `.github/settings.yml`. Required-check names match jobs in `.github/workflows/ci.yml` (`required` rollup), `lint.yml`, `codeql.yml`, `gosec.yml`, and `pr-title.yml`.",
+  "_comment": "Branch ruleset for `master`. Imported once via `gh api repos/amiwrpremium/go-derive/rulesets --method POST --input .github/rulesets/branch-master.json`. Update in place: `gh api repos/.../rulesets/<id> --method PUT --input ...`. The ruleset supersedes the legacy branch-protection block in `.github/settings.yml`. Required-check names match jobs in `.github/workflows/ci.yml` (`required` rollup), `lint.yml`, `codeql.yml`, `gosec.yml`, and `pr-title.yml`. Conventional-commit format on the squash commit is covered by `pr-title.yml` (validates the PR title) plus `settings.yml`'s `squash_merge_commit_title: PR_TITLE` — the GitHub-Enterprise-only `commit_message_pattern` rule is intentionally absent because it requires GHAS, and the pr-title + squash-merge combination already covers it on free plans.",
   "name": "master-branch-protection",
   "target": "branch",
   "enforcement": "active",
@@ -9,7 +9,14 @@
       "exclude": []
     }
   },
-  "bypass_actors": [],
+  "bypass_actors": [
+    {
+      "actor_id": 5,
+      "actor_type": "RepositoryRole",
+      "bypass_mode": "always",
+      "_comment": "Repo admin role — GitHub's built-in admin role ID is 5. Lets the maintainer push emergency hotfixes directly when CI gates aren't appropriate (e.g. broken master, security patch). Day-to-day changes still go through PR."
+    }
+  ],
   "rules": [
     {
       "type": "deletion"
@@ -54,15 +61,6 @@
           { "context": "scan" },
           { "context": "semgrep" }
         ]
-      }
-    },
-    {
-      "type": "commit_message_pattern",
-      "parameters": {
-        "name": "Conventional Commits",
-        "negate": false,
-        "operator": "regex",
-        "pattern": "^(feat|fix|perf|deps|revert|docs|refactor|test|build|ci|chore)(\\([a-z-]+\\))?!?: .+"
       }
     }
   ]
