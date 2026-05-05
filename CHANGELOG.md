@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.1.2](https://github.com/amiwrpremium/go-derive/compare/v0.1.1...v0.1.2) (2026-05-05)
+
+
+### Features
+
+* **ci:** use RELEASE_PLEASE_TOKEN PAT so releases auto-fire release.yml ([b8eca3c](https://github.com/amiwrpremium/go-derive/commit/b8eca3cc763faafe11e9d0c5c20befbd7d4497e6))
+
 ## [0.1.1](https://github.com/amiwrpremium/go-derive/compare/v0.1.0...v0.1.1) (2026-05-05)
 
 
