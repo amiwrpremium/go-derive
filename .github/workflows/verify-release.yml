@@ -14,6 +14,11 @@ on:
     types: [published]
   schedule:
     - cron: '23 7 * * 1'  # Mondays at 07:23 UTC — re-verify weekly
+  # The optional `tag` input is validated against the canonical SemVer
+  # form inside both jobs' "Resolve tag" steps before any download or
+  # verification runs — an attacker can't smuggle shell metacharacters
+  # or arbitrary refs through it. Checkov CKV_GHA_7 may still flag the
+  # `inputs:` block on a presence-only basis; see docs/known-tool-issues.md.
   workflow_dispatch:
     inputs:
       tag:
@@ -46,6 +51,14 @@ jobs:
         run: |
           set -euo pipefail
           if [ -n "$INPUT_TAG" ]; then
+            # Reject anything that isn't a canonical SemVer tag so the
+            # input can't smuggle shell metacharacters, path traversal,
+            # or arbitrary git refs into the downstream gh-release-download
+            # / verifier commands.
+            if ! [[ "$INPUT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$ ]]; then
+              echo "::error::Invalid tag format: '$INPUT_TAG' (expected vX.Y.Z[-pre])"
+              exit 1
+            fi
             tag="$INPUT_TAG"
           elif [ -n "$REL_TAG" ]; then
             tag="$REL_TAG"
@@ -119,6 +132,14 @@ jobs:
         run: |
           set -euo pipefail
           if [ -n "$INPUT_TAG" ]; then
+            # Reject anything that isn't a canonical SemVer tag so the
+            # input can't smuggle shell metacharacters, path traversal,
+            # or arbitrary git refs into the downstream gh-release-download
+            # / verifier commands.
+            if ! [[ "$INPUT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$ ]]; then
+              echo "::error::Invalid tag format: '$INPUT_TAG' (expected vX.Y.Z[-pre])"
+              exit 1
+            fi
             tag="$INPUT_TAG"
           elif [ -n "$REL_TAG" ]; then
             tag="$REL_TAG"

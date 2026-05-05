@@ -14,6 +14,13 @@ name: release
 on:
   release:
     types: [published]
+  # The `tag` input below is the documented manual-retry path
+  # (see docs/release-process.md "Manually retrying a release flow").
+  # It IS validated against `^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$`
+  # in the `validate-input` job before any code runs, so an attacker
+  # cannot use it to inject shell, paths, or refs. Checkov CKV_GHA_7
+  # may still flag the `inputs:` block on a presence-only basis;
+  # see docs/known-tool-issues.md for that rule's status.
   workflow_dispatch:
     inputs:
       tag:
@@ -26,8 +33,32 @@ env:
   GO_VERSION: '1.25'
 
 jobs:
+  validate-input:
+    name: validate dispatch input
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Validate tag input
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          # Accept canonical SemVer tags (vX.Y.Z) optionally with a
+          # pre-release suffix (-alpha.1, -rc.2, etc.). Reject anything
+          # else so the input cannot smuggle shell metacharacters,
+          # path traversal, or arbitrary git refs into downstream
+          # checkout / gh release upload steps.
+          if ! [[ "$INPUT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$ ]]; then
+            echo "::error::Invalid tag format: '$INPUT_TAG' (expected vX.Y.Z[-pre])"
+            exit 1
+          fi
+
   sbom:
     name: cyclonedx sbom
+    needs: [validate-input]
+    if: ${{ always() && (github.event_name == 'release' || needs.validate-input.result == 'success') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write    # upload artifacts to the release
