@@ -3,12 +3,14 @@
 package retry
 
 import (
-	"math/rand"
+	"math/rand/v2"
 	"time"
 )
 
-// Backoff is an exponential backoff with jitter. It is not safe for
-// concurrent use — give each retrying goroutine its own.
+// Backoff is an exponential backoff with jitter. The Backoff struct
+// itself is not safe for concurrent use because of the `current` field
+// — give each retrying goroutine its own. The jitter source uses
+// math/rand/v2's goroutine-safe global PRNG.
 type Backoff struct {
 	Initial time.Duration
 	Max     time.Duration
@@ -16,7 +18,6 @@ type Backoff struct {
 	Jitter  float64
 
 	current time.Duration
-	rng     *rand.Rand
 }
 
 // NewBackoff constructs a Backoff with sensible defaults (initial 500ms,
@@ -27,8 +28,6 @@ func NewBackoff() *Backoff {
 		Max:     30 * time.Second,
 		Factor:  2.0,
 		Jitter:  0.2,
-		// #nosec G404 -- jitter, not security-sensitive
-		rng: rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
 }
 
@@ -38,9 +37,6 @@ func (b *Backoff) Reset() { b.current = 0 }
 // Next returns the duration to sleep before the next attempt. It walks up
 // exponentially, capped at Max, and applies +/- Jitter*current jitter.
 func (b *Backoff) Next() time.Duration {
-	if b.rng == nil {
-		b.rng = rand.New(rand.NewSource(time.Now().UnixNano())) // #nosec G404 -- jitter, not security-sensitive
-	}
 	if b.current == 0 {
 		b.current = b.Initial
 	} else {
@@ -54,7 +50,7 @@ func (b *Backoff) Next() time.Duration {
 		return b.current
 	}
 	delta := b.Jitter * float64(b.current)
-	jitter := (b.rng.Float64()*2 - 1) * delta
+	jitter := (rand.Float64()*2 - 1) * delta
 	out := b.current + time.Duration(jitter)
 	if out < 0 {
 		out = 0
