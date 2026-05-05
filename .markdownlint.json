@@ -34,5 +34,10 @@
   "MD012": {
     "maximum": 2
   },
-  "_MD012_comment": "Allow up to 2 consecutive blank lines (default 1). Lets sections breathe in long docs."
+  "_MD012_comment": "Allow up to 2 consecutive blank lines (default 1). Lets sections breathe in long docs.",
+
+  "MD004": {
+    "style": "consistent"
+  },
+  "_MD004_comment": "Per-file consistency for unordered-list bullet style. CHANGELOG.md uses '*' (release-please's conventional-changelog formatter); the rest of the repo uses '-'. Both are valid Markdown; each file is internally consistent. Setting 'consistent' explicitly overrides Codacy's stricter preset."
 }
