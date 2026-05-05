@@ -3,14 +3,14 @@
 package retry
 
 import (
-	"math/rand/v2"
+	"crypto/rand"
+	"encoding/binary"
 	"time"
 )
 
 // Backoff is an exponential backoff with jitter. The Backoff struct
 // itself is not safe for concurrent use because of the `current` field
-// — give each retrying goroutine its own. The jitter source uses
-// math/rand/v2's goroutine-safe global PRNG.
+// — give each retrying goroutine its own.
 type Backoff struct {
 	Initial time.Duration
 	Max     time.Duration
@@ -50,10 +50,30 @@ func (b *Backoff) Next() time.Duration {
 		return b.current
 	}
 	delta := b.Jitter * float64(b.current)
-	jitter := (rand.Float64()*2 - 1) * delta
+	jitter := (cryptoFloat64()*2 - 1) * delta
 	out := b.current + time.Duration(jitter)
 	if out < 0 {
 		out = 0
 	}
 	return out
+}
+
+// cryptoFloat64 returns a uniform random float64 in [0.0, 1.0) sourced from
+// crypto/rand. We use crypto/rand instead of math/rand purely to satisfy
+// the security linters that flag any use of math/rand or math/rand/v2 —
+// jitter for backoff doesn't actually need cryptographic randomness, but
+// the cost (one read of 8 bytes from the OS RNG per reconnect attempt) is
+// negligible at this call site.
+func cryptoFloat64() float64 {
+	var b [8]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		// crypto/rand.Read does not return errors on supported platforms
+		// (Linux, macOS, Windows). If it ever does, return 0 — the caller
+		// will get the un-jittered backoff, which is still correct.
+		return 0
+	}
+	// Take 53 random bits (the float64 mantissa) and divide by 2^53 to
+	// produce a uniform value in [0.0, 1.0).
+	u := binary.LittleEndian.Uint64(b[:]) >> 11
+	return float64(u) / float64(uint64(1)<<53)
 }
