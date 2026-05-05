@@ -56,9 +56,6 @@
       "description": "gorilla/websocket carries the WS transport — require manual review"
     }
   ],
-  "go": {
-    "postUpdateOptions": ["gomodTidy"]
-  },
   "prHourlyLimit": 4,
   "prConcurrentLimit": 10
 }
