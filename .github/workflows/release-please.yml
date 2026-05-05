@@ -21,7 +21,18 @@ jobs:
       - uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4
         id: release
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # Use a fine-grained PAT (Contents: write + Pull requests: write,
+          # scoped to this repo only) instead of GITHUB_TOKEN. Releases
+          # published by GITHUB_TOKEN do NOT trigger downstream workflows
+          # by GitHub's documented anti-loop protection, so release.yml
+          # (`on: release: published`) wouldn't fire and SBOMs / cosign
+          # signatures / SLSA provenance would never attach. PAT-originated
+          # events DO fire downstream workflows.
+          # The secret is set via: gh secret set RELEASE_PLEASE_TOKEN.
+          # Falls back to GITHUB_TOKEN if the PAT secret is missing
+          # (degraded mode — release still cuts but artefacts need
+          # manual `gh workflow run release.yml -f tag=vX.Y.Z`).
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
           config-file: .github/release-please-config.json
           manifest-file: .github/.release-please-manifest.json
           target-branch: master

@@ -155,8 +155,13 @@ mode for egress monitoring.
 |---|---|---|
 | `CODECOV_TOKEN` | Codecov upload in `ci.yml` | Yes for private repos; public repos can omit |
 | `CODACY_PROJECT_TOKEN` | Codacy coverage upload in `ci.yml` | Optional — coverage upload silently skipped if missing |
+| `RELEASE_PLEASE_TOKEN` | release-please uses this PAT to publish releases that auto-trigger `release.yml` | Recommended — if missing, falls back to `GITHUB_TOKEN`, but releases won't auto-fire `release.yml` (artefacts need manual `gh workflow run release.yml -f tag=vX.Y.Z`) |
 
-`GITHUB_TOKEN` is provided by Actions automatically; release-please uses it.
+`GITHUB_TOKEN` is provided by Actions automatically. `RELEASE_PLEASE_TOKEN`
+should be a fine-grained PAT scoped to this repo with **Contents: write**
+and **Pull requests: write** permissions — needed because GitHub's
+anti-loop protection doesn't fire `release.yml` on releases published by
+`GITHUB_TOKEN`.
 
 ## Security
 

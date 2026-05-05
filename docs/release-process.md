@@ -100,11 +100,21 @@ release PR.
 If the `release.yml` workflow fails (e.g. transient SLSA generator
 issue), redispatch it manually:
 
-```text
-GitHub UI → Actions → release → Run workflow → tag: vX.Y.Z
+```bash
+gh workflow run release.yml -R amiwrpremium/go-derive -f tag=vX.Y.Z
 ```
 
+(or via UI: Actions → release → Run workflow → tag: vX.Y.Z)
+
 The job is idempotent: already-uploaded artifacts are clobbered.
+
+This same manual dispatch is needed if `RELEASE_PLEASE_TOKEN` (the
+fine-grained PAT) isn't configured — without it, release-please
+publishes the GitHub release using the default `GITHUB_TOKEN`, which by
+GitHub's anti-loop protection does NOT trigger
+`release.yml` (`on: release: published`). With `RELEASE_PLEASE_TOKEN`
+set, releases auto-fire `release.yml`; without it, every release
+needs the dispatch above.
 
 ## Versioning
 
