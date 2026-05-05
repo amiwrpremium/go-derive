@@ -33,9 +33,10 @@
     {
       "type": "pull_request",
       "parameters": {
-        "required_approving_review_count": 1,
+        "_comment": "required_approving_review_count: 0 + require_code_owner_review: false because the project is solo-maintained — there's no reviewer pool other than the author. The pull_request rule still enforces that changes go through a PR (not direct push) and that conversations are resolved before merge; status checks + signing remain the substantive quality gate. When/if the project grows past one maintainer, raise the review count and flip code-owner review back on.",
+        "required_approving_review_count": 0,
         "dismiss_stale_reviews_on_push": true,
-        "require_code_owner_review": true,
+        "require_code_owner_review": false,
         "require_last_push_approval": false,
         "required_review_thread_resolution": true
       }
