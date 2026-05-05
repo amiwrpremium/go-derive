@@ -168,11 +168,11 @@ func (t *WSTransport) dial(ctx context.Context) error {
 	// closeWatcher unblocks the read pump when the parent context is
 	// cancelled (Close, failConnection, etc.) — gorilla doesn't bake ctx
 	// into ReadMessage, so we close the conn from the outside to break it.
-	go t.closeWatcher(c, rootCtx, stop)
+	go t.closeWatcher(rootCtx, c, stop)
 
 	// Pumps receive their own copies of conn/wq/stop/pong so they cannot
 	// observe a partially-cleared transport state if Close runs concurrently.
-	go t.readPump(c, rootCtx)
+	go t.readPump(rootCtx, c)
 	go t.writePump(c, wq, stop)
 	go t.pingPump(c, pong, stop)
 	return nil
@@ -180,7 +180,7 @@ func (t *WSTransport) dial(ctx context.Context) error {
 
 // closeWatcher closes conn when rootCtx is cancelled, breaking the
 // blocked ReadMessage in readPump.
-func (t *WSTransport) closeWatcher(conn *websocket.Conn, rootCtx context.Context, stop chan struct{}) {
+func (t *WSTransport) closeWatcher(rootCtx context.Context, conn *websocket.Conn, stop chan struct{}) {
 	select {
 	case <-rootCtx.Done():
 	case <-stop:
@@ -300,7 +300,7 @@ func (s *wsSub) finish(err error) {
 
 // readPump reads frames and dispatches them to either pending RPCs or
 // subscriptions until the connection drops.
-func (t *WSTransport) readPump(conn *websocket.Conn, ctx context.Context) {
+func (t *WSTransport) readPump(ctx context.Context, conn *websocket.Conn) {
 	for {
 		_, data, err := conn.ReadMessage()
 		if err != nil {
