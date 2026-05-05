@@ -4,10 +4,8 @@
 [![Lint](https://github.com/amiwrpremium/go-derive/actions/workflows/lint.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/lint.yml)
 [![CodeQL](https://github.com/amiwrpremium/go-derive/actions/workflows/codeql.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/codeql.yml)
 [![codecov](https://codecov.io/gh/amiwrpremium/go-derive/branch/master/graph/badge.svg)](https://codecov.io/gh/amiwrpremium/go-derive)
-<!-- After enrolling at https://app.codacy.com/, replace PROJECT_ID below and unhide.
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/PROJECT_ID)](https://app.codacy.com/gh/amiwrpremium/go-derive/dashboard)
-[![Codacy coverage](https://app.codacy.com/project/badge/Coverage/PROJECT_ID)](https://app.codacy.com/gh/amiwrpremium/go-derive/dashboard)
--->
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/1cfcd38cd2b043a1bbba2bdc7b188026)](https://app.codacy.com/gh/amiwrpremium/go-derive/dashboard)
+[![Codacy coverage](https://app.codacy.com/project/badge/Coverage/1cfcd38cd2b043a1bbba2bdc7b188026)](https://app.codacy.com/gh/amiwrpremium/go-derive/dashboard)
 [![Go Reference](https://pkg.go.dev/badge/github.com/amiwrpremium/go-derive.svg)](https://pkg.go.dev/github.com/amiwrpremium/go-derive)
 [![Go Report Card](https://goreportcard.com/badge/github.com/amiwrpremium/go-derive)](https://goreportcard.com/report/github.com/amiwrpremium/go-derive)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/amiwrpremium/go-derive)](https://github.com/amiwrpremium/go-derive/blob/master/go.mod)
