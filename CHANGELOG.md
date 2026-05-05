@@ -7,6 +7,19 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.1.3](https://github.com/amiwrpremium/go-derive/compare/v0.1.2...v0.1.3) (2026-05-05)
+
+
+### Bug Fixes
+
+* **ci:** align ruleset check names with what GitHub actually publishes ([1a24b2b](https://github.com/amiwrpremium/go-derive/commit/1a24b2b825d20020195976a36488959b5d6a3598))
+* **ci:** branch-master ruleset adjustments for free GitHub plans ([3817045](https://github.com/amiwrpremium/go-derive/commit/381704573e267672f08d5cc0de05dca310975bb9))
+* **ci:** drop _comment inside pull_request.parameters (rejected by GitHub schema) ([51aa16d](https://github.com/amiwrpremium/go-derive/commit/51aa16dfd172da09da6a75b5c0f68c52e08afa8a))
+* **ci:** drop required_signatures from both rulesets (incompatible with bot PRs) ([dd8eeac](https://github.com/amiwrpremium/go-derive/commit/dd8eeacb1b7102797521740ac68c4df702f916bb))
+* **ci:** drop review requirement on master ruleset (solo-maintained project) ([4e03977](https://github.com/amiwrpremium/go-derive/commit/4e039770d1b2c971abab25bdead03b941ab00fac))
+* **ci:** tag ruleset — drop Integration bypass (repo-level rulesets reject it) ([e356495](https://github.com/amiwrpremium/go-derive/commit/e35649580a59fbf521427a060ef874e79a0ed990))
+* **deps:** drop deprecated top-level "go" key from renovate.json ([91d6999](https://github.com/amiwrpremium/go-derive/commit/91d69991a44d3893fcaf05f188696139e265a31f))
+
 ## [0.1.2](https://github.com/amiwrpremium/go-derive/compare/v0.1.1...v0.1.2) (2026-05-05)
 
 
