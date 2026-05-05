@@ -32,6 +32,8 @@ jobs:
     permissions:
       contents: write    # upload artifacts to the release
       id-token: write    # cosign keyless OIDC
+    outputs:
+      hashes: ${{ steps.hash.outputs.hashes }}
     steps:
       - name: Harden runner
         uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
@@ -83,11 +85,23 @@ jobs:
             cosign sign-blob --yes --bundle "$f.cosign-bundle" "$f"
           done
 
+      - name: Compute base64 SHA-256 subjects for SLSA provenance
+        id: hash
+        # SLSA's generic generator needs a base64-encoded list of
+        # `<sha256>  <filename>` pairs (one per line) to attest over.
+        run: |
+          set -euo pipefail
+          HASHES=$(sha256sum \
+            go-derive-sbom.cdx.json \
+            go-derive-sbom.spdx.json \
+            go-derive-licenses.csv \
+            | base64 -w0)
+          echo "hashes=$HASHES" >> "$GITHUB_OUTPUT"
+
       - name: Upload artefacts to release
-        if: ${{ github.event_name == 'release' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.event.release.tag_name }}
+          TAG: ${{ github.event.release.tag_name || github.event.inputs.tag }}
         run: |
           set -euo pipefail
           gh release upload "$TAG" \
@@ -120,7 +134,7 @@ jobs:
     # signs and attests the listed subjects (SHA-256 base64 digests).
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@f7dd8c54c2067bafc12ca7a55595d5ee9b75204a # v2.1.0
     with:
-      base64-subjects: ""
+      base64-subjects: ${{ needs.sbom.outputs.hashes }}
       provenance-name: go-derive.intoto.jsonl
       upload-assets: true
       upload-tag-name: ${{ github.event.inputs.tag || github.event.release.tag_name }}
