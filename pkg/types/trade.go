@@ -61,9 +61,3 @@ type Trade struct {
 	// Timestamp is the engine-side execution time.
 	Timestamp MillisTime `json:"timestamp"`
 }
-
-// Realized is a deprecated alias for [Trade.RealizedPnL] kept for backward
-// compatibility within this SDK. Prefer the typed field.
-//
-// Deprecated: use [Trade.RealizedPnL] directly.
-func (t Trade) Realized() Decimal { return t.RealizedPnL }
