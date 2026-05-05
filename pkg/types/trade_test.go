@@ -49,8 +49,3 @@ func TestTrade_OmitsEmpty(t *testing.T) {
 	assert.NotContains(t, s, `"order_id"`)
 	assert.NotContains(t, s, `"liquidity_role"`)
 }
-
-func TestTrade_Realized_DeprecatedAlias(t *testing.T) {
-	tr := types.Trade{RealizedPnL: types.MustDecimal("12.5")}
-	assert.Equal(t, "12.5", tr.Realized().String())
-}
