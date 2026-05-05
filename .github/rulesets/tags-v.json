@@ -1,5 +1,5 @@
 {
-  "_comment": "Tag ruleset for release tags `v*`. Bypass is the repo admin role only — release-please.yml uses RELEASE_PLEASE_TOKEN (a maintainer-owned PAT), so tag creation runs *as the maintainer* (admin), not as github-actions[bot]. The Integration bypass for App ID 15368 was rejected at import time anyway: GitHub only honours bypass-actor entries of type Integration on org-level rulesets, not repo-level. Imported via `gh api repos/amiwrpremium/go-derive/rulesets --method POST --input .github/rulesets/tags-v.json`.",
+  "_comment": "Tag ruleset for release tags `v*`. Bypass is the repo admin role only — release-please.yml uses RELEASE_PLEASE_TOKEN (a maintainer-owned PAT), so tag creation runs *as the maintainer* (admin), not as github-actions[bot]. The Integration bypass for App ID 15368 was rejected at import time anyway: GitHub only honours bypass-actor entries of type Integration on org-level rulesets, not repo-level. The `required_signatures` rule is intentionally absent: release-please-action creates lightweight (unsigned) tags via the API. With `required_signatures` active, every release would block on tag creation — the admin bypass would have to fire on every tag, which is theatre for an automated flow. The tag-creation/update/deletion rules + the matching branch ruleset on master + signed squash-merge commits are the substantive controls. Imported via `gh api repos/amiwrpremium/go-derive/rulesets --method POST --input .github/rulesets/tags-v.json`.",
   "name": "release-tag-protection",
   "target": "tag",
   "enforcement": "active",
@@ -26,9 +26,6 @@
     },
     {
       "type": "deletion"
-    },
-    {
-      "type": "required_signatures"
     }
   ]
 }
