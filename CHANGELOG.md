@@ -79,17 +79,3 @@ do not edit it by hand.
 
 * **examples:** 91 runnable example programs covering every public surface ([b56a378](https://github.com/amiwrpremium/go-derive/commit/b56a378ac9c0c2f048c58689b21941ae821d7c0c))
 * scaffold repository ([e66b14c](https://github.com/amiwrpremium/go-derive/commit/e66b14c93ca121e637c877d939bd827435223d88))
-
-## [0.1.0] - 2026-05-02
-
-### Features
-
-- Initial public release.
-- REST client (`pkg/rest`) covering markets, orders, positions, collateral, transactions, subaccounts, RFQ, MMP.
-- WebSocket client (`pkg/ws`) with JSON-RPC calls and generics-typed subscriptions.
-- Typed channel descriptors in `pkg/channels` (public + private).
-- EIP-712 action signing and EIP-191 auth headers (`pkg/auth`) with `LocalSigner` and `SessionKeySigner`.
-- Domain types (`pkg/types`), enums (`pkg/enums`), errors (`pkg/errors`).
-- Top-level facade in `pkg/derive`.
-- Stubbed `pkg/contracts` package.
-- Examples for public REST, private REST, public WS subscribe, private WS subscribe, and place-order-via-WS.
