@@ -26,7 +26,10 @@ type NonceGen struct {
 // The returned generator is safe for concurrent use.
 func NewNonceGen() *NonceGen {
 	g := &NonceGen{}
-	g.rand = uint16(time.Now().UnixNano()) //nolint:gosec // not crypto-sensitive
+	// Take only the lower 16 bits of UnixNano() as the counter seed —
+	// the explicit mask documents intent so gosec G115 sees the
+	// narrowing as deliberate.
+	g.rand = uint16(time.Now().UnixNano() & 0xFFFF)
 	return g
 }
 
