@@ -7,6 +7,14 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.2.2](https://github.com/amiwrpremium/go-derive/compare/v0.2.1...v0.2.2) (2026-05-05)
+
+
+### Bug Fixes
+
+* **ci:** replace path suppressions with proper rule config ([#15](https://github.com/amiwrpremium/go-derive/issues/15)) ([766ef7b](https://github.com/amiwrpremium/go-derive/commit/766ef7b34f78c6e1e0b0594e0c011796b67bb69d))
+* **security:** validate workflow_dispatch inputs + improve security docs ([#18](https://github.com/amiwrpremium/go-derive/issues/18)) ([c1a7eb0](https://github.com/amiwrpremium/go-derive/commit/c1a7eb03030bd06b0bd5e7d17224cec2c1bc55c7))
+
 ## [0.2.1](https://github.com/amiwrpremium/go-derive/compare/v0.2.0...v0.2.1) (2026-05-05)
 
 
