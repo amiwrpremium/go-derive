@@ -39,7 +39,7 @@ links in `CODE_OF_CONDUCT.md`.
 
 **Root cause.** Every flagged reference (`[homepage]`, `[v2.1]`,
 `[Mozilla CoC]`, `[FAQ]`, `[translations]`) IS defined at the foot
-of the file (lines 80–84). The remark-lint resolver mis-handles
+of the file (lines 80–84). The remark-lint resolver mishandles
 the cross-paragraph layout used by the upstream Contributor Covenant
 template.
 
@@ -106,9 +106,9 @@ SAST and CI coverage. Specifically:
 - **Maintained**: requires N commits in the last 90 days; this
   repo will accumulate that history naturally.
 - **SAST**: detects only a fixed set of tools / actions; our SAST
-  posture is CodeQL + gosec + Semgrep + Trivy + Codacy + osv-scanner
-  + govulncheck + gitleaks + trufflehog, which the heuristic does
-  not fully match.
+  posture (CodeQL, gosec, Semgrep, Trivy, Codacy, osv-scanner,
+  govulncheck, gitleaks, trufflehog) is broader than the heuristic
+  recognises.
 - **CITests**: looks for test invocation patterns in CI; ours run
   via `go test ./... -race` across a `os × go-version` matrix.
 
