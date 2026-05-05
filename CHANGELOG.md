@@ -7,6 +7,16 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.1.1](https://github.com/amiwrpremium/go-derive/compare/v0.1.0...v0.1.1) (2026-05-05)
+
+
+### Bug Fixes
+
+* **ci:** manually attach SLSA provenance — generator's auto-upload is broken ([6d074d4](https://github.com/amiwrpremium/go-derive/commit/6d074d409d1bc5e04378f068ad13c08b9802769c))
+* **ci:** use tag ref for slsa-github-generator (its security model requires it) ([e5a2aba](https://github.com/amiwrpremium/go-derive/commit/e5a2ababb8f4089cced11667553871d93404e913))
+* **ci:** wire SLSA subjects + ungate release uploads on workflow_dispatch ([a04741a](https://github.com/amiwrpremium/go-derive/commit/a04741aa757fb6725a4edda130ebf6bf30e6a6f4))
+* **docs:** drop legacy CHANGELOG section that clashed with auto-generated style ([865a5dd](https://github.com/amiwrpremium/go-derive/commit/865a5dd15884899399800f9f0628c477ba184f92))
+
 ## [0.1.0](https://github.com/amiwrpremium/go-derive/compare/v0.1.0...v0.1.0) (2026-05-05)
 
 
