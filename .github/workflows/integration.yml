@@ -4,6 +4,13 @@ name: integration
 # only — never on push or PR — so PRs don't depend on testnet availability.
 
 on:
+  # The `run_live_orders` boolean input is bounded by GitHub's UI
+  # (only `true` / `false` are accepted) and is consumed via an `if:`
+  # gate at the test step, not interpolated into shell. There is no
+  # injection surface — the input is the safety mechanism that keeps
+  # a manual dispatch from accidentally placing testnet orders.
+  # Checkov CKV_GHA_7 may still flag the `inputs:` block on a
+  # presence-only basis; see docs/known-tool-issues.md for status.
   workflow_dispatch:
     inputs:
       run_live_orders:
