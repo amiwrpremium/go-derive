@@ -7,6 +7,22 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.2.0](https://github.com/amiwrpremium/go-derive/compare/v0.1.3...v0.2.0) (2026-05-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* **types:** remove deprecated Trade.Realized alias ([#10](https://github.com/amiwrpremium/go-derive/issues/10))
+
+### Features
+
+* **types:** remove deprecated Trade.Realized alias ([#10](https://github.com/amiwrpremium/go-derive/issues/10)) ([29ccf2e](https://github.com/amiwrpremium/go-derive/commit/29ccf2ea4f5edeec1cc6040764761340c31a5109))
+
+
+### Code Refactoring
+
+* **ws:** put context.Context first in closeWatcher and readPump ([#9](https://github.com/amiwrpremium/go-derive/issues/9)) ([f77350f](https://github.com/amiwrpremium/go-derive/commit/f77350fa8988d3a3cd27d134c1e6a19e25a8049b))
+
 ## [0.1.3](https://github.com/amiwrpremium/go-derive/compare/v0.1.2...v0.1.3) (2026-05-05)
 
 
