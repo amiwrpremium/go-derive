@@ -1,5 +1,5 @@
 {
-  "_comment": "Branch ruleset for `master`. Imported once via `gh api repos/amiwrpremium/go-derive/rulesets --method POST --input .github/rulesets/branch-master.json`. Update in place: `gh api repos/.../rulesets/<id> --method PUT --input ...`. The ruleset supersedes the legacy branch-protection block in `.github/settings.yml`. Required-check names match jobs in `.github/workflows/ci.yml` (`required` rollup), `lint.yml`, `codeql.yml`, `gosec.yml`, and `pr-title.yml`. Conventional-commit format on the squash commit is covered by `pr-title.yml` (validates the PR title) plus `settings.yml`'s `squash_merge_commit_title: PR_TITLE` — the GitHub-Enterprise-only `commit_message_pattern` rule is intentionally absent because it requires GHAS, and the pr-title + squash-merge combination already covers it on free plans. The pull_request rule has required_approving_review_count: 0 and require_code_owner_review: false because the project is solo-maintained — there's no reviewer pool other than the author. Changes still must go through a PR (not direct push), and status checks + signing remain the substantive quality gate. When/if the project grows past one maintainer, raise the review count and flip code-owner review back on.",
+  "_comment": "Branch ruleset for `master`. Imported once via `gh api repos/amiwrpremium/go-derive/rulesets --method POST --input .github/rulesets/branch-master.json`. Update in place: `gh api repos/.../rulesets/<id> --method PUT --input ...`. The ruleset supersedes the legacy branch-protection block in `.github/settings.yml`. Required-check `context` values are the GitHub-published check names — they match per-job names from .github/workflows/{ci,lint,codeql,gosec,extra-lint,license-check,dependency-review,trivy,gitleaks,trufflehog,semgrep,pr-title}.yml. Note the `enforce SHA pinning` check from pin-check.yml is intentionally NOT in this list: pin-check.yml has a paths filter (only runs when .github/workflows/** or .github/actions/** change), so under strict_required_status_checks_policy it would block every release PR (which doesn't touch workflow files). pin-check still gates workflow-changing PRs because it runs on those events; it's just not a per-PR required check. Conventional-commit format on the squash commit is covered by pr-title.yml (validates the PR title) plus `settings.yml`'s `squash_merge_commit_title: PR_TITLE` — the GitHub-Enterprise-only `commit_message_pattern` rule is intentionally absent because it requires GHAS. The pull_request rule has required_approving_review_count: 0 and require_code_owner_review: false because the project is solo-maintained — there's no reviewer pool other than the author. Changes still must go through a PR (not direct push), and status checks + signing remain the substantive quality gate. When/if the project grows past one maintainer, raise the review count and flip code-owner review back on.",
   "name": "master-branch-protection",
   "target": "branch",
   "enforcement": "active",
@@ -45,16 +45,15 @@
       "parameters": {
         "strict_required_status_checks_policy": true,
         "required_status_checks": [
-          { "context": "required" },
+          { "context": "required checks" },
           { "context": "extra-lint required" },
           { "context": "golangci-lint" },
           { "context": "staticcheck" },
-          { "context": "CodeQL / analyze (go)" },
+          { "context": "analyze (go)" },
           { "context": "gosec security scanner" },
           { "context": "conventional commit title" },
           { "context": "go-licenses" },
           { "context": "review" },
-          { "context": "enforce SHA pinning" },
           { "context": "trivy filesystem" },
           { "context": "trivy secrets" },
           { "context": "scan history" },
