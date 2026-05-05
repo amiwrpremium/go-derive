@@ -21,7 +21,8 @@ on:
     - cron: '47 6 * * 1'
   workflow_dispatch:
 
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   scan-pr:
