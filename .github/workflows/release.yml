@@ -157,6 +157,13 @@ jobs:
   provenance:
     name: slsa provenance
     needs: sbom
+    # Explicitly evaluate sbom's result rather than relying on the default
+    # `success()` filter — when the upstream `validate-input` job is skipped
+    # (release events skip it; only workflow_dispatch needs validation),
+    # GitHub Actions propagates the skip transitively into reusable-workflow
+    # callers like this one. Evaluating `needs.sbom.result == 'success'`
+    # directly bypasses the transitive-skip logic.
+    if: ${{ needs.sbom.result == 'success' }}
     permissions:
       actions: read
       id-token: write
