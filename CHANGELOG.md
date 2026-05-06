@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.2.3](https://github.com/amiwrpremium/go-derive/compare/v0.2.2...v0.2.3) (2026-05-06)
+
+
+### Bug Fixes
+
+* **ci:** unblock SLSA provenance after release-event skip propagation ([#19](https://github.com/amiwrpremium/go-derive/issues/19)) ([dba2df9](https://github.com/amiwrpremium/go-derive/commit/dba2df95365dc0225d4b4b84cf9bd07011bf75f2))
+
 ## [0.2.2](https://github.com/amiwrpremium/go-derive/compare/v0.2.1...v0.2.2) (2026-05-05)
 
 
