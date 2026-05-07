@@ -7,6 +7,18 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.2.12](https://github.com/amiwrpremium/go-derive/compare/v0.2.11...v0.2.12) (2026-05-07)
+
+
+### Bug Fixes
+
+* **ci:** allow deps scope + stop Renovate from bumping go directive ([#44](https://github.com/amiwrpremium/go-derive/issues/44)) ([69042ab](https://github.com/amiwrpremium/go-derive/commit/69042ab25df1c490b3eef49fb29b49bbd5a5f4bd))
+
+
+### Dependencies
+
+* **deps:** update github actions (minor) ([#41](https://github.com/amiwrpremium/go-derive/issues/41)) ([0ad5194](https://github.com/amiwrpremium/go-derive/commit/0ad5194be2b34c3364953eac8546de0082d8a17e))
+
 ## [0.2.11](https://github.com/amiwrpremium/go-derive/compare/v0.2.10...v0.2.11) (2026-05-07)
 
 
