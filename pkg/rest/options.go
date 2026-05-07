@@ -1,4 +1,31 @@
-// Package rest — see client.go for the overview.
+// Package rest is the HTTP-backed client for Derive's JSON-RPC API.
+//
+// # Concurrency
+//
+// [Client] is safe for concurrent use. Construct one per process and share
+// it across goroutines; every method is goroutine-safe.
+//
+// # Authentication
+//
+// Pass a [github.com/amiwrpremium/go-derive/pkg/auth.Signer] via [WithSigner]
+// to enable private endpoints. The transport adds X-LyraWallet,
+// X-LyraTimestamp and X-LyraSignature headers to every request automatically.
+// Public endpoints work without a signer.
+//
+// # Method surface
+//
+// [Client] embeds *methods.API (an internal type), exposing every documented
+// JSON-RPC method as a regular Go method:
+//
+//	c, _ := rest.New(rest.WithMainnet(), rest.WithSigner(s), rest.WithSubaccount(123))
+//	instruments, _ := c.GetInstruments(ctx, "BTC", enums.InstrumentTypePerp)
+//	c.PlaceOrder(ctx, methods.PlaceOrderInput{...})
+//
+// # Errors
+//
+// REST errors arrive as [*github.com/amiwrpremium/go-derive/pkg/errors.APIError]
+// when the server rejected the call, or [*github.com/amiwrpremium/go-derive/pkg/errors.ConnectionError]
+// for transport-level failures. Both compose with errors.Is and errors.As.
 package rest
 
 import (

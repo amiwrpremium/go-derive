@@ -1,4 +1,13 @@
-// Package jsonrpc — see envelope.go for the overview.
+// Package jsonrpc implements JSON-RPC 2.0 framing.
+//
+// The package is transport-agnostic: callers serialise a [Request] to
+// bytes, hand them to whatever transport (HTTP body, WebSocket frame, …),
+// and deserialise the reply into a [Response]. The HTTP and WebSocket
+// transports in internal/transport both build on this package.
+//
+// The package also defines [Notification], which is the unsolicited
+// frame Derive emits for subscription updates, and [IsNotification] for
+// distinguishing it from a request reply on the read path.
 package jsonrpc
 
 import "sync/atomic"

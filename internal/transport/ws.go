@@ -1,4 +1,17 @@
-// Package transport — see http.go for the overview.
+// Package transport defines the JSON-RPC wire interface that pkg/rest and
+// pkg/ws share, plus the HTTP and WebSocket implementations that satisfy
+// it.
+//
+// # Layered design
+//
+// pkg/rest and pkg/ws both consume a [Transport] through the embedded
+// internal/methods.API struct. The same method definition (e.g.
+// [github.com/amiwrpremium/go-derive/internal/methods.API.GetInstruments])
+// works against either transport because the only thing it needs is
+// [Transport.Call].
+//
+// The WebSocket transport additionally implements [Subscriber] so the
+// pkg/ws layer can drive subscriptions without a separate connection.
 package transport
 
 import (

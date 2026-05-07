@@ -1,4 +1,34 @@
-// Package ws — see client.go for the overview.
+// Package ws is the WebSocket-backed client for Derive's JSON-RPC API.
+//
+// # What it covers
+//
+// Derive's WebSocket transport carries two distinct workloads:
+//
+//   - request/response RPCs (lower latency than HTTP because of connection
+//     reuse and no per-call TLS handshake)
+//   - pub/sub channel notifications (the only way to stream live data)
+//
+// [Client] handles both. It runs three goroutines under one parent context:
+// a read pump that demultiplexes responses from notifications, a write pump
+// that serialises outgoing frames, and a ping pump that keeps the connection
+// alive. When [WithReconnect] is enabled, a reconnect goroutine re-dials
+// with exponential backoff and re-issues subscribe + login on success.
+//
+// # Lifecycle
+//
+//	c, _ := ws.New(ws.WithMainnet(), ws.WithSigner(s), ws.WithSubaccount(123))
+//	defer c.Close()
+//	if err := c.Connect(ctx); err != nil { ... }
+//	if err := c.Login(ctx); err != nil { ... }
+//
+//	sub, err := ws.Subscribe[types.OrderBook](ctx, c, public.OrderBook{Instrument: "BTC-PERP"})
+//	defer sub.Close()
+//	for ob := range sub.Updates() { ... }
+//
+// # Concurrency
+//
+// [Client] is safe for concurrent use after Connect. Many goroutines may
+// call methods or hold subscriptions on the same client simultaneously.
 package ws
 
 import (

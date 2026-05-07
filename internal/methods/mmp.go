@@ -1,4 +1,11 @@
-// Package methods — see collateral.go for the overview.
+// Package methods is the shared implementation of every JSON-RPC method
+// Derive exposes. Both pkg/rest.Client and pkg/ws.Client embed *API so that
+// each method is defined exactly once, parameterised by the underlying
+// transport.
+//
+// Public methods are unauthenticated; private methods require Signer to be
+// non-nil. Private methods that mutate orders also use the Domain to sign
+// the per-action EIP-712 hash.
 package methods
 
 import "context"
