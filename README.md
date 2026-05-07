@@ -21,9 +21,7 @@
 [![Maintained](https://img.shields.io/badge/maintained-yes-brightgreen.svg)](https://github.com/amiwrpremium/go-derive/commits/master)
 [![Last commit](https://img.shields.io/github/last-commit/amiwrpremium/go-derive/master)](https://github.com/amiwrpremium/go-derive/commits/master)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
-<!-- After enrolling at https://www.bestpractices.dev/, replace BADGE_ID below.
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/BADGE_ID/badge)](https://www.bestpractices.dev/projects/BADGE_ID)
--->
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12775/badge)](https://www.bestpractices.dev/projects/12775)
 
 A Go SDK for the [Derive](https://docs.derive.xyz/) exchange (formerly Lyra) — a layer-2 derivatives venue with perps, options, and spot.
 
