@@ -1,11 +1,3 @@
-// Package private declares Derive's authenticated WebSocket subscription
-// channels: a subaccount's order, position, balance, trade, RFQ and quote
-// streams.
-//
-// Each descriptor needs a SubaccountID and the WebSocket session must be
-// logged in (call [github.com/amiwrpremium/go-derive/pkg/ws.Client.Login]
-// before subscribing). Pair them with the matching T when calling
-// [github.com/amiwrpremium/go-derive/pkg/ws.Subscribe].
 package private
 
 import (
