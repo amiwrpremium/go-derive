@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.2.8](https://github.com/amiwrpremium/go-derive/compare/v0.2.7...v0.2.8) (2026-05-07)
+
+
+### Documentation
+
+* surface OpenSSF Best Practices badge (project 12775) ([#31](https://github.com/amiwrpremium/go-derive/issues/31)) ([64372ab](https://github.com/amiwrpremium/go-derive/commit/64372ab732884f922f97010caaa6d2acc0866dc8))
+
 ## [0.2.7](https://github.com/amiwrpremium/go-derive/compare/v0.2.6...v0.2.7) (2026-05-07)
 
 
