@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.2.4](https://github.com/amiwrpremium/go-derive/compare/v0.2.3...v0.2.4) (2026-05-07)
+
+
+### Bug Fixes
+
+* **ci:** bypass implicit success() filter on slsa provenance job ([#21](https://github.com/amiwrpremium/go-derive/issues/21)) ([45eedf6](https://github.com/amiwrpremium/go-derive/commit/45eedf6e840ce3572ebbff4ee062d1e7cdd13165))
+
 ## [0.2.3](https://github.com/amiwrpremium/go-derive/compare/v0.2.2...v0.2.3) (2026-05-06)
 
 
