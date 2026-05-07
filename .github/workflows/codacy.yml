@@ -24,7 +24,7 @@ jobs:
         with:
           egress-policy: audit
 
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Run Codacy Analysis CLI
         # codacy-analysis-cli-action's last tagged release is v4.4.7 (Jul 2025);
         # master has continued to receive security improvements (notably the
