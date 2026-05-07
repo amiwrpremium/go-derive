@@ -1,3 +1,4 @@
+// Package rest.
 package rest
 
 import (

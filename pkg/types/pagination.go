@@ -1,3 +1,4 @@
+// Package types.
 package types
 
 // Page wraps the server-side pagination shape used by every Derive list

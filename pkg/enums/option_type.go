@@ -1,3 +1,4 @@
+// Package enums.
 package enums
 
 // OptionType distinguishes calls from puts. It only applies when the

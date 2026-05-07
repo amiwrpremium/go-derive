@@ -1,3 +1,4 @@
+// Package enums.
 package enums
 
 // QuoteStatus is the lifecycle state of a maker [Quote] response to an

@@ -1,3 +1,4 @@
+// Package enums.
 package enums
 
 import "fmt"

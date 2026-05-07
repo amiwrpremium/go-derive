@@ -1,3 +1,4 @@
+// Package types.
 package types
 
 // SpotFeed is one update from the `spot_feed.{currency}` WebSocket channel.

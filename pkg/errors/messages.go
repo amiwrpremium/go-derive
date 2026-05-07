@@ -1,3 +1,4 @@
+// Package errors.
 package errors
 
 // codeMessages maps each Derive error code to a canonical human-readable

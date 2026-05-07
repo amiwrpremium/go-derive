@@ -1,3 +1,4 @@
+// Package enums.
 package enums
 
 // LiquidityRole is the role of a fill from the perspective of one side of

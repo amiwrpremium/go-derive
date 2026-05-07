@@ -1,3 +1,4 @@
+// Package errors.
 package errors
 
 // Code* constants enumerate every JSON-RPC error code Derive returns.

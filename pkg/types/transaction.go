@@ -1,3 +1,4 @@
+// Package types.
 package types
 
 // DepositTx records a single deposit into a subaccount.

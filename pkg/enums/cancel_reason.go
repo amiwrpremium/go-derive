@@ -1,3 +1,4 @@
+// Package enums.
 package enums
 
 // CancelReason carries the engine's explanation for why an order was

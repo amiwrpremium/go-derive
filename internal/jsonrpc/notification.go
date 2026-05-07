@@ -1,3 +1,4 @@
+// Package jsonrpc.
 package jsonrpc
 
 import "encoding/json"

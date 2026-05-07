@@ -1,3 +1,4 @@
+// Package enums.
 package enums
 
 // OrderStatus is the lifecycle state of an order as reported by the
