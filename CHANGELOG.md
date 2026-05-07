@@ -7,6 +7,19 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.2.13](https://github.com/amiwrpremium/go-derive/compare/v0.2.12...v0.2.13) (2026-05-07)
+
+
+### Bug Fixes
+
+* **ci:** restore SLSA generator tag pin + exclude it from Renovate ([#47](https://github.com/amiwrpremium/go-derive/issues/47)) ([81e4cc2](https://github.com/amiwrpremium/go-derive/commit/81e4cc255172599385577ce6a5ea42ede36cf41e))
+
+
+### Dependencies
+
+* **deps:** update actions/checkout action to v6.0.2 ([#39](https://github.com/amiwrpremium/go-derive/issues/39)) ([02bc595](https://github.com/amiwrpremium/go-derive/commit/02bc595fab49a8a355c3a91ac0cc878b6483cdf1))
+* **deps:** update github actions (major) ([#43](https://github.com/amiwrpremium/go-derive/issues/43)) ([8e9c424](https://github.com/amiwrpremium/go-derive/commit/8e9c424777da5bcfaad0c3e42f661e8c44af44d4))
+
 ## [0.2.12](https://github.com/amiwrpremium/go-derive/compare/v0.2.11...v0.2.12) (2026-05-07)
 
 
