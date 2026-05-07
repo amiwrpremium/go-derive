@@ -7,6 +7,18 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.2.14](https://github.com/amiwrpremium/go-derive/compare/v0.2.13...v0.2.14) (2026-05-07)
+
+
+### Bug Fixes
+
+* **ci:** pin Go to 1.25.10 + 1.26.2 (close GO-2026-4971 + GO-2026-4918) ([#49](https://github.com/amiwrpremium/go-derive/issues/49)) ([cecc84d](https://github.com/amiwrpremium/go-derive/commit/cecc84d8e4c42714254938ac9ca198dfde07d1d3))
+
+
+### Documentation
+
+* refresh stale data, add scanner badges, plug doc gaps ([#48](https://github.com/amiwrpremium/go-derive/issues/48)) ([9d13b07](https://github.com/amiwrpremium/go-derive/commit/9d13b07e198f29bf08b98ef97577850384bd305e))
+
 ## [0.2.13](https://github.com/amiwrpremium/go-derive/compare/v0.2.12...v0.2.13) (2026-05-07)
 
 
