@@ -1,3 +1,4 @@
+// Package netconf.
 package netconf
 
 import "fmt"

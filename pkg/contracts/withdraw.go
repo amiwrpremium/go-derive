@@ -1,3 +1,4 @@
+// Package contracts.
 package contracts
 
 import (

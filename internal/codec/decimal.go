@@ -1,3 +1,4 @@
+// Package codec.
 package codec
 
 import (

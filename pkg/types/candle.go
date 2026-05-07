@@ -1,3 +1,4 @@
+// Package types.
 package types
 
 // Candle is one OHLC bar returned by the trade-history endpoints when a

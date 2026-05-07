@@ -1,3 +1,4 @@
+// Package enums.
 package enums
 
 // BalanceUpdateType is the wire enum that classifies one entry on the

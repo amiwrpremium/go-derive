@@ -1,3 +1,4 @@
+// Package enums.
 package enums
 
 // TimeInForce controls when, and under what conditions, an order becomes

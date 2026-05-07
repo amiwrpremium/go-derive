@@ -1,3 +1,4 @@
+// Package enums.
 package enums
 
 // Direction is the side of a trade or order. Buy orders consume asks; sell

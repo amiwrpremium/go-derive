@@ -1,3 +1,4 @@
+// Package methods.
 package methods
 
 import "context"

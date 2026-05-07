@@ -1,3 +1,4 @@
+// Package enums.
 package enums
 
 // AuctionType describes the regime of a liquidation auction Derive ran

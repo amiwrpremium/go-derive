@@ -1,3 +1,4 @@
+// Package enums.
 package enums
 
 // MarginType identifies which margin model a subaccount uses.

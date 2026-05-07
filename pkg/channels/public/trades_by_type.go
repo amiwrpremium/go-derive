@@ -1,3 +1,4 @@
+// Package public.
 package public
 
 import (

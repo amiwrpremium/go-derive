@@ -1,3 +1,4 @@
+// Package ws.
 package ws
 
 import (

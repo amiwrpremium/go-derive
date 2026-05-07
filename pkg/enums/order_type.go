@@ -1,3 +1,4 @@
+// Package enums.
 package enums
 
 // OrderType describes how an order interacts with the order book.

@@ -1,3 +1,4 @@
+// Package private.
 package private
 
 import (

@@ -1,3 +1,4 @@
+// Package enums.
 package enums
 
 // InstrumentType identifies the kind of contract a market quotes.

@@ -1,3 +1,4 @@
+// Package enums.
 package enums
 
 // TxStatus is the on-chain transaction lifecycle as reported by Derive.
