@@ -1,0 +1,9 @@
+# Mark binary asset types so git doesn't run line-ending normalisation
+# or treat them as text in diffs.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.webp  binary
+*.gif   binary
+*.ico   binary
+*.pdf   binary
