@@ -1,4 +1,4 @@
-// Package errors.
+// Package errors — see api.go for the overview.
 package errors
 
 // codeMessages maps each Derive error code to a canonical human-readable

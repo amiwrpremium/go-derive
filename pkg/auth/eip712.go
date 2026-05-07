@@ -1,4 +1,4 @@
-// Package auth.
+// Package auth — see action.go for the overview.
 package auth
 
 import (

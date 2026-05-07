@@ -1,4 +1,4 @@
-// Package enums.
+// Package enums — see asset_type.go for the overview.
 package enums
 
 // AuctionType describes the regime of a liquidation auction Derive ran

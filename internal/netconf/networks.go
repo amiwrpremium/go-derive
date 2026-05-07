@@ -1,4 +1,4 @@
-// Package netconf.
+// Package netconf — see domain.go for the overview.
 package netconf
 
 import "fmt"

@@ -1,4 +1,4 @@
-// Package rest.
+// Package rest — see client.go for the overview.
 package rest
 
 import (

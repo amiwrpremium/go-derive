@@ -1,4 +1,4 @@
-// Package private.
+// Package private — see balances.go for the overview.
 package private
 
 import (

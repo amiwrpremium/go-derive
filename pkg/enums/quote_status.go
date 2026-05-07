@@ -1,4 +1,4 @@
-// Package enums.
+// Package enums — see asset_type.go for the overview.
 package enums
 
 // QuoteStatus is the lifecycle state of a maker [Quote] response to an

@@ -1,4 +1,4 @@
-// Package transport.
+// Package transport — see http.go for the overview.
 package transport
 
 import (

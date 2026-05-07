@@ -1,4 +1,4 @@
-// Package enums.
+// Package enums — see asset_type.go for the overview.
 package enums
 
 // LiquidityRole is the role of a fill from the perspective of one side of

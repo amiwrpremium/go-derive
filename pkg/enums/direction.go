@@ -1,4 +1,4 @@
-// Package enums.
+// Package enums — see asset_type.go for the overview.
 package enums
 
 // Direction is the side of a trade or order. Buy orders consume asks; sell

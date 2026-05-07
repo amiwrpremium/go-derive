@@ -1,4 +1,4 @@
-// Package jsonrpc.
+// Package jsonrpc — see envelope.go for the overview.
 package jsonrpc
 
 import (

@@ -1,4 +1,4 @@
-// Package errors.
+// Package errors — see api.go for the overview.
 package errors
 
 import "errors"

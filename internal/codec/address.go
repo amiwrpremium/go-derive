@@ -1,4 +1,4 @@
-// Package codec.
+// Package codec — see abi.go for the overview.
 package codec
 
 import (

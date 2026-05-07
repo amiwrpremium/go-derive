@@ -1,4 +1,4 @@
-// Package enums.
+// Package enums — see asset_type.go for the overview.
 package enums
 
 // BalanceUpdateType is the wire enum that classifies one entry on the

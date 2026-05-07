@@ -1,4 +1,4 @@
-// Package types.
+// Package types — see address.go for the overview.
 package types
 
 import "github.com/amiwrpremium/go-derive/pkg/enums"
