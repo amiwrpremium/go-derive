@@ -1,0 +1,16 @@
+---
+# remark-lint configuration
+#
+# Enables GitHub Flavored Markdown (GFM) parsing so that task lists
+# (`- [ ]` / `- [x]`), tables, autolinks, and strikethrough render the
+# same way they do on GitHub. Without this, vanilla remark-lint
+# mis-parses GFM task-list checkboxes as empty reference-style links
+# (`[ ]`) and fires `no-undefined-references` on every line — see
+# .github/PULL_REQUEST_TEMPLATE.md for an example.
+#
+# Codacy's bundled remark-lint analyser reads this file from the
+# default branch on every analysis run.
+
+plugins:
+  - remark-gfm
+  - remark-preset-lint-recommended
