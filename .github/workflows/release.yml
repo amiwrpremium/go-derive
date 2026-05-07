@@ -157,13 +157,14 @@ jobs:
   provenance:
     name: slsa provenance
     needs: sbom
-    # Explicitly evaluate sbom's result rather than relying on the default
-    # `success()` filter — when the upstream `validate-input` job is skipped
-    # (release events skip it; only workflow_dispatch needs validation),
-    # GitHub Actions propagates the skip transitively into reusable-workflow
-    # callers like this one. Evaluating `needs.sbom.result == 'success'`
-    # directly bypasses the transitive-skip logic.
-    if: ${{ needs.sbom.result == 'success' }}
+    # When the upstream `validate-input` job is skipped (release events skip
+    # it; only workflow_dispatch needs validation), GitHub Actions's implicit
+    # `success()` filter on this reusable-workflow caller still treats the
+    # transitive skip as a non-success and skips provenance, even though
+    # the direct dependency `sbom` itself succeeded. Use `always()` to
+    # bypass the implicit filter and an explicit `needs.sbom.result` check
+    # so we only generate provenance when sbom actually produced subjects.
+    if: ${{ always() && needs.sbom.result == 'success' }}
     permissions:
       actions: read
       id-token: write
