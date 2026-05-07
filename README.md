@@ -1,27 +1,43 @@
 # go-derive
 
+<!-- Build & test -->
 [![CI](https://github.com/amiwrpremium/go-derive/actions/workflows/ci.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/ci.yml)
 [![Lint](https://github.com/amiwrpremium/go-derive/actions/workflows/lint.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/lint.yml)
 [![CodeQL](https://github.com/amiwrpremium/go-derive/actions/workflows/codeql.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/codeql.yml)
+[![OSV-Scanner](https://github.com/amiwrpremium/go-derive/actions/workflows/osv-scanner.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/osv-scanner.yml)
+
+<!-- Coverage & code quality -->
 [![codecov](https://codecov.io/gh/amiwrpremium/go-derive/branch/master/graph/badge.svg)](https://codecov.io/gh/amiwrpremium/go-derive)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/1cfcd38cd2b043a1bbba2bdc7b188026)](https://app.codacy.com/gh/amiwrpremium/go-derive/dashboard)
 [![Codacy coverage](https://app.codacy.com/project/badge/Coverage/1cfcd38cd2b043a1bbba2bdc7b188026)](https://app.codacy.com/gh/amiwrpremium/go-derive/dashboard)
-[![Go Reference](https://pkg.go.dev/badge/github.com/amiwrpremium/go-derive.svg)](https://pkg.go.dev/github.com/amiwrpremium/go-derive)
 [![Go Report Card](https://goreportcard.com/badge/github.com/amiwrpremium/go-derive)](https://goreportcard.com/report/github.com/amiwrpremium/go-derive)
+
+<!-- Security & supply chain -->
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12775/badge)](https://www.bestpractices.dev/projects/12775)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/amiwrpremium/go-derive/badge)](https://scorecard.dev/viewer/?uri=github.com/amiwrpremium/go-derive)
+[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
+[![govulncheck](https://img.shields.io/badge/security-govulncheck-success)](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck)
+[![Security Policy](https://img.shields.io/badge/security-policy-blue.svg)](./SECURITY.md)
+
+<!-- Documentation & API -->
+[![Go Reference](https://pkg.go.dev/badge/github.com/amiwrpremium/go-derive.svg)](https://pkg.go.dev/github.com/amiwrpremium/go-derive)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/amiwrpremium/go-derive)](https://github.com/amiwrpremium/go-derive/blob/master/go.mod)
+[![Top Language](https://img.shields.io/github/languages/top/amiwrpremium/go-derive)](https://github.com/amiwrpremium/go-derive)
+
+<!-- Release & versioning -->
 [![Release](https://img.shields.io/github/v/release/amiwrpremium/go-derive?include_prereleases&sort=semver)](https://github.com/amiwrpremium/go-derive/releases)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Renovate enabled](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com/)
+[![Commits since latest](https://img.shields.io/github/commits-since/amiwrpremium/go-derive/latest/master)](https://github.com/amiwrpremium/go-derive/commits/master)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
 [![release-please](https://img.shields.io/badge/release-please-blue)](https://github.com/googleapis/release-please)
-[![govulncheck](https://img.shields.io/badge/security-govulncheck-success)](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/amiwrpremium/go-derive/badge)](https://scorecard.dev/viewer/?uri=github.com/amiwrpremium/go-derive)
-[![OSV-Scanner](https://github.com/amiwrpremium/go-derive/actions/workflows/osv-scanner.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/osv-scanner.yml)
-[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
+
+<!-- Project info & community -->
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](./CODE_OF_CONDUCT.md)
+[![Renovate enabled](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
 [![Maintained](https://img.shields.io/badge/maintained-yes-brightgreen.svg)](https://github.com/amiwrpremium/go-derive/commits/master)
 [![Last commit](https://img.shields.io/github/last-commit/amiwrpremium/go-derive/master)](https://github.com/amiwrpremium/go-derive/commits/master)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12775/badge)](https://www.bestpractices.dev/projects/12775)
+[![GitHub stars](https://img.shields.io/github/stars/amiwrpremium/go-derive?style=social)](https://github.com/amiwrpremium/go-derive/stargazers)
 
 A Go SDK for the [Derive](https://docs.derive.xyz/) exchange (formerly Lyra) — a layer-2 derivatives venue with perps, options, and spot.
 
