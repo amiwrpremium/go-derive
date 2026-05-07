@@ -50,6 +50,19 @@
       "automerge": true
     },
     {
+      "matchManagers": ["github-actions"],
+      "matchPackageNames": ["slsa-framework/slsa-github-generator"],
+      "enabled": false,
+      "description": "SLSA generator's builder-fetch step rejects SHA refs and requires the @vX.Y.Z tag form. Their security model relies on TUF + sigstore signature verification of the builder binary, not SHA-pinning. Documented exception in .github/workflows/pin-check.yml. Don't let Renovate convert the tag back to a SHA — it broke v0.2.12's release pipeline."
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["dependencies", "major"],
+      "description": "Major GitHub Action bumps need manual review — semantics may change between major versions."
+    },
+    {
       "matchPackageNames": ["github.com/ethereum/go-ethereum"],
       "automerge": false,
       "labels": ["dependencies", "review-required"],

@@ -180,7 +180,7 @@ jobs:
     # sigstore signature verification of the builder binary instead, so
     # the SHA-pin defence isn't applicable. See the slsa-framework
     # README and pin-check.yml's allow-list for the rationale.
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@f7dd8c54c2067bafc12ca7a55595d5ee9b75204a # v2.1.0
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
     with:
       base64-subjects: ${{ needs.sbom.outputs.hashes }}
       provenance-name: go-derive.intoto.jsonl
