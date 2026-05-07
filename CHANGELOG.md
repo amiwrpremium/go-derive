@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.2.10](https://github.com/amiwrpremium/go-derive/compare/v0.2.9...v0.2.10) (2026-05-07)
+
+
+### Documentation
+
+* replicate full package overview into every non-canonical file ([#35](https://github.com/amiwrpremium/go-derive/issues/35)) ([040694b](https://github.com/amiwrpremium/go-derive/commit/040694b504c5a4bfd26d8086544ae7576514d59f))
+
 ## [0.2.9](https://github.com/amiwrpremium/go-derive/compare/v0.2.8...v0.2.9) (2026-05-07)
 
 
