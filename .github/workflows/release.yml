@@ -100,7 +100,10 @@ jobs:
       - name: Generate license inventory
         run: |
           set -euo pipefail
-          go install github.com/google/go-licenses@latest
+          # renovate: datasource=go depName=github.com/google/go-licenses
+          # Pinned to the latest v1 release. v2.x renamed the module path
+          # to github.com/google/go-licenses/v2 — a separate migration.
+          go install github.com/google/go-licenses@v1.6.0
           go-licenses csv ./... > go-derive-licenses.csv 2>go-derive-licenses.log || true
           # The `|| true` swallows missing-license warnings on standard library
           # imports; the CSV captures every reportable license.
