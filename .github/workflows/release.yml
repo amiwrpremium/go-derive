@@ -30,7 +30,8 @@ on:
 permissions: read-all
 
 env:
-  GO_VERSION: '1.25'
+  # Match ci.yml — patched 1.25 stdlib for GO-2026-4971 / GO-2026-4918.
+  GO_VERSION: '1.25.10'
 
 jobs:
   validate-input:
