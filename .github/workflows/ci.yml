@@ -199,7 +199,9 @@ jobs:
           cache: true
       - name: Install lefthook
         # renovate: datasource=go depName=github.com/evilmartians/lefthook
-        run: go install github.com/evilmartians/lefthook@v2.1.6
+        # Pinned to the latest v1 release. v2.x renamed the module path
+        # to github.com/evilmartians/lefthook/v2 — a separate migration.
+        run: go install github.com/evilmartians/lefthook@v1.13.6
       - name: Validate lefthook.yml
         # `dump` reads + parses the config; non-zero exit on any schema or
         # YAML error. Cheaper than `lefthook install` and runs without a
