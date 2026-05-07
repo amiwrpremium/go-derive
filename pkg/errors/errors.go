@@ -1,6 +1,3 @@
-// Package errors provides the SDK's error types and sentinel values. All
-// errors are constructed so they work with errors.Is and errors.As from the
-// standard library.
 package errors
 
 import "errors"

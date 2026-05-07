@@ -1,7 +1,3 @@
-// Package netconf carries the network constants — endpoint URLs, chain IDs,
-// and EIP-712 domain separators — for each Derive environment. These values
-// are not user-tunable enums; they are concrete configuration that varies
-// between mainnet and testnet.
 package netconf
 
 import "fmt"
