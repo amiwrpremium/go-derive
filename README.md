@@ -12,12 +12,21 @@
 [![Codacy coverage](https://app.codacy.com/project/badge/Coverage/1cfcd38cd2b043a1bbba2bdc7b188026)](https://app.codacy.com/gh/amiwrpremium/go-derive/dashboard)
 [![Go Report Card](https://goreportcard.com/badge/github.com/amiwrpremium/go-derive)](https://goreportcard.com/report/github.com/amiwrpremium/go-derive)
 
-<!-- Security & supply chain -->
+<!-- Security & supply chain — overall posture -->
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12775/badge)](https://www.bestpractices.dev/projects/12775)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/amiwrpremium/go-derive/badge)](https://scorecard.dev/viewer/?uri=github.com/amiwrpremium/go-derive)
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
-[![govulncheck](https://img.shields.io/badge/security-govulncheck-success)](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck)
+[![Cosign signed](https://img.shields.io/badge/cosign-signed-blueviolet?logo=sigstore)](https://github.com/amiwrpremium/go-derive/releases/latest)
+[![SBOM](https://img.shields.io/badge/SBOM-CycloneDX%20%2B%20SPDX-blue)](https://github.com/amiwrpremium/go-derive/releases/latest)
 [![Security Policy](https://img.shields.io/badge/security-policy-blue.svg)](./SECURITY.md)
+
+<!-- Security & supply chain — scanners -->
+[![govulncheck](https://img.shields.io/badge/security-govulncheck-success)](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck)
+[![gosec](https://github.com/amiwrpremium/go-derive/actions/workflows/gosec.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/gosec.yml)
+[![Semgrep](https://github.com/amiwrpremium/go-derive/actions/workflows/semgrep.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/semgrep.yml)
+[![Trivy](https://github.com/amiwrpremium/go-derive/actions/workflows/trivy.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/trivy.yml)
+[![Gitleaks](https://github.com/amiwrpremium/go-derive/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/gitleaks.yml)
+[![TruffleHog](https://github.com/amiwrpremium/go-derive/actions/workflows/trufflehog.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/trufflehog.yml)
 
 <!-- Documentation & API -->
 [![Go Reference](https://pkg.go.dev/badge/github.com/amiwrpremium/go-derive.svg)](https://pkg.go.dev/github.com/amiwrpremium/go-derive)
@@ -45,7 +54,19 @@ Covers REST (public + private), WebSocket (public + private + subscriptions), an
 
 ## Status
 
-`v0.1.0-dev` — under active development. API may change before `v1.0.0`.
+`v0.x` — pre-1.0; the public API may still change. Track the current
+version via the [Release](https://github.com/amiwrpremium/go-derive/releases)
+badge above. Breaking changes between 0.x versions follow Conventional
+Commits' `feat!:` discipline and are listed under "BREAKING CHANGES"
+in [CHANGELOG.md](./CHANGELOG.md).
+
+## Versioning
+
+This project follows [Semantic Versioning](https://semver.org/).
+Releases are computed from [Conventional Commits](https://www.conventionalcommits.org/)
+by [release-please](https://github.com/googleapis/release-please);
+the type→bump mapping lives in
+[docs/release-process.md](./docs/release-process.md).
 
 ## Install
 
@@ -54,6 +75,12 @@ go get github.com/amiwrpremium/go-derive
 ```
 
 Requires Go 1.25+.
+
+## Compatibility
+
+| go-derive | Go versions | Derive API |
+|---|---|---|
+| v0.2.x | 1.25, 1.26 | matches Derive API as of v0.2.13 |
 
 ## Quick start
 
@@ -72,13 +99,16 @@ import (
 )
 
 func main() {
-    signer, err := auth.NewLocalSigner(os.Getenv("DERIVE_SESSION_KEY"))
+    // NewLocalSigner takes a raw hex private key. For production setups,
+    // see pkg/auth.NewSessionKeySigner — registers a hot session key
+    // delegating from a long-lived owner address.
+    signer, err := auth.NewLocalSigner(os.Getenv("DERIVE_PRIVATE_KEY"))
     if err != nil {
         log.Fatal(err)
     }
 
     c, err := derive.NewClient(
-        derive.WithMainnet(),
+        derive.WithTestnet(), // start on testnet; switch to derive.WithMainnet() once integration is verified
         derive.WithSigner(signer),
         derive.WithSubaccount(123),
     )
@@ -97,7 +127,8 @@ func main() {
 }
 ```
 
-See [`examples/`](./examples/) for more.
+See [`examples/`](./examples/) for more — and
+[docs/getting-started.md](./docs/getting-started.md) for a step-by-step walkthrough.
 
 ## Architecture
 
@@ -108,6 +139,7 @@ pkg/channels             typed WebSocket subscriptions
 pkg/auth                 EIP-712 signing, session keys
 pkg/types, pkg/enums     domain types, named-string enums
 pkg/errors               sentinel errors + APIError
+pkg/contracts            on-chain helpers (deposit/withdraw/session keys) — stubs returning ErrNotImplemented
 
 internal/jsonrpc         JSON-RPC 2.0 framing
 internal/transport       HTTP + WS transports (shared interface)
@@ -128,7 +160,7 @@ The full doc set lives under [`docs/`](./docs/):
 | Topic | |
 |---|---|
 | Concepts | [getting-started](./docs/getting-started.md) · [architecture](./docs/architecture.md) · [transports](./docs/transports.md) · [auth](./docs/auth.md) · [subscriptions](./docs/subscriptions.md) · [numerics](./docs/numerics.md) · [error handling](./docs/error-handling.md) · [rate limiting](./docs/rate-limiting.md) · [reconnection](./docs/reconnection.md) |
-| Process | [examples](./docs/examples.md) · [testing](./docs/testing.md) · [ci](./docs/ci.md) · [release process](./docs/release-process.md) |
+| Process | [examples](./docs/examples.md) · [testing](./docs/testing.md) · [ci](./docs/ci.md) · [release process](./docs/release-process.md) · [known tool issues](./docs/known-tool-issues.md) |
 | Security | [security index](./docs/security/README.md) · [repo policy](./docs/security/repo-policy.md) · [threat model](./docs/security/threat-model.md) |
 
 ## Continuous integration
@@ -243,6 +275,7 @@ each subset covers.
 | [SECURITY-INSIGHTS.yml](./SECURITY-INSIGHTS.yml) | OpenSSF security metadata |
 | [.github/settings.yml](./.github/settings.yml) | declarative repo settings + label palette (Probot Settings) |
 | [.github/rulesets/](./.github/rulesets/) | branch + tag rulesets, importable via `gh api` |
+| Configs | [Makefile](./Makefile) · [lefthook.yml](./lefthook.yml) · [renovate.json](./renovate.json) · [.codacy.yml](./.codacy.yml) · [.markdownlint.json](./.markdownlint.json) · [.remarkrc.yml](./.remarkrc.yml) · [.typos.toml](./.typos.toml) · [.editorconfig](./.editorconfig) |
 
 ## Contributing
 
@@ -259,8 +292,14 @@ This SDK exists thanks to:
 - **[Derive](https://docs.derive.xyz/)** (formerly Lyra) — the public REST + WebSocket reference underpins every method and sentinel in this module.
 - **Upstream Go libraries** the SDK builds on: [`go-ethereum`](https://github.com/ethereum/go-ethereum) for crypto and EIP-712 hashing, [`gorilla/websocket`](https://github.com/gorilla/websocket) for the WS transport, [`shopspring/decimal`](https://github.com/shopspring/decimal) for fixed-point arithmetic, [`stretchr/testify`](https://github.com/stretchr/testify) for the test helpers.
 - **[OpenSSF](https://openssf.org/)** — the [Scorecard](https://scorecard.dev), [SLSA](https://slsa.dev), [Security Insights](https://github.com/ossf/security-insights-spec), and [best-practices](https://www.bestpractices.dev/) projects shaped most of the security plumbing in this repo.
+- **Tools and standards** — [Sigstore](https://www.sigstore.dev/) for keyless artefact signing, [SPDX](https://spdx.dev/) and [CycloneDX](https://cyclonedx.org/) for SBOM formats, [OWASP](https://owasp.org/) for the Semgrep security-audit rule pack, [Mozilla](https://github.com/mozilla/diversity) for the CoC enforcement-ladder reference.
 
 ## Disclaimer
+
+**Use testnet first.** Always validate any integration against the
+Derive testnet (`derive.WithTestnet()`) before pointing at mainnet. Test
+orders place real testnet positions but use no real funds; mainnet does
+the opposite.
 
 This software is provided **"as is"**, without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement (see [LICENSE](./LICENSE) for the full terms).
 
