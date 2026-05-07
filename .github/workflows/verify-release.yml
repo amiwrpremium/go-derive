@@ -150,7 +150,8 @@ jobs:
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
       - name: Install slsa-verifier
-        run: go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier@latest
+        # renovate: datasource=go depName=github.com/slsa-framework/slsa-verifier/v2
+        run: go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier@v2.7.1
 
       - name: Download SLSA provenance + an artefact
         env:
