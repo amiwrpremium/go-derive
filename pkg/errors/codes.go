@@ -1,4 +1,4 @@
-// Package errors.
+// Package errors — see api.go for the overview.
 package errors
 
 // Code* constants enumerate every JSON-RPC error code Derive returns.

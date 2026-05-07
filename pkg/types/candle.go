@@ -1,4 +1,4 @@
-// Package types.
+// Package types — see address.go for the overview.
 package types
 
 // Candle is one OHLC bar returned by the trade-history endpoints when a

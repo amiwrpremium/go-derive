@@ -1,4 +1,4 @@
-// Package enums.
+// Package enums — see asset_type.go for the overview.
 package enums
 
 // OrderType describes how an order interacts with the order book.

@@ -1,4 +1,4 @@
-// Package contracts.
+// Package contracts — see deposit.go for the overview.
 package contracts
 
 import (

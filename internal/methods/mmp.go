@@ -1,4 +1,4 @@
-// Package methods.
+// Package methods — see collateral.go for the overview.
 package methods
 
 import "context"

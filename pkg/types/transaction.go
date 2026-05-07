@@ -1,4 +1,4 @@
-// Package types.
+// Package types — see address.go for the overview.
 package types
 
 // DepositTx records a single deposit into a subaccount.

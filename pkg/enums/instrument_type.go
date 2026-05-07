@@ -1,4 +1,4 @@
-// Package enums.
+// Package enums — see asset_type.go for the overview.
 package enums
 
 // InstrumentType identifies the kind of contract a market quotes.

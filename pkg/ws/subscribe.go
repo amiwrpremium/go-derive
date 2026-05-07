@@ -1,4 +1,4 @@
-// Package ws.
+// Package ws — see client.go for the overview.
 package ws
 
 import (

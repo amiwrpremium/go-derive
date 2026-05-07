@@ -1,4 +1,4 @@
-// Package enums.
+// Package enums — see asset_type.go for the overview.
 package enums
 
 // OrderStatus is the lifecycle state of an order as reported by the

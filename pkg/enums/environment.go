@@ -1,4 +1,4 @@
-// Package enums.
+// Package enums — see asset_type.go for the overview.
 package enums
 
 // Environment selects which Derive deployment a client talks to. It is

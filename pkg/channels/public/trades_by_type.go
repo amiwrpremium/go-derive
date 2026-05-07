@@ -1,4 +1,4 @@
-// Package public.
+// Package public — see orderbook.go for the overview.
 package public
 
 import (

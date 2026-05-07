@@ -1,4 +1,4 @@
-// Package types.
+// Package types — see address.go for the overview.
 package types
 
 // SpotFeed is one update from the `spot_feed.{currency}` WebSocket channel.
