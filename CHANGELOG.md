@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.2.6](https://github.com/amiwrpremium/go-derive/compare/v0.2.5...v0.2.6) (2026-05-07)
+
+
+### Documentation
+
+* add per-file Package headers (Codacy Revive strict mode) ([#27](https://github.com/amiwrpremium/go-derive/issues/27)) ([6929ac0](https://github.com/amiwrpremium/go-derive/commit/6929ac0f8cc29b6378f0051eb4f4e31fb7314ec5))
+
 ## [0.2.5](https://github.com/amiwrpremium/go-derive/compare/v0.2.4...v0.2.5) (2026-05-07)
 
 
