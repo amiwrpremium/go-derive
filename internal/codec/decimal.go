@@ -1,4 +1,5 @@
-// Package codec — see abi.go for the overview.
+// Package codec is a small bag of low-level encoding helpers shared between
+// pkg/auth (action signing) and pkg/types. None of it leaks to user code.
 package codec
 
 import (
