@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.2.11](https://github.com/amiwrpremium/go-derive/compare/v0.2.10...v0.2.11) (2026-05-07)
+
+
+### Bug Fixes
+
+* **ci:** enable GFM in remark-lint config (close 20 false-positive alerts) ([#37](https://github.com/amiwrpremium/go-derive/issues/37)) ([ee1c3eb](https://github.com/amiwrpremium/go-derive/commit/ee1c3eb4517e12c27746cccf9d3ce7f97c2ec550))
+
 ## [0.2.10](https://github.com/amiwrpremium/go-derive/compare/v0.2.9...v0.2.10) (2026-05-07)
 
 
