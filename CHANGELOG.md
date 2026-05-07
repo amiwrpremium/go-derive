@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.2.7](https://github.com/amiwrpremium/go-derive/compare/v0.2.6...v0.2.7) (2026-05-07)
+
+
+### Documentation
+
+* rewrite per-file Package headers to satisfy Revive form check ([#29](https://github.com/amiwrpremium/go-derive/issues/29)) ([e0d5efd](https://github.com/amiwrpremium/go-derive/commit/e0d5efd7a5fe4885e104933b859b5f9e5c481196))
+
 ## [0.2.6](https://github.com/amiwrpremium/go-derive/compare/v0.2.5...v0.2.6) (2026-05-07)
 
 
