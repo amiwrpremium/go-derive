@@ -6,9 +6,9 @@
   "_MD013_comment": "Disable hard line-length limit. Many docs are table-heavy or quote third-party text (Contributor Covenant) that we cannot reflow.",
 
   "MD033": {
-    "allowed_elements": ["details", "summary", "kbd", "br", "sub", "sup", "img", "a", "p"]
+    "allowed_elements": ["details", "summary", "kbd", "br", "sub", "sup", "img", "a", "p", "picture", "source"]
   },
-  "_MD033_comment": "Allow common inline HTML used in issue templates and folded sections.",
+  "_MD033_comment": "Allow common inline HTML used in issue templates, folded sections, and the README hero banner (`<picture>` + `<source>` for theme-aware art direction).",
 
   "MD024": {
     "siblings_only": true
