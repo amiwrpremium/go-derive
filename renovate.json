@@ -28,6 +28,12 @@
   "packageRules": [
     {
       "matchManagers": ["gomod"],
+      "matchDepNames": ["go"],
+      "enabled": false,
+      "description": "Don't bump the `go x.y.z` directive in go.mod. Pinning to a specific patch is unnecessarily restrictive for downstream consumers, and CI runs with GOTOOLCHAIN=local so the runner's installed Go must satisfy the directive — bumping it forces matching toolchain installs everywhere."
+    },
+    {
+      "matchManagers": ["gomod"],
       "matchUpdateTypes": ["minor", "patch"],
       "automerge": true,
       "groupName": "go modules (non-major)"
