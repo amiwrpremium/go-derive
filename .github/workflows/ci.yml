@@ -15,7 +15,10 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: '1.25'
+  # renovate: datasource=golang-version depName=go
+  # Patched stdlib for GO-2026-4971 (net Dial/LookupPort NUL panic) and
+  # GO-2026-4918 (net/http HTTP/2 SETTINGS_MAX_FRAME_SIZE infinite loop).
+  GO_VERSION: '1.25.10'
 
 jobs:
   fmt:
@@ -65,7 +68,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        go: ['1.25', '1.26']
+        go: ['1.25.10', '1.26.2']
     steps:
       - uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
         with:
@@ -85,7 +88,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go: ['1.25', '1.26']
+        go: ['1.25.10', '1.26.2']
     steps:
       - uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
         with:
