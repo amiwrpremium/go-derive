@@ -48,6 +48,7 @@ jobs:
             types
             ws
             ci
+            deps
             docs
             examples
             security
