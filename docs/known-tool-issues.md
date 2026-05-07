@@ -32,23 +32,6 @@ examples, and is part of the public WS API. Removing generics would
 degrade the API for a tool bug. Reporting upstream is the path
 forward; there is no source change that closes this alert.
 
-### Codacy remark-lint — CODE_OF_CONDUCT.md (~20 alerts)
-
-**Symptom.** `remark-lint-no-undefined-references` flags 20 reference
-links in `CODE_OF_CONDUCT.md`.
-
-**Root cause.** Every flagged reference (`[homepage]`, `[v2.1]`,
-`[Mozilla CoC]`, `[FAQ]`, `[translations]`) IS defined at the foot
-of the file (lines 80–84). The remark-lint resolver mishandles
-the cross-paragraph layout used by the upstream Contributor Covenant
-template.
-
-**Why we accept it.** The content is the canonical Contributor
-Covenant text. Restructuring it to avoid the linter false positive
-would diverge from the published template. Codacy's remark-lint
-version is older than upstream; future Codacy updates may include
-the fix.
-
 ### Checkov CKV_GHA_7 — release.yml, verify-release.yml, integration.yml
 
 **Symptom.** Checkov flags every workflow that defines
