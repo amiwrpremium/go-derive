@@ -7,6 +7,19 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.2.5](https://github.com/amiwrpremium/go-derive/compare/v0.2.4...v0.2.5) (2026-05-07)
+
+
+### Bug Fixes
+
+* **ci:** pin go install tool versions (Scorecard PinnedDependencies) ([#25](https://github.com/amiwrpremium/go-derive/issues/25)) ([57a03b0](https://github.com/amiwrpremium/go-derive/commit/57a03b0a622d7924f37ef7aef610d551c8c97266))
+* **ci:** replace curl|bash codacy coverage with pinned Action ([#26](https://github.com/amiwrpremium/go-derive/issues/26)) ([8a79a78](https://github.com/amiwrpremium/go-derive/commit/8a79a786eea55d1eeb9692fac1d9ddddb275ea23))
+
+
+### Documentation
+
+* move package-comments to alphabetically-first file in each package ([#23](https://github.com/amiwrpremium/go-derive/issues/23)) ([03147fe](https://github.com/amiwrpremium/go-derive/commit/03147fed5023d09b072d2d494514906c33caf87d))
+
 ## [0.2.4](https://github.com/amiwrpremium/go-derive/compare/v0.2.3...v0.2.4) (2026-05-07)
 
 
