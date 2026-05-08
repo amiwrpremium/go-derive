@@ -7,6 +7,14 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.2.15](https://github.com/amiwrpremium/go-derive/compare/v0.2.14...v0.2.15) (2026-05-08)
+
+
+### Documentation
+
+* add hero banner (dark + light variants) ([#51](https://github.com/amiwrpremium/go-derive/issues/51)) ([c246b48](https://github.com/amiwrpremium/go-derive/commit/c246b4802ed2b7ec758329e98168fcf4091b4241))
+* regroup README badges and add margin below banner ([#53](https://github.com/amiwrpremium/go-derive/issues/53)) ([a4a4068](https://github.com/amiwrpremium/go-derive/commit/a4a40684fdb5a3db1ed2c8024eeed38092b25c7c))
+
 ## [0.2.14](https://github.com/amiwrpremium/go-derive/compare/v0.2.13...v0.2.14) (2026-05-07)
 
 
