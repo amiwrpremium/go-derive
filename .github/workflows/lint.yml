@@ -52,6 +52,9 @@ jobs:
           cache: true
       - name: Install staticcheck
         # renovate: datasource=go depName=honnef.co/go/tools
-        # Staticcheck uses date-style tags (2026.1) instead of SemVer.
-        run: go install honnef.co/go/tools/cmd/staticcheck@2026.1
+        # Upstream publishes both calver (`2026.1`) and semver (`v0.7.0`)
+        # tags pointing at the same commit. We use the semver form so
+        # OpenSSF Scorecard's PinnedDependencies check accepts it — its
+        # regex requires a `v`-prefixed semver or a 40-char SHA.
+        run: go install honnef.co/go/tools/cmd/staticcheck@v0.7.0
       - run: staticcheck ./...
