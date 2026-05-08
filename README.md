@@ -6,11 +6,18 @@
   <img alt="go-derive — Go SDK for the Derive exchange" src="./assets/banner-dark.png" width="1200">
 </picture>
 
-<!-- Build & test -->
+<br /><br />
+
+<!-- CI & checks (live workflow status) -->
 [![CI](https://github.com/amiwrpremium/go-derive/actions/workflows/ci.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/ci.yml)
 [![Lint](https://github.com/amiwrpremium/go-derive/actions/workflows/lint.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/lint.yml)
 [![CodeQL](https://github.com/amiwrpremium/go-derive/actions/workflows/codeql.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/codeql.yml)
 [![OSV-Scanner](https://github.com/amiwrpremium/go-derive/actions/workflows/osv-scanner.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/osv-scanner.yml)
+[![gosec](https://github.com/amiwrpremium/go-derive/actions/workflows/gosec.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/gosec.yml)
+[![Semgrep](https://github.com/amiwrpremium/go-derive/actions/workflows/semgrep.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/semgrep.yml)
+[![Trivy](https://github.com/amiwrpremium/go-derive/actions/workflows/trivy.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/trivy.yml)
+[![Gitleaks](https://github.com/amiwrpremium/go-derive/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/gitleaks.yml)
+[![TruffleHog](https://github.com/amiwrpremium/go-derive/actions/workflows/trufflehog.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/trufflehog.yml)
 
 <!-- Coverage & code quality -->
 [![codecov](https://codecov.io/gh/amiwrpremium/go-derive/branch/master/graph/badge.svg)](https://codecov.io/gh/amiwrpremium/go-derive)
@@ -18,21 +25,14 @@
 [![Codacy coverage](https://app.codacy.com/project/badge/Coverage/1cfcd38cd2b043a1bbba2bdc7b188026)](https://app.codacy.com/gh/amiwrpremium/go-derive/dashboard)
 [![Go Report Card](https://goreportcard.com/badge/github.com/amiwrpremium/go-derive)](https://goreportcard.com/report/github.com/amiwrpremium/go-derive)
 
-<!-- Security & supply chain — overall posture -->
+<!-- Security posture & supply chain -->
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12775/badge)](https://www.bestpractices.dev/projects/12775)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/amiwrpremium/go-derive/badge)](https://scorecard.dev/viewer/?uri=github.com/amiwrpremium/go-derive)
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
 [![Cosign signed](https://img.shields.io/badge/cosign-signed-blueviolet?logo=sigstore)](https://github.com/amiwrpremium/go-derive/releases/latest)
 [![SBOM](https://img.shields.io/badge/SBOM-CycloneDX%20%2B%20SPDX-blue)](https://github.com/amiwrpremium/go-derive/releases/latest)
 [![Security Policy](https://img.shields.io/badge/security-policy-blue.svg)](./SECURITY.md)
-
-<!-- Security & supply chain — scanners -->
 [![govulncheck](https://img.shields.io/badge/security-govulncheck-success)](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck)
-[![gosec](https://github.com/amiwrpremium/go-derive/actions/workflows/gosec.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/gosec.yml)
-[![Semgrep](https://github.com/amiwrpremium/go-derive/actions/workflows/semgrep.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/semgrep.yml)
-[![Trivy](https://github.com/amiwrpremium/go-derive/actions/workflows/trivy.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/trivy.yml)
-[![Gitleaks](https://github.com/amiwrpremium/go-derive/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/gitleaks.yml)
-[![TruffleHog](https://github.com/amiwrpremium/go-derive/actions/workflows/trufflehog.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/trufflehog.yml)
 
 <!-- Documentation & API -->
 [![Go Reference](https://pkg.go.dev/badge/github.com/amiwrpremium/go-derive.svg)](https://pkg.go.dev/github.com/amiwrpremium/go-derive)
@@ -49,6 +49,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](./CODE_OF_CONDUCT.md)
 [![Renovate enabled](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com/)
+[![Dependabot enabled](https://img.shields.io/badge/dependabot-enabled-025E8C?logo=dependabot&logoColor=white)](./.github/dependabot.yml)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
 [![Maintained](https://img.shields.io/badge/maintained-yes-brightgreen.svg)](https://github.com/amiwrpremium/go-derive/commits/master)
 [![Last commit](https://img.shields.io/github/last-commit/amiwrpremium/go-derive/master)](https://github.com/amiwrpremium/go-derive/commits/master)
