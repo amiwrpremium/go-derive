@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.2.17](https://github.com/amiwrpremium/go-derive/compare/v0.2.16...v0.2.17) (2026-05-08)
+
+
+### Continuous Integration
+
+* pin staticcheck via semver tag for Scorecard compliance ([#56](https://github.com/amiwrpremium/go-derive/issues/56)) ([60b06c1](https://github.com/amiwrpremium/go-derive/commit/60b06c1708fe9bbf5198b2c11fd4edc8f88848a7))
+
 ## [0.2.16](https://github.com/amiwrpremium/go-derive/compare/v0.2.15...v0.2.16) (2026-05-08)
 
 
