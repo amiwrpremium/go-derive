@@ -1,5 +1,11 @@
 # go-derive
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/banner-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="./assets/banner-light.png">
+  <img alt="go-derive — Go SDK for the Derive exchange" src="./assets/banner-dark.png" width="1200">
+</picture>
+
 <!-- Build & test -->
 [![CI](https://github.com/amiwrpremium/go-derive/actions/workflows/ci.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/ci.yml)
 [![Lint](https://github.com/amiwrpremium/go-derive/actions/workflows/lint.yml/badge.svg)](https://github.com/amiwrpremium/go-derive/actions/workflows/lint.yml)
