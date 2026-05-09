@@ -3,7 +3,11 @@
 // standard library.
 package errors
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/amiwrpremium/go-derive/internal/transport"
+)
 
 // Re-export stdlib helpers so callers don't need a second import.
 var (
@@ -21,11 +25,15 @@ var (
 var (
 	// ErrNotConnected is returned when a WebSocket call is attempted before
 	// Connect() has succeeded or after the connection has terminated.
-	ErrNotConnected = errors.New("derive: not connected")
+	// Declared in `internal/transport` to break the root↔transport cycle;
+	// referenced here so `errors.Is(err, derrors.ErrNotConnected)` still
+	// matches values produced by the transport pumps (same pointer).
+	ErrNotConnected = transport.ErrNotConnected
 
 	// ErrAlreadyConnected is returned when Connect() is called on a client
-	// that is already connected.
-	ErrAlreadyConnected = errors.New("derive: already connected")
+	// that is already connected. See ErrNotConnected for the indirection
+	// rationale.
+	ErrAlreadyConnected = transport.ErrAlreadyConnected
 
 	// ErrUnauthorized is returned when the SDK has no signer configured or
 	// the server rejects an authentication-class error code (invalid
@@ -79,8 +87,9 @@ var (
 	ErrRestrictedRegion = errors.New("derive: restricted region")
 
 	// ErrSubscriptionClosed is returned by Subscription.Updates() once the
-	// channel has been closed by either party.
-	ErrSubscriptionClosed = errors.New("derive: subscription closed")
+	// channel has been closed by either party. See ErrNotConnected for the
+	// indirection rationale.
+	ErrSubscriptionClosed = transport.ErrSubscriptionClosed
 
 	// ErrSubaccountRequired is returned for private calls that need a
 	// subaccount ID configured on the client.

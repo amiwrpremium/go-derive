@@ -138,7 +138,16 @@ func (c *Client) Login(ctx context.Context) error {
 		"timestamp": strconv.FormatInt(now.UnixMilli(), 10),
 		"signature": sig.Hex(),
 	}
-	return c.wt.Call(ctx, "public/login", params, nil)
+	if err := c.wt.Call(ctx, "public/login", params, nil); err != nil {
+		// Transport returns *transport.JSONRPCError; lift to the
+		// public *derrors.APIError at the boundary so callers can
+		// match `errors.As(err, &derrors.APIError{...})`.
+		if rpcErr, ok := err.(*transport.JSONRPCError); ok {
+			return &derrors.APIError{Code: rpcErr.Code, Message: rpcErr.Message, Data: rpcErr.Data}
+		}
+		return err
+	}
+	return nil
 }
 
 // installReconnectLogin tells the underlying transport to re-issue the

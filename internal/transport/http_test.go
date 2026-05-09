@@ -16,7 +16,6 @@ import (
 
 	"github.com/amiwrpremium/go-derive/internal/jsonrpc"
 	"github.com/amiwrpremium/go-derive/internal/transport"
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 )
 
 // rpcServer spins up a small Derive-shaped HTTP server with a handler hook.
@@ -73,7 +72,7 @@ func TestHTTPTransport_APIError(t *testing.T) {
 	require.NoError(t, err)
 	err = tt.Call(context.Background(), "x", nil, nil)
 	require.Error(t, err)
-	var apiErr *derrors.APIError
+	var apiErr *transport.JSONRPCError
 	require.True(t, errors.As(err, &apiErr))
 	assert.Equal(t, 10002, apiErr.Code)
 }
@@ -137,7 +136,7 @@ func TestHTTPTransport_NetworkErrorWrapped(t *testing.T) {
 	require.NoError(t, err)
 	err = tt.Call(context.Background(), "x", nil, nil)
 	require.Error(t, err)
-	var connErr *derrors.ConnectionError
+	var connErr *transport.ConnectionError
 	assert.True(t, errors.As(err, &connErr))
 }
 

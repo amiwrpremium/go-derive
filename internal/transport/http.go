@@ -24,8 +24,6 @@ import (
 	"net/url"
 	"time"
 
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
-
 	"github.com/amiwrpremium/go-derive/internal/jsonrpc"
 )
 
@@ -124,11 +122,11 @@ func (t *HTTPTransport) Call(ctx context.Context, method string, params, out any
 	// must POST to `<base>/<method>` (e.g. `<base>/public/get_time`).
 	fullURL, err := url.JoinPath(t.url, method)
 	if err != nil {
-		return &derrors.ConnectionError{Op: "build url", Err: err}
+		return &ConnectionError{Op: "build url", Err: err}
 	}
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, fullURL, bytes.NewReader(body))
 	if err != nil {
-		return &derrors.ConnectionError{Op: "build request", Err: err}
+		return &ConnectionError{Op: "build request", Err: err}
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("Accept", "application/json")
@@ -149,13 +147,13 @@ func (t *HTTPTransport) Call(ctx context.Context, method string, params, out any
 
 	resp, err := t.client.Do(httpReq)
 	if err != nil {
-		return &derrors.ConnectionError{Op: "do request", Err: err}
+		return &ConnectionError{Op: "do request", Err: err}
 	}
 	defer func() { _ = resp.Body.Close() }()
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &derrors.ConnectionError{Op: "read response", Err: err}
+		return &ConnectionError{Op: "read response", Err: err}
 	}
 
 	var rpcResp jsonrpc.Response
@@ -164,7 +162,7 @@ func (t *HTTPTransport) Call(ctx context.Context, method string, params, out any
 			resp.StatusCode, err, string(respBody))
 	}
 	if rpcResp.Error != nil {
-		return &derrors.APIError{
+		return &JSONRPCError{
 			Code:    rpcResp.Error.Code,
 			Message: rpcResp.Error.Message,
 			Data:    rpcResp.Error.Data,

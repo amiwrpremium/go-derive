@@ -57,6 +57,26 @@ func (a *API) requireSubaccount() error {
 }
 
 // call is a shortcut for the common case of one method, one params, one out.
+// It also re-wraps a transport-level [transport.JSONRPCError] into a
+// public [derrors.APIError] so callers receive the rich-typed sentinel-aware
+// error.
 func (a *API) call(ctx context.Context, method string, params, out any) error {
-	return a.T.Call(ctx, method, params, out)
+	return wrapTransportError(a.T.Call(ctx, method, params, out))
+}
+
+// wrapTransportError converts a transport-layer `*transport.JSONRPCError`
+// into a public `*derrors.APIError`. Errors of any other type pass through
+// unchanged. This sits at the methods/transport boundary and is the reason
+// transport can stay free of an import on `pkg/errors` — closing the
+// otherwise-inevitable `pkg/errors → transport → pkg/errors` cycle once
+// pkg/errors lifts to root.
+func wrapTransportError(err error) error {
+	if rpcErr, ok := err.(*transport.JSONRPCError); ok {
+		return &derrors.APIError{
+			Code:    rpcErr.Code,
+			Message: rpcErr.Message,
+			Data:    rpcErr.Data,
+		}
+	}
+	return err
 }

@@ -25,8 +25,6 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
-
 	"github.com/amiwrpremium/go-derive/internal/jsonrpc"
 	"github.com/amiwrpremium/go-derive/internal/retry"
 )
@@ -113,7 +111,7 @@ func (t *WSTransport) Connect(ctx context.Context) error {
 	t.mu.Lock()
 	if t.conn != nil {
 		t.mu.Unlock()
-		return derrors.ErrAlreadyConnected
+		return ErrAlreadyConnected
 	}
 	t.mu.Unlock()
 
@@ -147,7 +145,7 @@ func (t *WSTransport) dial(ctx context.Context) error {
 		_ = resp.Body.Close()
 	}
 	if err != nil {
-		return &derrors.ConnectionError{Op: "ws dial", Err: err}
+		return &ConnectionError{Op: "ws dial", Err: err}
 	}
 	c.SetReadLimit(t.cfg.MaxReadSize)
 
@@ -223,7 +221,7 @@ func (t *WSTransport) Call(ctx context.Context, method string, params, out any) 
 	t.mu.Lock()
 	if t.conn == nil {
 		t.mu.Unlock()
-		return derrors.ErrNotConnected
+		return ErrNotConnected
 	}
 	t.pending[id] = pc
 	wq := t.writeQ
@@ -351,7 +349,7 @@ func (t *WSTransport) dispatchResponse(data []byte) {
 		return
 	}
 	if resp.Error != nil {
-		pc.err <- &derrors.APIError{
+		pc.err <- &JSONRPCError{
 			Code:    resp.Error.Code,
 			Message: resp.Error.Message,
 			Data:    resp.Error.Data,
@@ -485,7 +483,7 @@ func (t *WSTransport) failConnection(cause error) {
 			close(stop)
 		}
 	}
-	wErr := &derrors.ConnectionError{Op: "ws read", Err: cause}
+	wErr := &ConnectionError{Op: "ws read", Err: cause}
 	for _, pc := range pending {
 		pc.err <- wErr
 	}
@@ -566,7 +564,7 @@ func (t *WSTransport) Close() error {
 		}
 	}
 	for _, s := range subs {
-		s.finish(derrors.ErrSubscriptionClosed)
+		s.finish(ErrSubscriptionClosed)
 	}
 	if conn != nil {
 		// Best-effort close-frame + drop. closeWatcher may already have

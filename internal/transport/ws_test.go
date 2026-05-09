@@ -13,7 +13,6 @@ import (
 	"github.com/amiwrpremium/go-derive/internal/jsonrpc"
 	"github.com/amiwrpremium/go-derive/internal/testutil"
 	"github.com/amiwrpremium/go-derive/internal/transport"
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 )
 
 func newConnectedWS(t *testing.T, srv *testutil.MockWSServer) *transport.WSTransport {
@@ -57,7 +56,7 @@ func TestWSTransport_CallAPIError(t *testing.T) {
 
 	err := tt.Call(context.Background(), "x", nil, nil)
 	require.Error(t, err)
-	var apiErr *derrors.APIError
+	var apiErr *transport.JSONRPCError
 	require.True(t, errors.As(err, &apiErr))
 	assert.Equal(t, 10002, apiErr.Code)
 }
@@ -86,7 +85,7 @@ func TestWSTransport_CallNotConnected(t *testing.T) {
 	tt, err := transport.NewWS(transport.WSConfig{URL: srv.URL()})
 	require.NoError(t, err)
 	err = tt.Call(context.Background(), "x", nil, nil)
-	assert.ErrorIs(t, err, derrors.ErrNotConnected)
+	assert.ErrorIs(t, err, transport.ErrNotConnected)
 }
 
 func TestWSTransport_DoubleConnect(t *testing.T) {
@@ -95,7 +94,7 @@ func TestWSTransport_DoubleConnect(t *testing.T) {
 	tt := newConnectedWS(t, srv)
 	defer func() { _ = tt.Close() }()
 	err := tt.Connect(context.Background())
-	assert.ErrorIs(t, err, derrors.ErrAlreadyConnected)
+	assert.ErrorIs(t, err, transport.ErrAlreadyConnected)
 }
 
 func TestWSTransport_Subscribe_NotificationDispatch(t *testing.T) {
