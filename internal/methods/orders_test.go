@@ -219,3 +219,102 @@ func TestPrivateMethods_RequireSubaccount_Across(t *testing.T) {
 		})
 	}
 }
+
+func TestReplace_Decode(t *testing.T) {
+	api, ft := newAPI(t, true, 1)
+	ft.HandleResult("private/replace", map[string]any{
+		"cancelled_order": map[string]any{
+			"order_id": "old", "subaccount_id": int64(1), "instrument_name": "BTC-PERP",
+			"direction": "buy", "order_type": "limit", "time_in_force": "gtc",
+			"order_status": "cancelled", "amount": "1", "filled_amount": "0",
+			"limit_price": "100", "max_fee": "5", "nonce": int64(1),
+			"signer":                "0x0000000000000000000000000000000000000001",
+			"creation_timestamp":    int64(1700000000000),
+			"last_update_timestamp": int64(1700000001000),
+		},
+		"order": map[string]any{
+			"order_id": "new", "subaccount_id": int64(1), "instrument_name": "BTC-PERP",
+			"direction": "buy", "order_type": "limit", "time_in_force": "gtc",
+			"order_status": "open", "amount": "1", "filled_amount": "0",
+			"limit_price": "101", "max_fee": "5", "nonce": int64(2),
+			"signer":                "0x0000000000000000000000000000000000000001",
+			"creation_timestamp":    int64(1700000002000),
+			"last_update_timestamp": int64(1700000002000),
+		},
+		"trades": []any{},
+	})
+	res, err := api.Replace(context.Background(), map[string]any{"order_id_to_cancel": "old"})
+	require.NoError(t, err)
+	assert.Equal(t, "old", res.CancelledOrder.OrderID)
+	require.NotNil(t, res.Order)
+	assert.Equal(t, "new", res.Order.OrderID)
+	assert.Empty(t, res.Trades)
+}
+
+func TestReplace_PropagatesAPIError(t *testing.T) {
+	api, ft := newAPI(t, true, 1)
+	ft.HandleError("private/replace", boom)
+	_, err := api.Replace(context.Background(), nil)
+	assert.ErrorAs(t, err, new(*derrors.APIError))
+}
+
+func TestReplace_RequiresSigner(t *testing.T) {
+	api, _ := newAPI(t, false, 0)
+	_, err := api.Replace(context.Background(), nil)
+	assert.True(t, errors.Is(err, derrors.ErrUnauthorized))
+}
+
+func TestOrderDebug_Decode(t *testing.T) {
+	api, ft := newAPI(t, true, 7)
+	ft.HandleResult("private/order_debug", map[string]any{
+		"action_hash":         "0xaa",
+		"encoded_data":        "0xbb",
+		"encoded_data_hashed": "0xcc",
+		"typed_data_hash":     "0xdd",
+		"raw_data": map[string]any{
+			"data":              map[string]any{"asset": "0x1"},
+			"expiry":            int64(1700000000),
+			"is_atomic_signing": false,
+			"module":            "0xmodule",
+			"nonce":             int64(42),
+			"owner":             "0xowner",
+			"signature":         "0xsig",
+			"signer":            "0xsigner",
+			"subaccount_id":     int64(7),
+		},
+	})
+	dbg, err := api.OrderDebug(context.Background(), map[string]any{"instrument_name": "BTC-PERP"})
+	require.NoError(t, err)
+	assert.Equal(t, "0xdd", dbg.TypedDataHash)
+	assert.Equal(t, int64(42), dbg.RawData.Nonce)
+	assert.Equal(t, int64(7), dbg.RawData.SubaccountID)
+}
+
+func TestOrderDebug_PropagatesAPIError(t *testing.T) {
+	api, ft := newAPI(t, true, 1)
+	ft.HandleError("private/order_debug", boom)
+	_, err := api.OrderDebug(context.Background(), nil)
+	assert.ErrorAs(t, err, new(*derrors.APIError))
+}
+
+func TestCancelByNonce_Decode(t *testing.T) {
+	api, ft := newAPI(t, true, 7)
+	ft.HandleResult("private/cancel_by_nonce", map[string]any{"cancelled_orders": int64(2)})
+	res, err := api.CancelByNonce(context.Background(), "BTC-PERP", 42)
+	require.NoError(t, err)
+	assert.Equal(t, int64(2), res.CancelledOrders)
+}
+
+func TestSetCancelOnDisconnect_Happy(t *testing.T) {
+	api, ft := newAPI(t, true, 1)
+	ft.HandleResult("private/set_cancel_on_disconnect", "ok")
+	require.NoError(t, api.SetCancelOnDisconnect(context.Background(), true))
+	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.Equal(t, true, params["enabled"])
+}
+
+func TestSetCancelOnDisconnect_RequiresSigner(t *testing.T) {
+	api, _ := newAPI(t, false, 0)
+	err := api.SetCancelOnDisconnect(context.Background(), true)
+	assert.True(t, errors.Is(err, derrors.ErrUnauthorized))
+}

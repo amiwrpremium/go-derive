@@ -30,9 +30,6 @@ func TestRPCWrappers_PropagateError(t *testing.T) {
 		needs  int64
 		fn     func(*methods.API) rawWrapper
 	}{
-		// extras.go — private map-of-any wrappers
-		{"Replace", "private/replace", 1, func(a *methods.API) rawWrapper { return a.Replace }},
-		{"OrderDebug", "private/order_debug", 1, func(a *methods.API) rawWrapper { return a.OrderDebug }},
 		// rfq_extras.go
 		{"GetRFQs", "private/get_rfqs", 1, func(a *methods.API) rawWrapper { return a.GetRFQs }},
 		{"GetQuotes", "private/get_quotes", 1, func(a *methods.API) rawWrapper { return a.GetQuotes }},
@@ -75,13 +72,13 @@ func TestNoArgWrappers_PropagateError(t *testing.T) {
 	t.Run("SetCancelOnDisconnect", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/set_cancel_on_disconnect", boom)
-		_, err := api.SetCancelOnDisconnect(context.Background(), true)
+		err := api.SetCancelOnDisconnect(context.Background(), true)
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 	t.Run("ChangeSubaccountLabel", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/change_subaccount_label", boom)
-		_, err := api.ChangeSubaccountLabel(context.Background(), "newlabel")
+		err := api.ChangeSubaccountLabel(context.Background(), "newlabel")
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 	t.Run("GetStatistics", func(t *testing.T) {

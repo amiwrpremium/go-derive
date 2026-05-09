@@ -7,8 +7,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 )
 
 // publicMethods covers every public/* extra wrapper. They all share the
@@ -84,62 +82,5 @@ func TestExtras_PublicMethods(t *testing.T) {
 			require.NoError(t, err)
 			assert.NotEmpty(t, raw)
 		})
-	}
-}
-
-// privateMethods covers the read + write extras that require a signer.
-// Each test seeds the response, invokes, and asserts the route matched.
-func TestExtras_PrivateMethods(t *testing.T) {
-	api, ft := newAPI(t, true, 9)
-	cases := []struct {
-		name    string
-		method  string
-		invoke  func() (json.RawMessage, error)
-		mockOut any
-	}{
-		{"Replace", "private/replace",
-			func() (json.RawMessage, error) {
-				return api.Replace(context.Background(),
-					map[string]any{"order_id_to_cancel": "abc"})
-			}, map[string]any{}},
-		{"OrderDebug", "private/order_debug",
-			func() (json.RawMessage, error) {
-				return api.OrderDebug(context.Background(),
-					map[string]any{"instrument_name": "BTC-PERP"})
-			}, map[string]any{}},
-		{"CancelByNonce", "private/cancel_by_nonce",
-			func() (json.RawMessage, error) {
-				return api.CancelByNonce(context.Background(), "BTC-PERP", 42)
-			}, map[string]any{}},
-		{"SetCancelOnDisconnect", "private/set_cancel_on_disconnect",
-			func() (json.RawMessage, error) {
-				return api.SetCancelOnDisconnect(context.Background(), true)
-			}, map[string]any{}},
-		{"ChangeSubaccountLabel", "private/change_subaccount_label",
-			func() (json.RawMessage, error) {
-				return api.ChangeSubaccountLabel(context.Background(), "alpha")
-			}, map[string]any{}},
-	}
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			ft.HandleResult(c.method, c.mockOut)
-			raw, err := c.invoke()
-			require.NoError(t, err, "method %s", c.method)
-			assert.NotEmpty(t, raw)
-		})
-	}
-}
-
-// Without a signer, every private extra returns ErrUnauthorized.
-func TestExtras_PrivateRequiresSigner(t *testing.T) {
-	api, _ := newAPI(t, false, 0)
-	checks := []func() (json.RawMessage, error){
-		func() (json.RawMessage, error) { return api.OrderDebug(context.Background(), nil) },
-		func() (json.RawMessage, error) { return api.Replace(context.Background(), nil) },
-		func() (json.RawMessage, error) { return api.SetCancelOnDisconnect(context.Background(), true) },
-	}
-	for _, fn := range checks {
-		_, err := fn()
-		assert.ErrorIs(t, err, derrors.ErrUnauthorized)
 	}
 }

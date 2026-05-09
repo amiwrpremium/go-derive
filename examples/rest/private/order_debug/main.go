@@ -11,7 +11,7 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	raw, err := c.OrderDebug(ctx, map[string]any{
+	dbg, err := c.OrderDebug(ctx, map[string]any{
 		"instrument_name": example.Instrument(),
 		"direction":       "buy",
 		"order_type":      "limit",
@@ -20,5 +20,7 @@ func main() {
 		"limit_price":     "50000",
 	})
 	example.Fatal(err)
-	example.Print("order_debug bytes", len(raw))
+	example.Print("typed_data_hash", dbg.TypedDataHash)
+	example.Print("action_hash", dbg.ActionHash)
+	example.Print("module", dbg.RawData.Module)
 }

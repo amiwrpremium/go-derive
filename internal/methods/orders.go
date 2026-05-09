@@ -284,3 +284,91 @@ func (a *API) GetOrderHistory(ctx context.Context, page types.PageRequest) ([]ty
 	}
 	return resp.Orders, resp.Pagination, nil
 }
+
+// Replace cancels one outstanding order and submits a replacement
+// in a single round trip — the standard maker pattern for
+// re-pricing without a race against the matching engine. Private.
+//
+// `params` should include `order_id_to_cancel` (or
+// `nonce_to_cancel`) plus the same fields PlaceOrder takes for
+// the replacement. The full param shape is documented at
+// docs.derive.xyz.
+//
+// The response carries the cancelled order, the (optional)
+// replacement order, the engine's error if the replacement was
+// rejected, and the trades the new order matched.
+func (a *API) Replace(ctx context.Context, params map[string]any) (*types.ReplaceResult, error) {
+	if err := a.requireSigner(); err != nil {
+		return nil, err
+	}
+	if err := a.requireSubaccount(); err != nil {
+		return nil, err
+	}
+	var resp types.ReplaceResult
+	if err := a.call(ctx, "private/replace", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// OrderDebug previews an order without submitting it. Private.
+//
+// `params` mirror PlaceOrder's. The response carries the
+// engine's internal hashing artefacts — useful for validating
+// signatures in CI.
+func (a *API) OrderDebug(ctx context.Context, params map[string]any) (*types.OrderDebugResult, error) {
+	if err := a.requireSigner(); err != nil {
+		return nil, err
+	}
+	if err := a.requireSubaccount(); err != nil {
+		return nil, err
+	}
+	var resp types.OrderDebugResult
+	if err := a.call(ctx, "private/order_debug", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// CancelByNonce cancels an order by the nonce on its signed
+// payload — useful when the caller has not yet received the
+// order id back. Private.
+//
+// Returns the number of orders that matched the (instrument,
+// nonce) tuple and were cancelled.
+func (a *API) CancelByNonce(ctx context.Context, instrument string, nonce uint64) (*types.CancelByNonceResult, error) {
+	if err := a.requireSigner(); err != nil {
+		return nil, err
+	}
+	if err := a.requireSubaccount(); err != nil {
+		return nil, err
+	}
+	params := map[string]any{
+		"instrument_name": instrument,
+		"nonce":           nonce,
+		"wallet":          a.Signer.Owner().Hex(),
+		"subaccount_id":   a.Subaccount,
+	}
+	var resp types.CancelByNonceResult
+	if err := a.call(ctx, "private/cancel_by_nonce", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// SetCancelOnDisconnect arms or disarms the kill-switch that
+// cancels every open order on the wallet if the WebSocket
+// session disconnects. Private.
+//
+// Pass `enabled=true` to arm; `false` to disarm. The endpoint
+// returns plain `"ok"` on success — surfaced as a nil error.
+func (a *API) SetCancelOnDisconnect(ctx context.Context, enabled bool) error {
+	if err := a.requireSigner(); err != nil {
+		return err
+	}
+	params := map[string]any{
+		"wallet":  a.Signer.Owner().Hex(),
+		"enabled": enabled,
+	}
+	return a.call(ctx, "private/set_cancel_on_disconnect", params, nil)
+}

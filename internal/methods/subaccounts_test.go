@@ -51,3 +51,24 @@ func TestGetSubaccounts_RequiresSigner(t *testing.T) {
 	_, err := api.GetSubaccounts(context.Background())
 	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
 }
+
+func TestChangeSubaccountLabel_Happy(t *testing.T) {
+	api, ft := newAPI(t, true, 7)
+	ft.HandleResult("private/change_subaccount_label", "ok")
+	require.NoError(t, api.ChangeSubaccountLabel(context.Background(), "alpha"))
+	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.Equal(t, "alpha", params["label"])
+	assert.Equal(t, float64(7), params["subaccount_id"])
+}
+
+func TestChangeSubaccountLabel_RequiresSigner(t *testing.T) {
+	api, _ := newAPI(t, false, 0)
+	err := api.ChangeSubaccountLabel(context.Background(), "x")
+	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
+}
+
+func TestChangeSubaccountLabel_RequiresSubaccount(t *testing.T) {
+	api, _ := newAPI(t, true, 0)
+	err := api.ChangeSubaccountLabel(context.Background(), "x")
+	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+}
