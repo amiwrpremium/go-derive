@@ -71,6 +71,36 @@ func (a *API) GetLiquidationHistory(ctx context.Context, params map[string]any) 
 	return resp, nil
 }
 
+// GetLiquidatorHistory returns auction bids placed by the configured
+// subaccount as a liquidator. Private.
+//
+// The configured subaccount is threaded through automatically when
+// `subaccount_id` is not present in `params`. Optional `params`:
+// `start_timestamp`, `end_timestamp`, `page`, `page_size`. The
+// response is paginated; the second return value carries the totals.
+func (a *API) GetLiquidatorHistory(ctx context.Context, params map[string]any) ([]types.AuctionBid, types.Page, error) {
+	if err := a.requireSigner(); err != nil {
+		return nil, types.Page{}, err
+	}
+	if err := a.requireSubaccount(); err != nil {
+		return nil, types.Page{}, err
+	}
+	if params == nil {
+		params = map[string]any{}
+	}
+	if _, ok := params["subaccount_id"]; !ok {
+		params["subaccount_id"] = a.Subaccount
+	}
+	var resp struct {
+		Bids       []types.AuctionBid `json:"bids"`
+		Pagination types.Page         `json:"pagination"`
+	}
+	if err := a.call(ctx, "private/get_liquidator_history", params, &resp); err != nil {
+		return nil, types.Page{}, err
+	}
+	return resp.Bids, resp.Pagination, nil
+}
+
 // GetOptionSettlementHistory returns the configured subaccount's
 // past option-settlement events. Private.
 //

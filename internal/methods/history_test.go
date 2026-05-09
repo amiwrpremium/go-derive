@@ -3,6 +3,7 @@ package methods_test
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -45,6 +46,44 @@ func TestGetFundingHistory_PropagatesAPIError(t *testing.T) {
 	ft.HandleError("private/get_funding_history", boom)
 	_, _, err := api.GetFundingHistory(context.Background(), nil)
 	assert.ErrorAs(t, err, new(*derrors.APIError))
+}
+
+func TestGetLiquidatorHistory_Decode(t *testing.T) {
+	api, ft := newAPI(t, true, 9)
+	ft.HandleResult("private/get_liquidator_history", map[string]any{
+		"bids": []any{
+			map[string]any{
+				"amounts_liquidated":               map[string]any{"BTC-PERP": "0.5"},
+				"cash_received":                    "100",
+				"discount_pnl":                     "5",
+				"percent_liquidated":               "0.5",
+				"positions_realized_pnl":           map[string]any{"BTC-PERP": "10"},
+				"positions_realized_pnl_excl_fees": map[string]any{"BTC-PERP": "11"},
+				"realized_pnl":                     "10",
+				"realized_pnl_excl_fees":           "11",
+				"timestamp":                        int64(1700000000000),
+				"tx_hash":                          "0x" + strings.Repeat("a", 64),
+			},
+		},
+		"pagination": map[string]any{"count": 1, "num_pages": 1},
+	})
+	bids, page, err := api.GetLiquidatorHistory(context.Background(), nil)
+	require.NoError(t, err)
+	require.Len(t, bids, 1)
+	assert.Equal(t, "100", bids[0].CashReceived.String())
+	assert.Equal(t, 1, page.Count)
+}
+
+func TestGetLiquidatorHistory_RequiresSigner(t *testing.T) {
+	api, _ := newAPI(t, false, 0)
+	_, _, err := api.GetLiquidatorHistory(context.Background(), nil)
+	assert.True(t, errors.Is(err, derrors.ErrUnauthorized))
+}
+
+func TestGetLiquidatorHistory_RequiresSubaccount(t *testing.T) {
+	api, _ := newAPI(t, true, 0)
+	_, _, err := api.GetLiquidatorHistory(context.Background(), nil)
+	assert.True(t, errors.Is(err, derrors.ErrSubaccountRequired))
 }
 
 func TestGetLiquidationHistory_Decode(t *testing.T) {

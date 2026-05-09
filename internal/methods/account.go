@@ -32,6 +32,26 @@ func (a *API) GetAccount(ctx context.Context) (*types.AccountResult, error) {
 	return &resp, nil
 }
 
+// GetAllPortfolios returns the per-subaccount portfolio snapshot for
+// every subaccount owned by the configured signer's wallet. Private.
+//
+// Each entry is a full snapshot — collateral, positions, open orders,
+// and the engine-side margin breakdown — for one subaccount.
+//
+// To query a different wallet, populate `wallet` directly via the
+// raw transport.
+func (a *API) GetAllPortfolios(ctx context.Context) ([]types.Portfolio, error) {
+	if err := a.requireSigner(); err != nil {
+		return nil, err
+	}
+	params := map[string]any{"wallet": a.Signer.Owner().Hex()}
+	var resp []types.Portfolio
+	if err := a.call(ctx, "private/get_all_portfolios", params, &resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // GetMargin returns the live margin breakdown for the configured
 // subaccount. Private.
 //
