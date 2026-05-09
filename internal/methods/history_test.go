@@ -48,6 +48,26 @@ func TestGetFundingHistory_PropagatesAPIError(t *testing.T) {
 	assert.ErrorAs(t, err, new(*derrors.APIError))
 }
 
+func TestGetPublicLiquidationHistory_Decode(t *testing.T) {
+	api, ft := newAPI(t, false, 0)
+	ft.HandleResult("public/get_liquidation_history", map[string]any{
+		"auctions": []any{
+			map[string]any{
+				"auction_id": "auc-2", "auction_type": "insolvent", "subaccount_id": int64(11),
+				"start_timestamp": int64(1700000000000), "end_timestamp": int64(1700000060000),
+				"fee": "0", "tx_hash": "0x" + strings.Repeat("b", 64),
+				"bids": []any{},
+			},
+		},
+		"pagination": map[string]any{"num_pages": 1, "count": 1},
+	})
+	auctions, page, err := api.GetPublicLiquidationHistory(context.Background(), nil)
+	require.NoError(t, err)
+	require.Len(t, auctions, 1)
+	assert.Equal(t, "insolvent", auctions[0].AuctionType)
+	assert.Equal(t, 1, page.Count)
+}
+
 func TestGetLiquidatorHistory_Decode(t *testing.T) {
 	api, ft := newAPI(t, true, 9)
 	ft.HandleResult("private/get_liquidator_history", map[string]any{
