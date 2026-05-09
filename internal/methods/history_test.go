@@ -118,10 +118,11 @@ func TestGetSubaccountValueHistory_Decode(t *testing.T) {
 			},
 		},
 	})
-	got, err := api.GetSubaccountValueHistory(context.Background(), map[string]any{
+	subaccountID, got, err := api.GetSubaccountValueHistory(context.Background(), map[string]any{
 		"period": int64(86400), "start_timestamp": 0, "end_timestamp": 1,
 	})
 	require.NoError(t, err)
+	assert.Equal(t, int64(9), subaccountID)
 	require.Len(t, got, 1)
 	assert.Equal(t, "PM", got[0].MarginType)
 	assert.Equal(t, "10000", got[0].SubaccountValue.String())

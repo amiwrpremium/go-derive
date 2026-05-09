@@ -14,7 +14,9 @@ import "encoding/json"
 // optional engine error if the new order was rejected.
 //
 // The shape mirrors `PrivateReplaceResultSchema` in Derive's v2.2
-// OpenAPI spec.
+// OpenAPI spec — `cancelled_order` and `trades` are required (the
+// trades array is empty when the replacement didn't fill); `order`
+// and `create_order_error` are mutually-exclusive optionals.
 type ReplaceResult struct {
 	// CancelledOrder is the order that was dropped.
 	CancelledOrder Order `json:"cancelled_order"`
@@ -26,8 +28,10 @@ type ReplaceResult struct {
 	// was rejected. Non-nil only on failure.
 	CreateOrderError *RPCError `json:"create_order_error,omitempty"`
 	// Trades is the list of fills the new order produced before any
-	// remaining size came to rest.
-	Trades []Trade `json:"trades,omitempty"`
+	// remaining size came to rest. Always present per the OAS — an
+	// empty array when the replacement didn't fill (no `omitempty`
+	// because the wire field is required).
+	Trades []Trade `json:"trades"`
 }
 
 // RPCError is the JSON-RPC error envelope embedded in
@@ -65,14 +69,39 @@ type OrderDebugResult struct {
 }
 
 // OrderDebugRawData is the engine's internal `SignedTradeOrderSchema`
-// view returned by `private/order_debug`. The `Data` field is the
-// per-module payload (typically `TradeModuleData` for orders,
-// transfer/withdraw payloads for the matching modules); the SDK
-// keeps it raw so callers can decode against the module's specific
-// shape.
+// view returned by `private/order_debug`.
+//
+// `Data` is the per-module payload. For order-flow debug calls
+// (which this method always is) it's the engine's
+// `TradeModuleDataSchema` shape:
+//
+//	{
+//	    asset:           string,
+//	    desired_amount:  decimal,
+//	    is_bid:          bool,
+//	    limit_price:     decimal,
+//	    recipient_id:    int,
+//	    sub_id:          int,
+//	    trade_id:        string,
+//	    worst_fee:       decimal,
+//	}
+//
+// We keep it as a raw payload because:
+//
+//   - The wire field names differ from the [pkg/auth.TradeModuleData]
+//     input shape ([pkg/auth] uses `Amount`/`MaxFee`; the engine
+//     emits `desired_amount`/`worst_fee`), so a typed Go shape
+//     wouldn't reuse the existing input type cleanly.
+//   - Callers using `private/order_debug` are typically
+//     pre-flighting orders and only care that the call succeeded;
+//     the bytes are surfaced for diagnostic logging if needed.
+//
+// Decode against the schema above when you need the structured
+// payload.
 type OrderDebugRawData struct {
-	// Data is the per-module payload. Opaque on purpose — decode
-	// against the module's documented shape.
+	// Data is the engine's per-module signed payload. See the type
+	// comment above for the documented `TradeModuleDataSchema`
+	// shape that this method's response carries.
 	Data json.RawMessage `json:"data"`
 	// Expiry is the action's expiry (Unix seconds).
 	Expiry int64 `json:"expiry"`

@@ -122,14 +122,15 @@ func (a *API) GetPublicOptionSettlementHistory(ctx context.Context, params map[s
 // configured subaccount. Private.
 //
 // Required `params`: `period`, `start_timestamp`, `end_timestamp`.
-// The response is wrapped in `subaccount_value_history` and is not
+// Returns the subaccount id the engine echoed back (always present
+// per the OAS) alongside the per-bucket samples; the response is not
 // paginated.
-func (a *API) GetSubaccountValueHistory(ctx context.Context, params map[string]any) ([]types.SubaccountValueRecord, error) {
+func (a *API) GetSubaccountValueHistory(ctx context.Context, params map[string]any) (subaccountID int64, history []types.SubaccountValueRecord, err error) {
 	if err := a.requireSigner(); err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 	if err := a.requireSubaccount(); err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 	if params == nil {
 		params = map[string]any{}
@@ -142,9 +143,9 @@ func (a *API) GetSubaccountValueHistory(ctx context.Context, params map[string]a
 		SubaccountValueHistory []types.SubaccountValueRecord `json:"subaccount_value_history"`
 	}
 	if err := a.call(ctx, "private/get_subaccount_value_history", params, &resp); err != nil {
-		return nil, err
+		return 0, nil, err
 	}
-	return resp.SubaccountValueHistory, nil
+	return resp.SubaccountID, resp.SubaccountValueHistory, nil
 }
 
 // GetERC20TransferHistory returns deposit / withdrawal-style ERC-20
