@@ -73,7 +73,7 @@ func TestCross_GetTicker(t *testing.T) {
 		"REST mark %s and WS mark %s differ by more than 1%%", restMark, wsMark)
 }
 
-// TestCross_FacadeWiring exercises the pkg/derive facade against the live
+// TestCross_FacadeWiring exercises the [github.com/amiwrpremium/go-derive.Client] facade against the live
 // network so a regression in option-threading shows up here.
 func TestCross_FacadeWiring(t *testing.T) {
 	env := loadEnv(t)

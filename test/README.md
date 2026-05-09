@@ -60,7 +60,7 @@ vars are missing — running without creds simply runs the public subset.
 | `ws_public_integration_test.go` | Connect, OrderBook/Ticker/Trades subscriptions |
 | `ws_private_integration_test.go` | Login, subaccount Orders/Balances/Positions subscriptions |
 | `place_order_integration_test.go` | Place + cancel via REST and WS; verify the order appears on the WS Orders channel |
-| `cross_transport_integration_test.go` | REST vs WS equivalence checks; pkg/derive facade smoke test |
+| `cross_transport_integration_test.go` | REST vs WS equivalence checks; `derive.Client` facade smoke test |
 
 ## CI
 
