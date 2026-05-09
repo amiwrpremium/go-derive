@@ -63,6 +63,27 @@ func TestGetLatestSignedFeeds_Decode(t *testing.T) {
 	assert.Equal(t, "50000", feeds.SpotData["BTC"].Price.String())
 }
 
+func TestGetInterestRateHistory_Decode(t *testing.T) {
+	api, ft := newAPI(t, false, 0)
+	ft.HandleResult("public/get_interest_rate_history", map[string]any{
+		"interest_rates": []any{
+			map[string]any{
+				"block": int64(12345), "timestamp_sec": int64(1700000000),
+				"borrow_apy": "0.08", "supply_apy": "0.04",
+				"total_borrow": "5000000", "total_supply": "10000000",
+			},
+		},
+		"pagination": map[string]any{"num_pages": 1, "count": 1},
+	})
+	rates, page, err := api.GetInterestRateHistory(context.Background(), map[string]any{
+		"from_timestamp_sec": int64(1700000000), "to_timestamp_sec": int64(1700100000),
+	})
+	require.NoError(t, err)
+	require.Len(t, rates, 1)
+	assert.Equal(t, "0.08", rates[0].BorrowAPY.String())
+	assert.Equal(t, 1, page.Count)
+}
+
 func TestGetPerpImpactTWAP_Decode(t *testing.T) {
 	api, ft := newAPI(t, false, 0)
 	ft.HandleResult("public/get_perp_impact_twap", map[string]any{

@@ -285,6 +285,49 @@ func (a *API) GetOrderHistory(ctx context.Context, page types.PageRequest) ([]ty
 	return resp.Orders, resp.Pagination, nil
 }
 
+// GetOrderHistoryByTime returns orders for the configured
+// subaccount filtered by a time window. Private.
+//
+// This wraps `/private/get_order_history` — distinct from the
+// existing [API.GetOrderHistory] method, which calls
+// `/private/get_orders` despite its name. The two endpoints share a
+// response schema but differ on inputs: `get_orders` filters by
+// status / instrument / label, while `get_order_history` filters by
+// `from_timestamp` / `to_timestamp` / wallet.
+//
+// The temporary name avoids colliding with the existing misnamed
+// method; a future breaking change will rename the misnamed one to
+// `GetOrders` and let this method take the canonical
+// `GetOrderHistory` name.
+//
+// Optional `params`: `from_timestamp`, `to_timestamp`, `wallet`,
+// `page`, `page_size`. The configured subaccount is threaded through
+// when neither `subaccount_id` nor `wallet` is set.
+func (a *API) GetOrderHistoryByTime(ctx context.Context, params map[string]any) ([]types.Order, types.Page, error) {
+	if err := a.requireSigner(); err != nil {
+		return nil, types.Page{}, err
+	}
+	if params == nil {
+		params = map[string]any{}
+	}
+	if _, hasSub := params["subaccount_id"]; !hasSub {
+		if _, hasWallet := params["wallet"]; !hasWallet {
+			if err := a.requireSubaccount(); err != nil {
+				return nil, types.Page{}, err
+			}
+			params["subaccount_id"] = a.Subaccount
+		}
+	}
+	var resp struct {
+		Orders     []types.Order `json:"orders"`
+		Pagination types.Page    `json:"pagination"`
+	}
+	if err := a.call(ctx, "private/get_order_history", params, &resp); err != nil {
+		return nil, types.Page{}, err
+	}
+	return resp.Orders, resp.Pagination, nil
+}
+
 // Replace cancels one outstanding order and submits a replacement
 // in a single round trip — the standard maker pattern for
 // re-pricing without a race against the matching engine. Private.
@@ -354,6 +397,41 @@ func (a *API) CancelByNonce(ctx context.Context, instrument string, nonce uint64
 		return nil, err
 	}
 	return &resp, nil
+}
+
+// CancelTriggerOrder cancels one untriggered trigger order by id.
+// Private.
+//
+// Returns the cancelled order (in `untriggered` -> `cancelled`
+// state). Counterpart to [API.CancelOrder] for trigger orders that
+// have not yet fired.
+func (a *API) CancelTriggerOrder(ctx context.Context, orderID string) (*types.Order, error) {
+	if err := a.requireSubaccount(); err != nil {
+		return nil, err
+	}
+	params := map[string]any{
+		"subaccount_id": a.Subaccount,
+		"order_id":      orderID,
+	}
+	var resp types.Order
+	if err := a.call(ctx, "private/cancel_trigger_order", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// CancelAllTriggerOrders cancels every untriggered trigger order on
+// the configured subaccount. Private.
+//
+// Returns nil on success; the wire response is a fixed "ok" string
+// surfaced as a nil error.
+func (a *API) CancelAllTriggerOrders(ctx context.Context) error {
+	if err := a.requireSubaccount(); err != nil {
+		return err
+	}
+	return a.call(ctx, "private/cancel_all_trigger_orders", map[string]any{
+		"subaccount_id": a.Subaccount,
+	}, nil)
 }
 
 // SetCancelOnDisconnect arms or disarms the kill-switch that

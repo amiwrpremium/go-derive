@@ -6,6 +6,56 @@
 // `public/get_spot_feed_history`, and `public/get_latest_signed_feeds`.
 package types
 
+// SpotFeedCandle is one OHLC bar from
+// `public/get_spot_feed_history_candles` and
+// `public/get_index_chart_data` (both endpoints return the same
+// per-bar shape; the index endpoint just sources its data from the
+// index feed rather than the spot feed).
+//
+// The shape mirrors `SpotFeedHistoryCandlesResponseSchema` in
+// Derive's v2.2 OpenAPI spec.
+type SpotFeedCandle struct {
+	// Timestamp is when the spot price was recorded into the
+	// database.
+	Timestamp MillisTime `json:"timestamp"`
+	// TimestampBucket is the regularly-spaced bucket-start time. Bars
+	// are stamped with the bucket they belong to so callers can
+	// resample without rewriting timestamps.
+	TimestampBucket MillisTime `json:"timestamp_bucket"`
+	// Price is the spot price for the bucket.
+	Price Decimal `json:"price"`
+	// OpenPrice is the bucket's open price.
+	OpenPrice Decimal `json:"open_price"`
+	// HighPrice is the bucket's high price.
+	HighPrice Decimal `json:"high_price"`
+	// LowPrice is the bucket's low price.
+	LowPrice Decimal `json:"low_price"`
+	// ClosePrice is the bucket's close price.
+	ClosePrice Decimal `json:"close_price"`
+}
+
+// InterestRateHistoryItem is one entry in
+// `public/get_interest_rate_history.interest_rates`. Each entry is one
+// hourly print of the protocol's borrow / supply APY plus the total
+// borrowed and supplied USDC at that block.
+//
+// The shape mirrors `InterestRateHistoryResponseSchema` in Derive's
+// v2.2 OpenAPI spec.
+type InterestRateHistoryItem struct {
+	// Block is the Derive-chain block number at the print.
+	Block int64 `json:"block"`
+	// TimestampSec is the block's timestamp in seconds.
+	TimestampSec int64 `json:"timestamp_sec"`
+	// BorrowAPY is the borrow APY at the print.
+	BorrowAPY Decimal `json:"borrow_apy"`
+	// SupplyAPY is the supply APY at the print.
+	SupplyAPY Decimal `json:"supply_apy"`
+	// TotalBorrow is the total USDC borrowed at the print.
+	TotalBorrow Decimal `json:"total_borrow"`
+	// TotalSupply is the total USDC supplied at the print.
+	TotalSupply Decimal `json:"total_supply"`
+}
+
 // FundingRateHistoryItem is one entry in
 // `public/get_funding_rate_history`. The endpoint reports the engine's
 // hourly perpetual funding rate prints over the requested window.

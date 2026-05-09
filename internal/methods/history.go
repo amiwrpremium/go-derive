@@ -71,6 +71,36 @@ func (a *API) GetLiquidationHistory(ctx context.Context, params map[string]any) 
 	return resp, nil
 }
 
+// GetLiquidatorHistory returns auction bids placed by the configured
+// subaccount as a liquidator. Private.
+//
+// The configured subaccount is threaded through automatically when
+// `subaccount_id` is not present in `params`. Optional `params`:
+// `start_timestamp`, `end_timestamp`, `page`, `page_size`. The
+// response is paginated; the second return value carries the totals.
+func (a *API) GetLiquidatorHistory(ctx context.Context, params map[string]any) ([]types.AuctionBid, types.Page, error) {
+	if err := a.requireSigner(); err != nil {
+		return nil, types.Page{}, err
+	}
+	if err := a.requireSubaccount(); err != nil {
+		return nil, types.Page{}, err
+	}
+	if params == nil {
+		params = map[string]any{}
+	}
+	if _, ok := params["subaccount_id"]; !ok {
+		params["subaccount_id"] = a.Subaccount
+	}
+	var resp struct {
+		Bids       []types.AuctionBid `json:"bids"`
+		Pagination types.Page         `json:"pagination"`
+	}
+	if err := a.call(ctx, "private/get_liquidator_history", params, &resp); err != nil {
+		return nil, types.Page{}, err
+	}
+	return resp.Bids, resp.Pagination, nil
+}
+
 // GetOptionSettlementHistory returns the configured subaccount's
 // past option-settlement events. Private.
 //
@@ -97,6 +127,31 @@ func (a *API) GetOptionSettlementHistory(ctx context.Context, params map[string]
 		return nil, err
 	}
 	return resp.Settlements, nil
+}
+
+// GetPublicLiquidationHistory returns the network-wide liquidation
+// history. Public — no signer required.
+//
+// Optional `params`: `subaccount_id` (filter to one subaccount),
+// `start_timestamp`, `end_timestamp`, `page`, `page_size`. The
+// response is paginated; the second return value carries the totals.
+//
+// Counterpart to the private [API.GetLiquidationHistory] (configured
+// subaccount only). The wire schemas differ in their wrapper field
+// name — public uses `auctions`, private uses a bare array — but
+// the per-record shape ([types.LiquidationAuction]) is the same.
+func (a *API) GetPublicLiquidationHistory(ctx context.Context, params map[string]any) ([]types.LiquidationAuction, types.Page, error) {
+	if params == nil {
+		params = map[string]any{}
+	}
+	var resp struct {
+		Auctions   []types.LiquidationAuction `json:"auctions"`
+		Pagination types.Page                 `json:"pagination"`
+	}
+	if err := a.call(ctx, "public/get_liquidation_history", params, &resp); err != nil {
+		return nil, types.Page{}, err
+	}
+	return resp.Auctions, resp.Pagination, nil
 }
 
 // GetPublicOptionSettlementHistory returns the network-wide option

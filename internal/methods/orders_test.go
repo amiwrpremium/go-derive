@@ -200,6 +200,101 @@ func TestGetOrderHistory(t *testing.T) {
 	assert.Equal(t, 100, page.Count)
 }
 
+func TestGetOrderHistoryByTime_Decode(t *testing.T) {
+	api, ft := newAPI(t, true, 7)
+	ft.HandleResult("private/get_order_history", map[string]any{
+		"subaccount_id": int64(7),
+		"orders": []any{
+			map[string]any{
+				"order_id": "O42", "subaccount_id": 7, "instrument_name": "BTC-PERP",
+				"direction": "buy", "order_type": "limit", "time_in_force": "gtc",
+				"order_status": "filled", "amount": "0.1", "filled_amount": "0.1",
+				"limit_price": "65000", "max_fee": "10", "nonce": 1,
+				"signer":             "0x0000000000000000000000000000000000000000",
+				"creation_timestamp": 1700000000000, "last_update_timestamp": 1700000060000,
+			},
+		},
+		"pagination": map[string]any{"num_pages": 1, "count": 1},
+	})
+	orders, page, err := api.GetOrderHistoryByTime(context.Background(), map[string]any{
+		"from_timestamp": int64(1700000000000),
+		"to_timestamp":   int64(1700000060000),
+	})
+	require.NoError(t, err)
+	require.Len(t, orders, 1)
+	assert.Equal(t, "O42", orders[0].OrderID)
+	assert.Equal(t, 1, page.Count)
+	// Subaccount must be threaded when neither subaccount_id nor wallet
+	// is provided in the supplied params.
+	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.Equal(t, float64(7), params["subaccount_id"])
+}
+
+func TestGetOrderHistoryByTime_RequiresSigner(t *testing.T) {
+	api, _ := newAPI(t, false, 0)
+	_, _, err := api.GetOrderHistoryByTime(context.Background(), nil)
+	assert.True(t, errors.Is(err, derrors.ErrUnauthorized))
+}
+
+func TestGetOrderHistoryByTime_AcceptsWalletWithoutSubaccount(t *testing.T) {
+	api, ft := newAPI(t, true, 0)
+	ft.HandleResult("private/get_order_history", map[string]any{
+		"subaccount_id": int64(0),
+		"orders":        []any{},
+		"pagination":    map[string]any{"num_pages": 0, "count": 0},
+	})
+	_, _, err := api.GetOrderHistoryByTime(context.Background(), map[string]any{"wallet": "0xabc"})
+	require.NoError(t, err)
+	params := paramsAsMap(t, ft.LastCall().Params)
+	_, hasSub := params["subaccount_id"]
+	assert.False(t, hasSub, "subaccount_id must not be set when wallet is provided")
+	assert.Equal(t, "0xabc", params["wallet"])
+}
+
+func TestGetOrderHistoryByTime_RequiresSubaccountWhenWalletAbsent(t *testing.T) {
+	api, _ := newAPI(t, true, 0)
+	_, _, err := api.GetOrderHistoryByTime(context.Background(), nil)
+	assert.True(t, errors.Is(err, derrors.ErrSubaccountRequired))
+}
+
+func TestCancelTriggerOrder_Decode(t *testing.T) {
+	api, ft := newAPI(t, true, 7)
+	ft.HandleResult("private/cancel_trigger_order", map[string]any{
+		"order_id": "T1", "subaccount_id": int64(7), "instrument_name": "BTC-PERP",
+		"direction": "buy", "order_type": "limit", "time_in_force": "gtc",
+		"order_status": "cancelled", "amount": "0.1", "filled_amount": "0",
+		"limit_price": "65000", "max_fee": "10", "nonce": int64(1),
+		"signer":             "0x0000000000000000000000000000000000000000",
+		"creation_timestamp": int64(1700000000000), "last_update_timestamp": int64(1700000060000),
+	})
+	got, err := api.CancelTriggerOrder(context.Background(), "T1")
+	require.NoError(t, err)
+	assert.Equal(t, "T1", got.OrderID)
+	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.Equal(t, "T1", params["order_id"])
+	assert.Equal(t, float64(7), params["subaccount_id"])
+}
+
+func TestCancelTriggerOrder_RequiresSubaccount(t *testing.T) {
+	api, _ := newAPI(t, true, 0)
+	_, err := api.CancelTriggerOrder(context.Background(), "T1")
+	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+}
+
+func TestCancelAllTriggerOrders(t *testing.T) {
+	api, ft := newAPI(t, true, 7)
+	ft.HandleResult("private/cancel_all_trigger_orders", "ok")
+	require.NoError(t, api.CancelAllTriggerOrders(context.Background()))
+	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.Equal(t, float64(7), params["subaccount_id"])
+}
+
+func TestCancelAllTriggerOrders_RequiresSubaccount(t *testing.T) {
+	api, _ := newAPI(t, true, 0)
+	err := api.CancelAllTriggerOrders(context.Background())
+	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+}
+
 func TestPrivateMethods_RequireSubaccount_Across(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
 	cases := map[string]func() error{

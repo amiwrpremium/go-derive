@@ -172,6 +172,82 @@ func TestCancelQuote_Decode(t *testing.T) {
 	assert.Equal(t, "cancelled", string(q.Status))
 }
 
+func TestReplaceQuote_Decode_HappyPath(t *testing.T) {
+	quote := map[string]any{
+		"quote_id": "Q2", "rfq_id": "R1", "subaccount_id": int64(7),
+		"direction": "sell", "legs": []any{}, "legs_hash": "",
+		"status": "open", "cancel_reason": "", "liquidity_role": "maker",
+		"fee": "0", "max_fee": "10", "extra_fee": "0", "fill_pct": "0",
+		"is_transfer": false, "label": "", "mmp": false, "nonce": int64(2),
+		"signer":    "0x0000000000000000000000000000000000000001",
+		"signature": "0x", "signature_expiry_sec": int64(0),
+		"tx_hash": "", "tx_status": "",
+		"creation_timestamp":    int64(1700000000000),
+		"last_update_timestamp": int64(1700000000000),
+	}
+	api, ft := newAPI(t, true, 7)
+	ft.HandleResult("private/replace_quote", map[string]any{
+		"cancelled_quote": map[string]any{
+			"quote_id": "Q1", "rfq_id": "R1", "subaccount_id": int64(7),
+			"direction": "sell", "legs": []any{}, "legs_hash": "",
+			"status": "cancelled", "cancel_reason": "user_request",
+			"liquidity_role": "maker",
+			"fee":            "0", "max_fee": "10", "extra_fee": "0", "fill_pct": "0",
+			"is_transfer": false, "label": "", "mmp": false, "nonce": int64(1),
+			"signer":    "0x0000000000000000000000000000000000000001",
+			"signature": "0x", "signature_expiry_sec": int64(0),
+			"tx_hash": "", "tx_status": "",
+			"creation_timestamp":    int64(1700000000000),
+			"last_update_timestamp": int64(1700000000000),
+		},
+		"quote":              quote,
+		"create_quote_error": nil,
+	})
+	res, err := api.ReplaceQuote(context.Background(), map[string]any{
+		"rfq_id": "R1", "quote_id_to_cancel": "Q1",
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "Q1", res.CancelledQuote.QuoteID)
+	require.NotNil(t, res.Quote)
+	assert.Equal(t, "Q2", res.Quote.QuoteID)
+	assert.Nil(t, res.CreateQuoteError)
+}
+
+func TestReplaceQuote_Decode_RejectedReplacement(t *testing.T) {
+	api, ft := newAPI(t, true, 7)
+	ft.HandleResult("private/replace_quote", map[string]any{
+		"cancelled_quote": map[string]any{
+			"quote_id": "Q1", "rfq_id": "R1", "subaccount_id": int64(7),
+			"direction": "sell", "legs": []any{}, "legs_hash": "",
+			"status": "cancelled", "cancel_reason": "user_request",
+			"liquidity_role": "maker",
+			"fee":            "0", "max_fee": "10", "extra_fee": "0", "fill_pct": "0",
+			"is_transfer": false, "label": "", "mmp": false, "nonce": int64(1),
+			"signer":    "0x0000000000000000000000000000000000000001",
+			"signature": "0x", "signature_expiry_sec": int64(0),
+			"tx_hash": "", "tx_status": "",
+			"creation_timestamp":    int64(1700000000000),
+			"last_update_timestamp": int64(1700000000000),
+		},
+		"quote":              nil,
+		"create_quote_error": map[string]any{"code": -32000, "message": "insufficient_margin"},
+	})
+	res, err := api.ReplaceQuote(context.Background(), map[string]any{
+		"rfq_id": "R1", "quote_id_to_cancel": "Q1",
+	})
+	require.NoError(t, err)
+	assert.Nil(t, res.Quote)
+	require.NotNil(t, res.CreateQuoteError)
+	assert.Equal(t, -32000, res.CreateQuoteError.Code)
+	assert.Equal(t, "insufficient_margin", res.CreateQuoteError.Message)
+}
+
+func TestReplaceQuote_RequiresSigner(t *testing.T) {
+	api, _ := newAPI(t, false, 0)
+	_, err := api.ReplaceQuote(context.Background(), nil)
+	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
+}
+
 func TestCancelBatchQuotes_Decode(t *testing.T) {
 	api, ft := newAPI(t, true, 7)
 	ft.HandleResult("private/cancel_batch_quotes", map[string]any{

@@ -58,6 +58,48 @@ func TestGetAccount_PropagatesAPIError(t *testing.T) {
 	assert.ErrorAs(t, err, new(*derrors.APIError))
 }
 
+func TestGetAllPortfolios_Decode(t *testing.T) {
+	api, ft := newAPI(t, true, 0)
+	ft.HandleResult("private/get_all_portfolios", []any{
+		map[string]any{
+			"subaccount_id":                  int64(1),
+			"currency":                       "USDC",
+			"label":                          "main",
+			"margin_type":                    "PM",
+			"is_under_liquidation":           false,
+			"subaccount_value":               "1000",
+			"initial_margin":                 "100",
+			"maintenance_margin":             "50",
+			"open_orders_margin":             "10",
+			"projected_margin_change":        "0",
+			"collaterals_initial_margin":     "1000",
+			"collaterals_maintenance_margin": "1000",
+			"collaterals_value":              "1000",
+			"positions_initial_margin":       "0",
+			"positions_maintenance_margin":   "0",
+			"positions_value":                "0",
+			"collaterals":                    []any{},
+			"open_orders":                    []any{},
+			"positions":                      []any{},
+		},
+	})
+	got, err := api.GetAllPortfolios(context.Background())
+	require.NoError(t, err)
+	require.Len(t, got, 1)
+	assert.Equal(t, int64(1), got[0].SubaccountID)
+	assert.Equal(t, "main", got[0].Label)
+	// The wallet param must be threaded from the configured signer.
+	last := ft.LastCall()
+	require.NotNil(t, last)
+	assert.Equal(t, "private/get_all_portfolios", last.Method)
+}
+
+func TestGetAllPortfolios_RequiresSigner(t *testing.T) {
+	api, _ := newAPI(t, false, 0)
+	_, err := api.GetAllPortfolios(context.Background())
+	assert.True(t, errors.Is(err, derrors.ErrUnauthorized))
+}
+
 func TestGetMargin_Decode(t *testing.T) {
 	api, ft := newAPI(t, true, 7)
 	ft.HandleResult("private/get_margin", map[string]any{

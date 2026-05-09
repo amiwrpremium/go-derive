@@ -243,6 +243,26 @@ type ExecuteQuoteResult struct {
 	RFQFilledPct Decimal `json:"rfq_filled_pct"`
 }
 
+// ReplaceQuoteResult is the response of `private/replace_quote`. The
+// endpoint cancels one outstanding maker quote and submits a
+// replacement atomically; the response carries both the cancelled
+// quote and the (optional) newly created quote, plus an optional
+// engine error if the replacement was rejected.
+//
+// Mirrors `PrivateReplaceQuoteResultSchema` — the quote-side
+// counterpart to [ReplaceResult] for orders.
+type ReplaceQuoteResult struct {
+	// CancelledQuote is the quote that was dropped.
+	CancelledQuote Quote `json:"cancelled_quote"`
+	// Quote is the replacement quote. Nil when CreateQuoteError is
+	// non-nil — the engine cancelled the old quote but rejected the
+	// new one.
+	Quote *Quote `json:"quote,omitempty"`
+	// CreateQuoteError is the engine error if the replacement quote
+	// was rejected. Non-nil only on failure.
+	CreateQuoteError *RPCError `json:"create_quote_error,omitempty"`
+}
+
 // CancelBatchResult is the response of both
 // `private/cancel_batch_quotes` and `private/cancel_batch_rfqs`.
 type CancelBatchResult struct {
