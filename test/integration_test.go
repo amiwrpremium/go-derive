@@ -23,7 +23,6 @@ import (
 
 	goderive "github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/pkg/derive"
-	"github.com/amiwrpremium/go-derive/pkg/rest"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -101,11 +100,11 @@ func requireSigner(t *testing.T, env integrationEnv) goderive.Signer {
 }
 
 // newRESTClient wires up a public-only REST client.
-func newRESTClient(t *testing.T, env integrationEnv) *rest.Client {
+func newRESTClient(t *testing.T, env integrationEnv) *goderive.RestClient {
 	t.Helper()
-	c, err := rest.New(rest.WithCustomNetwork(env.network))
+	c, err := goderive.NewRestClient(goderive.WithCustomNetwork(env.network))
 	if err != nil {
-		t.Fatalf("rest.New: %v", err)
+		t.Fatalf("derive.NewRestClient: %v", err)
 	}
 	t.Cleanup(func() { _ = c.Close() })
 	return c
@@ -113,16 +112,16 @@ func newRESTClient(t *testing.T, env integrationEnv) *rest.Client {
 
 // newAuthRESTClient wires up an authenticated REST client. Skips if creds
 // are missing.
-func newAuthRESTClient(t *testing.T, env integrationEnv) *rest.Client {
+func newAuthRESTClient(t *testing.T, env integrationEnv) *goderive.RestClient {
 	t.Helper()
 	signer := requireSigner(t, env)
-	c, err := rest.New(
-		rest.WithCustomNetwork(env.network),
-		rest.WithSigner(signer),
-		rest.WithSubaccount(env.subaccount),
+	c, err := goderive.NewRestClient(
+		goderive.WithCustomNetwork(env.network),
+		goderive.WithSigner(signer),
+		goderive.WithSubaccount(env.subaccount),
 	)
 	if err != nil {
-		t.Fatalf("rest.New: %v", err)
+		t.Fatalf("derive.NewRestClient: %v", err)
 	}
 	t.Cleanup(func() { _ = c.Close() })
 	return c

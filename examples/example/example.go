@@ -24,7 +24,6 @@ import (
 
 	goderive "github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/pkg/derive"
-	"github.com/amiwrpremium/go-derive/pkg/rest"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -90,23 +89,23 @@ func MustSigner() goderive.Signer {
 }
 
 // MustRESTPublic returns a public-only REST client. Always succeeds.
-func MustRESTPublic() *rest.Client {
-	c, err := rest.New(rest.WithCustomNetwork(Network()))
+func MustRESTPublic() *goderive.RestClient {
+	c, err := goderive.NewRestClient(goderive.WithCustomNetwork(Network()))
 	if err != nil {
-		log.Fatalf("rest.New: %v", err)
+		log.Fatalf("derive.NewRestClient: %v", err)
 	}
 	return c
 }
 
 // MustRESTPrivate returns an authenticated REST client using env creds.
-func MustRESTPrivate() *rest.Client {
-	c, err := rest.New(
-		rest.WithCustomNetwork(Network()),
-		rest.WithSigner(MustSigner()),
-		rest.WithSubaccount(Subaccount()),
+func MustRESTPrivate() *goderive.RestClient {
+	c, err := goderive.NewRestClient(
+		goderive.WithCustomNetwork(Network()),
+		goderive.WithSigner(MustSigner()),
+		goderive.WithSubaccount(Subaccount()),
 	)
 	if err != nil {
-		log.Fatalf("rest.New: %v", err)
+		log.Fatalf("derive.NewRestClient: %v", err)
 	}
 	return c
 }
