@@ -224,6 +224,38 @@ func (a *API) CancelQuote(ctx context.Context, params map[string]any) (*types.Qu
 	return &resp, nil
 }
 
+// ReplaceQuote cancels one outstanding maker quote and submits a
+// replacement in a single round trip — the maker counterpart to
+// [API.Replace] for orders. Private.
+//
+// `params` should include `quote_id_to_cancel` (or
+// `nonce_to_cancel`) plus the same fields [API.SendQuote] takes for
+// the replacement (`rfq_id`, `direction`, `legs`, `max_fee`, the
+// signing fields). The full param shape is documented at
+// docs.derive.xyz.
+//
+// The response carries the cancelled quote, the (optional) replacement
+// quote, and the engine's error if the replacement was rejected.
+func (a *API) ReplaceQuote(ctx context.Context, params map[string]any) (*types.ReplaceQuoteResult, error) {
+	if err := a.requireSigner(); err != nil {
+		return nil, err
+	}
+	if err := a.requireSubaccount(); err != nil {
+		return nil, err
+	}
+	if params == nil {
+		params = map[string]any{}
+	}
+	if _, ok := params["subaccount_id"]; !ok {
+		params["subaccount_id"] = a.Subaccount
+	}
+	var resp types.ReplaceQuoteResult
+	if err := a.call(ctx, "private/replace_quote", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
 // CancelBatchQuotes cancels every quote matching the supplied
 // filters. Private.
 //
