@@ -51,7 +51,7 @@ comment:
 flags:
   unittests:
     paths:
-      - pkg/
+      - .
       - internal/
     carryforward: true
 
@@ -72,37 +72,37 @@ component_management:
         threshold: 1%
   individual_components:
     - component_id: rest
-      name: pkg/rest
+      name: rest.go
       paths:
-        - pkg/rest/**
+        - rest.go
     - component_id: ws
-      name: pkg/ws
+      name: ws.go
       paths:
-        - pkg/ws/**
+        - ws.go
     - component_id: auth
-      name: pkg/auth
+      name: auth.go
       paths:
-        - pkg/auth/**
+        - auth.go
     - component_id: errors
-      name: pkg/errors
+      name: errors.go
       paths:
-        - pkg/errors/**
+        - errors.go
     - component_id: types
-      name: pkg/types
+      name: types.go
       paths:
-        - pkg/types/**
+        - types.go
     - component_id: channels
-      name: pkg/channels
+      name: channels.go
       paths:
-        - pkg/channels/**
+        - channels.go
+    - component_id: methods
+      name: methods.go
+      paths:
+        - methods.go
     - component_id: transport
       name: internal/transport
       paths:
         - internal/transport/**
-    - component_id: methods
-      name: internal/methods
-      paths:
-        - internal/methods/**
     - component_id: jsonrpc
       name: internal/jsonrpc
       paths:

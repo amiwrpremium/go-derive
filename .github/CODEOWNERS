@@ -2,7 +2,9 @@
 *                                   @amiwrpremium
 
 # Auth and signing changes touch private keys — review carefully.
-/pkg/auth/                          @amiwrpremium
+auth.go                             @amiwrpremium
+auth_test.go                        @amiwrpremium
+auth_internal_test.go               @amiwrpremium
 /internal/codec/                    @amiwrpremium
 
 # CI / release config changes affect every commit.

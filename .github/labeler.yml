@@ -11,19 +11,23 @@
 'area:auth':
   - changed-files:
       - any-glob-to-any-file:
-          - 'pkg/auth/**'
+          - 'auth.go'
+          - 'auth_test.go'
+          - 'auth_internal_test.go'
           - 'examples/auth/**'
 
 'area:rest':
   - changed-files:
       - any-glob-to-any-file:
-          - 'pkg/rest/**'
+          - 'rest.go'
+          - 'rest_test.go'
           - 'examples/rest/**'
 
 'area:ws':
   - changed-files:
       - any-glob-to-any-file:
-          - 'pkg/ws/**'
+          - 'ws.go'
+          - 'ws_test.go'
           - 'examples/ws/**'
 
 'area:transport':
@@ -34,38 +38,47 @@
 'area:errors':
   - changed-files:
       - any-glob-to-any-file:
-          - 'pkg/errors/**'
+          - 'errors.go'
+          - 'errors_test.go'
 
 'area:enums':
   - changed-files:
       - any-glob-to-any-file:
-          - 'pkg/enums/**'
+          - 'enums.go'
+          - 'enums_test.go'
 
 'area:types':
   - changed-files:
       - any-glob-to-any-file:
-          - 'pkg/types/**'
+          - 'types.go'
+          - 'types_test.go'
 
 'area:channels':
   - changed-files:
       - any-glob-to-any-file:
-          - 'pkg/channels/**'
+          - 'channels.go'
+          - 'channels_test.go'
 
 'area:contracts':
   - changed-files:
       - any-glob-to-any-file:
-          - 'pkg/contracts/**'
+          - 'contracts.go'
+          - 'contracts_test.go'
 
 'area:derive':
   - changed-files:
       - any-glob-to-any-file:
-          - 'pkg/derive/**'
+          - 'derive.go'
+          - 'derive_test.go'
+          - 'client.go'
+          - 'client_test.go'
           - 'examples/derive/**'
 
 'area:methods':
   - changed-files:
       - any-glob-to-any-file:
-          - 'internal/methods/**'
+          - 'methods.go'
+          - 'methods_test.go'
 
 'area:codec':
   - changed-files:
@@ -80,7 +93,9 @@
 'area:netconf':
   - changed-files:
       - any-glob-to-any-file:
-          - 'internal/netconf/**'
+          - 'netconf.go'
+          - 'netconf_domain.go'
+          - 'netconf_test.go'
 
 'area:examples':
   - changed-files:

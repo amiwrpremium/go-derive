@@ -119,40 +119,40 @@ labels:
     color: 5319e7
     description: Exempt from stale automation
 
-  # ---- Area (one per pkg/internal package + cross-cutting concerns) ----
+  # ---- Area (one per logical concern + cross-cutting topic) ----
   - name: 'area:auth'
     color: 1d76db
-    description: pkg/auth — EIP-191 / EIP-712 signing, session keys
+    description: auth.go — EIP-191 / EIP-712 signing, session keys
   - name: 'area:rest'
     color: 1d76db
-    description: pkg/rest — REST client and JSON-RPC-over-HTTP transport
+    description: rest.go — REST client and JSON-RPC-over-HTTP transport
   - name: 'area:ws'
     color: 1d76db
-    description: pkg/ws — WebSocket client, subscriptions, reconnect
+    description: ws.go — WebSocket client, subscriptions, reconnect
   - name: 'area:transport'
     color: 1d76db
     description: internal/transport — shared transport interface and impls
   - name: 'area:errors'
     color: 1d76db
-    description: pkg/errors — Derive error codes, sentinels, APIError
+    description: errors.go — Derive error codes, sentinels, APIError
   - name: 'area:enums'
     color: 1d76db
-    description: pkg/enums — generated and curated enumerations
+    description: enums.go — generated and curated enumerations
   - name: 'area:types'
     color: 1d76db
-    description: pkg/types — request/response payload structs
+    description: types.go — request/response payload structs
   - name: 'area:channels'
     color: 1d76db
-    description: pkg/channels — typed subscription descriptors
+    description: channels.go — typed subscription descriptors
   - name: 'area:contracts'
     color: 1d76db
-    description: pkg/contracts — on-chain contract addresses and helpers
+    description: contracts.go — on-chain contract addresses and helpers
   - name: 'area:derive'
     color: 1d76db
-    description: pkg/derive — top-level facade that wires REST + WS
+    description: client.go — top-level facade that wires REST + WS
   - name: 'area:methods'
     color: 1d76db
-    description: internal/methods — JSON-RPC method registry shared by transports
+    description: methods.go — JSON-RPC method registry shared by transports
   - name: 'area:codec'
     color: 1d76db
     description: internal/codec — wire-format encode/decode
@@ -161,7 +161,7 @@ labels:
     description: internal/retry — backoff, jitter, attempt policy
   - name: 'area:netconf'
     color: 1d76db
-    description: internal/netconf — testnet vs mainnet endpoints
+    description: netconf.go / netconf_domain.go — testnet vs mainnet endpoints
   - name: 'area:examples'
     color: 1d76db
     description: examples/ — runnable example programs
