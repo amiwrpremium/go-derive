@@ -2,14 +2,14 @@
 
 package integration_test
 
-import "github.com/amiwrpremium/go-derive"
-
 import (
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/amiwrpremium/go-derive"
 )
 
 func TestPublic_GetTime(t *testing.T) {

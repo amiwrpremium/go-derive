@@ -2,8 +2,6 @@
 
 package integration_test
 
-import "github.com/amiwrpremium/go-derive"
-
 import (
 	"sort"
 	"testing"
@@ -11,6 +9,8 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/amiwrpremium/go-derive"
 )
 
 // TestCross_GetInstruments verifies REST and WS return the same instrument

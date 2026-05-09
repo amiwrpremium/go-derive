@@ -2,8 +2,6 @@
 
 package integration_test
 
-import "github.com/amiwrpremium/go-derive"
-
 import (
 	"context"
 	"testing"
@@ -13,6 +11,8 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/amiwrpremium/go-derive"
 )
 
 // requireLiveOrders skips the test unless DERIVE_RUN_LIVE_ORDERS=1 AND
