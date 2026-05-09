@@ -316,7 +316,7 @@ func TestOrderQuote_Decode(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, got)
 	assert.True(t, got.IsValid)
-	assert.Equal(t, "filled", got.EstimatedOrderStatus)
+	assert.Equal(t, enums.OrderStatusFilled, got.EstimatedOrderStatus)
 	assert.Equal(t, "5", got.EstimatedFee.String())
 	assert.Equal(t, "0", got.PostLiquidationPrice.String(), "null decimal decodes to zero-value")
 }
@@ -340,6 +340,6 @@ func TestOrderQuote_Invalid(t *testing.T) {
 	require.NoError(t, err)
 	assert.False(t, got.IsValid)
 	assert.Equal(t, enums.RFQInvalidReasonInsufficientBuyingPower, got.InvalidReason)
-	assert.Equal(t, "rejected", got.EstimatedOrderStatus)
+	assert.Equal(t, enums.OrderStatusRejected, got.EstimatedOrderStatus)
 	assert.Equal(t, "45000", got.PostLiquidationPrice.String())
 }

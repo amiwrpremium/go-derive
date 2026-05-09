@@ -36,11 +36,12 @@ type OrderQuoteResult struct {
 	// (possibly partial) fill.
 	EstimatedRealizedPnL Decimal `json:"estimated_realized_pnl"`
 	// EstimatedOrderStatus is the engine's projected lifecycle
-	// state for the order on submission. Fully filled = "filled";
-	// limit/maker = "open"; partially filled IOC/market =
-	// "cancelled"; "rejected" / "expired" if margin or expiry
-	// rules trip.
-	EstimatedOrderStatus string `json:"estimated_order_status"`
+	// state for the order on submission. Fully filled =
+	// [enums.OrderStatusFilled]; limit/maker =
+	// [enums.OrderStatusOpen]; partially filled IOC/market =
+	// [enums.OrderStatusCancelled]; [enums.OrderStatusRejected] /
+	// [enums.OrderStatusExpired] if margin or expiry rules trip.
+	EstimatedOrderStatus enums.OrderStatus `json:"estimated_order_status"`
 	// SuggestedMaxFee is the engine's recommended `max_fee` value
 	// for the trade (per contract).
 	SuggestedMaxFee Decimal `json:"suggested_max_fee"`
