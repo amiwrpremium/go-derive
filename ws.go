@@ -56,7 +56,7 @@ import (
 // Construct with [NewWsClient], then [WsClient.Connect] and (for
 // private endpoints) [WsClient.Login]. The zero value is not usable.
 type WsClient struct {
-	*API
+	*apiCalls
 	wt     *transport.WSTransport
 	signer Signer
 	cfg    NetworkConfig
@@ -96,7 +96,7 @@ func NewWsClient(opts ...Option) (*WsClient, error) {
 		return nil, err
 	}
 
-	api := &API{
+	api := &apiCalls{
 		T:               wt,
 		Signer:          c.signer,
 		Domain:          c.network.EIP712Domain(),
@@ -106,7 +106,7 @@ func NewWsClient(opts ...Option) (*WsClient, error) {
 	}
 	api.SetTradeModule(common.HexToAddress(c.network.Contracts.TradeModule))
 
-	cli := &WsClient{API: api, wt: wt, signer: c.signer, cfg: c.network}
+	cli := &WsClient{apiCalls: api, wt: wt, signer: c.signer, cfg: c.network}
 
 	// Re-login automatically after each reconnect so private subscriptions
 	// resume working. Skipped when no signer is configured.

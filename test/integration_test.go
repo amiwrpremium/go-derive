@@ -21,13 +21,12 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	goderive "github.com/amiwrpremium/go-derive"
-	"github.com/amiwrpremium/go-derive/pkg/derive"
+	"github.com/amiwrpremium/go-derive"
 )
 
 // integrationEnv is the configuration loaded from environment variables.
 type integrationEnv struct {
-	network    goderive.NetworkConfig
+	network    derive.NetworkConfig
 	sessionKey string
 	owner      common.Address
 	subaccount int64
@@ -48,9 +47,9 @@ func loadEnv(t *testing.T) integrationEnv {
 
 	switch getenv("DERIVE_NETWORK", "testnet") {
 	case "mainnet":
-		env.network = goderive.Mainnet()
+		env.network = derive.Mainnet()
 	default:
-		env.network = goderive.Testnet()
+		env.network = derive.Testnet()
 	}
 
 	env.sessionKey = os.Getenv("DERIVE_SESSION_KEY")
@@ -78,19 +77,19 @@ func (e integrationEnv) hasPrivateCreds() bool {
 
 // requireSigner skips the test when private creds are absent; otherwise
 // returns a configured Signer.
-func requireSigner(t *testing.T, env integrationEnv) goderive.Signer {
+func requireSigner(t *testing.T, env integrationEnv) derive.Signer {
 	t.Helper()
 	if !env.hasPrivateCreds() {
 		t.Skip("private creds not configured (DERIVE_SESSION_KEY + DERIVE_SUBACCOUNT)")
 	}
 	var (
-		s   goderive.Signer
+		s   derive.Signer
 		err error
 	)
 	if env.owner == (common.Address{}) {
-		s, err = goderive.NewLocalSigner(env.sessionKey)
+		s, err = derive.NewLocalSigner(env.sessionKey)
 	} else {
-		s, err = goderive.NewSessionKeySigner(env.sessionKey, env.owner)
+		s, err = derive.NewSessionKeySigner(env.sessionKey, env.owner)
 	}
 	if err != nil {
 		t.Fatalf("build signer: %v", err)
@@ -99,9 +98,9 @@ func requireSigner(t *testing.T, env integrationEnv) goderive.Signer {
 }
 
 // newRESTClient wires up a public-only REST client.
-func newRESTClient(t *testing.T, env integrationEnv) *goderive.RestClient {
+func newRESTClient(t *testing.T, env integrationEnv) *derive.RestClient {
 	t.Helper()
-	c, err := goderive.NewRestClient(goderive.WithCustomNetwork(env.network))
+	c, err := derive.NewRestClient(derive.WithCustomNetwork(env.network))
 	if err != nil {
 		t.Fatalf("derive.NewRestClient: %v", err)
 	}
@@ -111,13 +110,13 @@ func newRESTClient(t *testing.T, env integrationEnv) *goderive.RestClient {
 
 // newAuthRESTClient wires up an authenticated REST client. Skips if creds
 // are missing.
-func newAuthRESTClient(t *testing.T, env integrationEnv) *goderive.RestClient {
+func newAuthRESTClient(t *testing.T, env integrationEnv) *derive.RestClient {
 	t.Helper()
 	signer := requireSigner(t, env)
-	c, err := goderive.NewRestClient(
-		goderive.WithCustomNetwork(env.network),
-		goderive.WithSigner(signer),
-		goderive.WithSubaccount(env.subaccount),
+	c, err := derive.NewRestClient(
+		derive.WithCustomNetwork(env.network),
+		derive.WithSigner(signer),
+		derive.WithSubaccount(env.subaccount),
 	)
 	if err != nil {
 		t.Fatalf("derive.NewRestClient: %v", err)
@@ -127,9 +126,9 @@ func newAuthRESTClient(t *testing.T, env integrationEnv) *goderive.RestClient {
 }
 
 // newWSClient wires up a public-only WS client and connects.
-func newWSClient(t *testing.T, env integrationEnv) *goderive.WsClient {
+func newWSClient(t *testing.T, env integrationEnv) *derive.WsClient {
 	t.Helper()
-	c, err := goderive.NewWsClient(goderive.WithCustomNetwork(env.network))
+	c, err := derive.NewWsClient(derive.WithCustomNetwork(env.network))
 	if err != nil {
 		t.Fatalf("derive.NewWsClient: %v", err)
 	}
@@ -145,13 +144,13 @@ func newWSClient(t *testing.T, env integrationEnv) *goderive.WsClient {
 
 // newAuthWSClient wires up an authenticated WS client, connects and logs
 // in. Skips if creds are missing.
-func newAuthWSClient(t *testing.T, env integrationEnv) *goderive.WsClient {
+func newAuthWSClient(t *testing.T, env integrationEnv) *derive.WsClient {
 	t.Helper()
 	signer := requireSigner(t, env)
-	c, err := goderive.NewWsClient(
-		goderive.WithCustomNetwork(env.network),
-		goderive.WithSigner(signer),
-		goderive.WithSubaccount(env.subaccount),
+	c, err := derive.NewWsClient(
+		derive.WithCustomNetwork(env.network),
+		derive.WithSigner(signer),
+		derive.WithSubaccount(env.subaccount),
 	)
 	if err != nil {
 		t.Fatalf("derive.NewWsClient: %v", err)

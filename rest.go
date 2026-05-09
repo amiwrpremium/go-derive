@@ -15,9 +15,8 @@
 //
 // # Method surface
 //
-// [RestClient] embeds *[API] (still exported until commit 13 brings the
-// facade into root), exposing every documented JSON-RPC method as a
-// regular Go method:
+// [RestClient] embeds an unexported `apiCalls` struct so every
+// documented JSON-RPC method shows up as a regular Go method:
 //
 //	c, _ := derive.NewRestClient(derive.WithMainnet(), derive.WithSigner(s), derive.WithSubaccount(123))
 //	instruments, _ := c.GetInstruments(ctx, "BTC", derive.InstrumentTypePerp)
@@ -46,7 +45,7 @@ import (
 // Construct one with [NewRestClient], plus the desired With* options.
 // The zero value is not usable.
 type RestClient struct {
-	*API
+	*apiCalls
 	http   *transport.HTTPTransport
 	signer Signer
 	cfg    NetworkConfig
@@ -93,7 +92,7 @@ func NewRestClient(opts ...Option) (*RestClient, error) {
 		return nil, err
 	}
 
-	api := &API{
+	api := &apiCalls{
 		T:               httpT,
 		Signer:          c.signer,
 		Domain:          c.network.EIP712Domain(),
@@ -103,7 +102,7 @@ func NewRestClient(opts ...Option) (*RestClient, error) {
 	}
 	api.SetTradeModule(common.HexToAddress(c.network.Contracts.TradeModule))
 
-	return &RestClient{API: api, http: httpT, signer: c.signer, cfg: c.network}, nil
+	return &RestClient{apiCalls: api, http: httpT, signer: c.signer, cfg: c.network}, nil
 }
 
 // Close releases transport-level resources. The [RestClient] is unusable
@@ -115,12 +114,15 @@ func (c *RestClient) Close() error { return c.http.Close() }
 // WS client.
 func (c *RestClient) Network() NetworkConfig { return c.cfg }
 
-// Option configures a [RestClient] at construction time. Compose any
-// number of With* helpers and pass them to [NewRestClient].
+// Option configures a [RestClient], [WsClient], or [Client] at
+// construction time. Compose any number of With* helpers and pass
+// them to [NewRestClient], [NewWsClient], or [NewClient].
 //
-// Commit 12 widens this type to also configure [WsClient] and the
-// top-level facade; the WS-only and REST-only knobs are documented per
-// helper.
+// All three constructors share the same Option pool. Per-knob doc
+// comments mark whether a builder is REST-only ([WithHTTPClient]),
+// WS-only ([WithPingInterval], [WithReconnect]), or facade-only
+// ([WithConnectWS]); the wrong-transport options are silently
+// ignored.
 type Option func(*config)
 
 type config struct {
@@ -136,6 +138,8 @@ type config struct {
 	// WS-only.
 	pingInterval time.Duration
 	reconnect    bool
+	// Facade-only.
+	connectWS bool
 }
 
 // WithMainnet selects Derive's mainnet endpoints (chain id 957). Required

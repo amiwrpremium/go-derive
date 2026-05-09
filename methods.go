@@ -1,5 +1,5 @@
 // Shared implementation of every JSON-RPC method Derive exposes lives in
-// this file. Both [RestClient] and [WsClient] embed *API so that each
+// this file. Both [RestClient] and [WsClient] embed *apiCalls so that each
 // method is defined exactly once, parameterised by the underlying
 // transport.
 //
@@ -18,10 +18,10 @@ import (
 	"time"
 )
 
-// API is a transport-agnostic facade that holds the ambient configuration
+// apiCalls is a transport-agnostic facade that holds the ambient configuration
 // (signer, subaccount id, EIP-712 domain) used by the methods defined in this
 // package. Construct it once per client.
-type API struct {
+type apiCalls struct {
 	T      transport.Transport
 	Signer Signer
 	Domain Domain
@@ -40,7 +40,7 @@ type API struct {
 }
 
 // requireSigner returns ErrUnauthorized if no signer is configured.
-func (a *API) requireSigner() error {
+func (a *apiCalls) requireSigner() error {
 	if a.Signer == nil {
 		return ErrUnauthorized
 	}
@@ -48,7 +48,7 @@ func (a *API) requireSigner() error {
 }
 
 // requireSubaccount returns ErrSubaccountRequired when the action needs one.
-func (a *API) requireSubaccount() error {
+func (a *apiCalls) requireSubaccount() error {
 	if a.Subaccount == 0 {
 		return ErrSubaccountRequired
 	}
@@ -59,7 +59,7 @@ func (a *API) requireSubaccount() error {
 // It also re-wraps a transport-level [transport.JSONRPCError] into a
 // public [APIError] so callers receive the rich-typed sentinel-aware
 // error.
-func (a *API) call(ctx context.Context, method string, params, out any) error {
+func (a *apiCalls) call(ctx context.Context, method string, params, out any) error {
 	return wrapTransportError(a.T.Call(ctx, method, params, out))
 }
 
@@ -81,7 +81,7 @@ func wrapTransportError(err error) error {
 }
 
 // GetCollateral returns the collateral breakdown for the subaccount. Private.
-func (a *API) GetCollateral(ctx context.Context) ([]Collateral, error) {
+func (a *apiCalls) GetCollateral(ctx context.Context) ([]Collateral, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func (a *API) GetCollateral(ctx context.Context) ([]Collateral, error) {
 //
 // Required params: `instrument_name`. Optional: `start_timestamp`,
 // `end_timestamp`, `period`. Public.
-func (a *API) GetFundingRateHistory(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) GetFundingRateHistory(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	var raw json.RawMessage
 	err := a.call(ctx, "public/get_funding_rate_history", params, &raw)
 	return raw, err
@@ -109,7 +109,7 @@ func (a *API) GetFundingRateHistory(ctx context.Context, params map[string]any) 
 // one currency's perpetual book over the requested window.
 //
 // Required params: `currency`, `start_time`, `end_time`. Public.
-func (a *API) GetPerpImpactTWAP(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) GetPerpImpactTWAP(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	var raw json.RawMessage
 	err := a.call(ctx, "public/get_perp_impact_twap", params, &raw)
 	return raw, err
@@ -121,7 +121,7 @@ func (a *API) GetPerpImpactTWAP(ctx context.Context, params map[string]any) (jso
 //
 // Required params: `simulated_collaterals`, `simulated_positions`,
 // `margin_type` ("PM" / "PM2" / "SM"). Public — no signer required.
-func (a *API) GetPublicMargin(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) GetPublicMargin(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	var raw json.RawMessage
 	err := a.call(ctx, "public/get_margin", params, &raw)
 	return raw, err
@@ -131,7 +131,7 @@ func (a *API) GetPublicMargin(ctx context.Context, params map[string]any) (json.
 //
 // Optional params: `currency`. Pass nil to get every currency the venue
 // publishes. Public.
-func (a *API) GetLatestSignedFeeds(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) GetLatestSignedFeeds(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if params == nil {
 		params = map[string]any{}
 	}
@@ -145,7 +145,7 @@ func (a *API) GetLatestSignedFeeds(ctx context.Context, params map[string]any) (
 //
 // Required params: `currency`, `period`, `start_timestamp`,
 // `end_timestamp`. Public.
-func (a *API) GetSpotFeedHistory(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) GetSpotFeedHistory(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	var raw json.RawMessage
 	err := a.call(ctx, "public/get_spot_feed_history", params, &raw)
 	return raw, err
@@ -155,7 +155,7 @@ func (a *API) GetSpotFeedHistory(ctx context.Context, params map[string]any) (js
 // for one instrument.
 //
 // Required params: `instrument_name`. Public.
-func (a *API) GetStatistics(ctx context.Context, instrument string) (json.RawMessage, error) {
+func (a *apiCalls) GetStatistics(ctx context.Context, instrument string) (json.RawMessage, error) {
 	var raw json.RawMessage
 	err := a.call(ctx, "public/statistics", map[string]any{"instrument_name": instrument}, &raw)
 	return raw, err
@@ -165,7 +165,7 @@ func (a *API) GetStatistics(ctx context.Context, instrument string) (json.RawMes
 // transaction by its transaction id.
 //
 // Required params: `transaction_id`. Public.
-func (a *API) GetTransaction(ctx context.Context, transactionID string) (json.RawMessage, error) {
+func (a *apiCalls) GetTransaction(ctx context.Context, transactionID string) (json.RawMessage, error) {
 	var raw json.RawMessage
 	err := a.call(ctx, "public/get_transaction", map[string]any{"transaction_id": transactionID}, &raw)
 	return raw, err
@@ -175,7 +175,7 @@ func (a *API) GetTransaction(ctx context.Context, transactionID string) (json.Ra
 // settlement history.
 //
 // Optional params: pagination. Pass nil for the default range. Public.
-func (a *API) GetPublicOptionSettlementHistory(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) GetPublicOptionSettlementHistory(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if params == nil {
 		params = map[string]any{}
 	}
@@ -187,7 +187,7 @@ func (a *API) GetPublicOptionSettlementHistory(ctx context.Context, params map[s
 // GetAccount returns wallet-level account information for the signer.
 //
 // No params. Private.
-func (a *API) GetAccount(ctx context.Context) (json.RawMessage, error) {
+func (a *apiCalls) GetAccount(ctx context.Context) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -201,7 +201,7 @@ func (a *API) GetAccount(ctx context.Context) (json.RawMessage, error) {
 // subaccount.
 //
 // No params. Private.
-func (a *API) GetMargin(ctx context.Context) (json.RawMessage, error) {
+func (a *apiCalls) GetMargin(ctx context.Context) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -218,7 +218,7 @@ func (a *API) GetMargin(ctx context.Context) (json.RawMessage, error) {
 //
 // Optional params: `start_timestamp`, `end_timestamp`, `instrument_name`,
 // pagination. Private.
-func (a *API) GetFundingHistory(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) GetFundingHistory(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -240,7 +240,7 @@ func (a *API) GetFundingHistory(ctx context.Context, params map[string]any) (jso
 // liquidation events.
 //
 // Optional params: `start_timestamp`, `end_timestamp`, pagination. Private.
-func (a *API) GetLiquidationHistory(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) GetLiquidationHistory(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -262,7 +262,7 @@ func (a *API) GetLiquidationHistory(ctx context.Context, params map[string]any) 
 // option-settlement events.
 //
 // Optional params: `start_timestamp`, `end_timestamp`, pagination. Private.
-func (a *API) GetOptionSettlementHistory(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) GetOptionSettlementHistory(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -284,7 +284,7 @@ func (a *API) GetOptionSettlementHistory(ctx context.Context, params map[string]
 // configured subaccount.
 //
 // Required params: `period`, `start_timestamp`, `end_timestamp`. Private.
-func (a *API) GetSubaccountValueHistory(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) GetSubaccountValueHistory(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -304,7 +304,7 @@ func (a *API) GetSubaccountValueHistory(ctx context.Context, params map[string]a
 
 // GetERC20TransferHistory returns deposit / withdrawal-style ERC-20
 // transfers attributed to the configured subaccount.
-func (a *API) GetERC20TransferHistory(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) GetERC20TransferHistory(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -324,7 +324,7 @@ func (a *API) GetERC20TransferHistory(ctx context.Context, params map[string]any
 
 // GetInterestHistory returns the configured subaccount's interest charges
 // and rebates.
-func (a *API) GetInterestHistory(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) GetInterestHistory(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -344,7 +344,7 @@ func (a *API) GetInterestHistory(ctx context.Context, params map[string]any) (js
 
 // ExpiredAndCancelledHistory returns the configured subaccount's expired
 // and cancelled orders.
-func (a *API) ExpiredAndCancelledHistory(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) ExpiredAndCancelledHistory(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -364,7 +364,7 @@ func (a *API) ExpiredAndCancelledHistory(ctx context.Context, params map[string]
 
 // GetMMPConfig returns the active market-maker-protection config for the
 // configured subaccount.
-func (a *API) GetMMPConfig(ctx context.Context) (json.RawMessage, error) {
+func (a *apiCalls) GetMMPConfig(ctx context.Context) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -377,7 +377,7 @@ func (a *API) GetMMPConfig(ctx context.Context) (json.RawMessage, error) {
 }
 
 // GetNotifications returns the wallet's notification feed.
-func (a *API) GetNotifications(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) GetNotifications(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -395,7 +395,7 @@ func (a *API) GetNotifications(ctx context.Context, params map[string]any) (json
 // UpdateNotifications marks one or more notifications as seen / dismissed.
 //
 // Required params: `notification_ids` ([]int) and `status`. Private.
-func (a *API) UpdateNotifications(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) UpdateNotifications(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -412,7 +412,7 @@ func (a *API) UpdateNotifications(ctx context.Context, params map[string]any) (j
 // would take. The full param shape is documented at docs.derive.xyz.
 //
 // Private; requires signer + subaccount.
-func (a *API) Replace(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) Replace(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -429,7 +429,7 @@ func (a *API) Replace(ctx context.Context, params map[string]any) (json.RawMessa
 // computes. Use this to sanity-check signed payloads in CI.
 //
 // Params mirror PlaceOrder. Private.
-func (a *API) OrderDebug(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) OrderDebug(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -445,7 +445,7 @@ func (a *API) OrderDebug(ctx context.Context, params map[string]any) (json.RawMe
 // useful when the caller has not received the order id back yet.
 //
 // Required params: `instrument_name`, `nonce`, `wallet`. Private.
-func (a *API) CancelByNonce(ctx context.Context, instrument string, nonce uint64) (json.RawMessage, error) {
+func (a *apiCalls) CancelByNonce(ctx context.Context, instrument string, nonce uint64) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -467,7 +467,7 @@ func (a *API) CancelByNonce(ctx context.Context, instrument string, nonce uint64
 // open order on the wallet if the WebSocket session disconnects.
 //
 // Pass enabled=true to arm; false to disarm. Private.
-func (a *API) SetCancelOnDisconnect(ctx context.Context, enabled bool) (json.RawMessage, error) {
+func (a *apiCalls) SetCancelOnDisconnect(ctx context.Context, enabled bool) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -482,7 +482,7 @@ func (a *API) SetCancelOnDisconnect(ctx context.Context, enabled bool) (json.Raw
 
 // ChangeSubaccountLabel sets the human-readable label on the configured
 // subaccount.
-func (a *API) ChangeSubaccountLabel(ctx context.Context, label string) (json.RawMessage, error) {
+func (a *apiCalls) ChangeSubaccountLabel(ctx context.Context, label string) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -501,7 +501,7 @@ func (a *API) ChangeSubaccountLabel(ctx context.Context, label string) (json.Raw
 // GetInstruments lists active instruments matching the filter. Public.
 //
 // Derive returns the result as a bare JSON array of instrument objects.
-func (a *API) GetInstruments(ctx context.Context, currency string, kind InstrumentType) ([]Instrument, error) {
+func (a *apiCalls) GetInstruments(ctx context.Context, currency string, kind InstrumentType) ([]Instrument, error) {
 	params := map[string]any{}
 	if currency != "" {
 		params["currency"] = currency
@@ -518,21 +518,21 @@ func (a *API) GetInstruments(ctx context.Context, currency string, kind Instrume
 }
 
 // GetInstrument fetches one instrument by name. Public.
-func (a *API) GetInstrument(ctx context.Context, name string) (Instrument, error) {
+func (a *apiCalls) GetInstrument(ctx context.Context, name string) (Instrument, error) {
 	var inst Instrument
 	err := a.call(ctx, "public/get_instrument", map[string]any{"instrument_name": name}, &inst)
 	return inst, err
 }
 
 // GetTicker fetches the public ticker for one instrument. Public.
-func (a *API) GetTicker(ctx context.Context, name string) (Ticker, error) {
+func (a *apiCalls) GetTicker(ctx context.Context, name string) (Ticker, error) {
 	var t Ticker
 	err := a.call(ctx, "public/get_ticker", map[string]any{"instrument_name": name}, &t)
 	return t, err
 }
 
 // GetPublicTradeHistory returns recent trades on the instrument. Public.
-func (a *API) GetPublicTradeHistory(ctx context.Context, instrument string, page PageRequest) ([]Trade, Page, error) {
+func (a *apiCalls) GetPublicTradeHistory(ctx context.Context, instrument string, page PageRequest) ([]Trade, Page, error) {
 	params := map[string]any{"instrument_name": instrument}
 	if page.Page > 0 {
 		params["page"] = page.Page
@@ -551,7 +551,7 @@ func (a *API) GetPublicTradeHistory(ctx context.Context, instrument string, page
 }
 
 // GetTime returns the server clock in milliseconds. Public.
-func (a *API) GetTime(ctx context.Context) (int64, error) {
+func (a *apiCalls) GetTime(ctx context.Context) (int64, error) {
 	var t int64
 	err := a.call(ctx, "public/get_time", map[string]any{}, &t)
 	return t, err
@@ -563,7 +563,7 @@ func (a *API) GetTime(ctx context.Context) (int64, error) {
 // rich currency objects (margin parameters, manager addresses, etc.);
 // this method extracts the `currency` name field from each. Callers
 // that need the full object should call the raw transport directly.
-func (a *API) GetCurrencies(ctx context.Context) ([]string, error) {
+func (a *apiCalls) GetCurrencies(ctx context.Context) ([]string, error) {
 	var raw []struct {
 		Currency string `json:"currency"`
 	}
@@ -603,7 +603,7 @@ func (c MMPConfig) Validate() error {
 }
 
 // SetMMPConfig configures market-maker protection for a currency. Private.
-func (a *API) SetMMPConfig(ctx context.Context, cfg MMPConfig) error {
+func (a *apiCalls) SetMMPConfig(ctx context.Context, cfg MMPConfig) error {
 	if err := a.requireSubaccount(); err != nil {
 		return err
 	}
@@ -623,7 +623,7 @@ func (a *API) SetMMPConfig(ctx context.Context, cfg MMPConfig) error {
 }
 
 // ResetMMP unfreezes the subaccount's MMP for a currency. Private.
-func (a *API) ResetMMP(ctx context.Context, currency string) error {
+func (a *apiCalls) ResetMMP(ctx context.Context, currency string) error {
 	if err := a.requireSubaccount(); err != nil {
 		return err
 	}
@@ -700,7 +700,7 @@ func (in PlaceOrderInput) Validate() error {
 // The session key signs the action; the resulting signature, signer address,
 // nonce and expiry are embedded in the JSON-RPC params so the matching engine
 // can recompute the EIP-712 hash and verify.
-func (a *API) PlaceOrder(ctx context.Context, in PlaceOrderInput) (Order, error) {
+func (a *apiCalls) PlaceOrder(ctx context.Context, in PlaceOrderInput) (Order, error) {
 	if err := a.requireSigner(); err != nil {
 		return Order{}, err
 	}
@@ -772,17 +772,17 @@ func (a *API) PlaceOrder(ctx context.Context, in PlaceOrderInput) (Order, error)
 }
 
 // tradeModuleOverride returns the TradeModule address from the ambient
-// Contracts struct if available. The API struct doesn't carry the
+// Contracts struct if available. The apiCalls struct doesn't carry the
 // full config to keep its size small; we expose it via a setter (see
 // SetTradeModule below) that pkg/rest and pkg/ws set up at construction.
-func (a *API) tradeModuleOverride() common.Address { return a.tradeModule }
+func (a *apiCalls) tradeModuleOverride() common.Address { return a.tradeModule }
 
 // SetTradeModule is called by the client constructors to thread through the
 // per-network TradeModule contract address.
-func (a *API) SetTradeModule(addr common.Address) { a.tradeModule = addr }
+func (a *apiCalls) SetTradeModule(addr common.Address) { a.tradeModule = addr }
 
 // CancelOrder cancels one open order by id. Private.
-func (a *API) CancelOrder(ctx context.Context, instrument, orderID string) error {
+func (a *apiCalls) CancelOrder(ctx context.Context, instrument, orderID string) error {
 	if err := a.requireSubaccount(); err != nil {
 		return err
 	}
@@ -795,7 +795,7 @@ func (a *API) CancelOrder(ctx context.Context, instrument, orderID string) error
 }
 
 // CancelByLabel cancels all orders carrying the given label. Private.
-func (a *API) CancelByLabel(ctx context.Context, label string) (cancelled int, err error) {
+func (a *apiCalls) CancelByLabel(ctx context.Context, label string) (cancelled int, err error) {
 	if err := a.requireSubaccount(); err != nil {
 		return 0, err
 	}
@@ -813,7 +813,7 @@ func (a *API) CancelByLabel(ctx context.Context, label string) (cancelled int, e
 }
 
 // CancelByInstrument cancels all open orders on the instrument. Private.
-func (a *API) CancelByInstrument(ctx context.Context, instrument string) (cancelled int, err error) {
+func (a *apiCalls) CancelByInstrument(ctx context.Context, instrument string) (cancelled int, err error) {
 	if err := a.requireSubaccount(); err != nil {
 		return 0, err
 	}
@@ -831,7 +831,7 @@ func (a *API) CancelByInstrument(ctx context.Context, instrument string) (cancel
 }
 
 // CancelAll cancels every open order on the subaccount. Private.
-func (a *API) CancelAll(ctx context.Context) (cancelled int, err error) {
+func (a *apiCalls) CancelAll(ctx context.Context) (cancelled int, err error) {
 	if err := a.requireSubaccount(); err != nil {
 		return 0, err
 	}
@@ -846,7 +846,7 @@ func (a *API) CancelAll(ctx context.Context) (cancelled int, err error) {
 }
 
 // GetOrder fetches one order by id. Private.
-func (a *API) GetOrder(ctx context.Context, orderID string) (Order, error) {
+func (a *apiCalls) GetOrder(ctx context.Context, orderID string) (Order, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return Order{}, err
 	}
@@ -862,7 +862,7 @@ func (a *API) GetOrder(ctx context.Context, orderID string) (Order, error) {
 }
 
 // GetOpenOrders lists currently-open orders on the subaccount. Private.
-func (a *API) GetOpenOrders(ctx context.Context) ([]Order, error) {
+func (a *apiCalls) GetOpenOrders(ctx context.Context) ([]Order, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return nil, err
 	}
@@ -875,7 +875,7 @@ func (a *API) GetOpenOrders(ctx context.Context) ([]Order, error) {
 }
 
 // GetOrderHistory paginates past orders. Private.
-func (a *API) GetOrderHistory(ctx context.Context, page PageRequest) ([]Order, Page, error) {
+func (a *apiCalls) GetOrderHistory(ctx context.Context, page PageRequest) ([]Order, Page, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return nil, Page{}, err
 	}
@@ -897,7 +897,7 @@ func (a *API) GetOrderHistory(ctx context.Context, page PageRequest) ([]Order, P
 }
 
 // GetPositions lists open positions on the subaccount. Private.
-func (a *API) GetPositions(ctx context.Context) ([]Position, error) {
+func (a *apiCalls) GetPositions(ctx context.Context) ([]Position, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return nil, err
 	}
@@ -910,7 +910,7 @@ func (a *API) GetPositions(ctx context.Context) ([]Position, error) {
 }
 
 // SendRFQ broadcasts a request-for-quote to market makers. Private.
-func (a *API) SendRFQ(ctx context.Context, legs []RFQLeg, maxFee Decimal) (RFQ, error) {
+func (a *apiCalls) SendRFQ(ctx context.Context, legs []RFQLeg, maxFee Decimal) (RFQ, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return RFQ{}, err
 	}
@@ -925,7 +925,7 @@ func (a *API) SendRFQ(ctx context.Context, legs []RFQLeg, maxFee Decimal) (RFQ, 
 }
 
 // PollRFQs returns the status of recent RFQs initiated by this subaccount. Private.
-func (a *API) PollRFQs(ctx context.Context) ([]RFQ, error) {
+func (a *apiCalls) PollRFQs(ctx context.Context) ([]RFQ, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return nil, err
 	}
@@ -939,7 +939,7 @@ func (a *API) PollRFQs(ctx context.Context) ([]RFQ, error) {
 }
 
 // CancelRFQ cancels an outstanding RFQ. Private.
-func (a *API) CancelRFQ(ctx context.Context, rfqID string) error {
+func (a *apiCalls) CancelRFQ(ctx context.Context, rfqID string) error {
 	if err := a.requireSubaccount(); err != nil {
 		return err
 	}
@@ -951,7 +951,7 @@ func (a *API) CancelRFQ(ctx context.Context, rfqID string) error {
 
 // GetRFQs returns the configured subaccount's outstanding (open / done)
 // RFQs.
-func (a *API) GetRFQs(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) GetRFQs(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -971,7 +971,7 @@ func (a *API) GetRFQs(ctx context.Context, params map[string]any) (json.RawMessa
 
 // GetQuotes returns quotes the configured subaccount has issued or
 // received against open RFQs.
-func (a *API) GetQuotes(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) GetQuotes(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -991,7 +991,7 @@ func (a *API) GetQuotes(ctx context.Context, params map[string]any) (json.RawMes
 
 // PollQuotes is the long-poll variant of GetQuotes — used by makers who
 // want to be woken on new RFQs without holding a WebSocket open.
-func (a *API) PollQuotes(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) PollQuotes(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -1014,7 +1014,7 @@ func (a *API) PollQuotes(ctx context.Context, params map[string]any) (json.RawMe
 //
 // Required params include the RFQ id, the per-leg quote prices, and the
 // signature/nonce/expiry triple. Private.
-func (a *API) SendQuote(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) SendQuote(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -1034,7 +1034,7 @@ func (a *API) SendQuote(ctx context.Context, params map[string]any) (json.RawMes
 
 // ExecuteQuote picks one quote response and trades against it. Used by
 // the taker once `send_rfq` has surfaced acceptable quotes.
-func (a *API) ExecuteQuote(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) ExecuteQuote(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -1053,7 +1053,7 @@ func (a *API) ExecuteQuote(ctx context.Context, params map[string]any) (json.Raw
 }
 
 // CancelQuote cancels one outstanding maker quote by id.
-func (a *API) CancelQuote(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) CancelQuote(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -1073,7 +1073,7 @@ func (a *API) CancelQuote(ctx context.Context, params map[string]any) (json.RawM
 
 // CancelBatchQuotes cancels every quote whose id appears in `quote_ids`,
 // or every open quote on the subaccount when the field is omitted.
-func (a *API) CancelBatchQuotes(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) CancelBatchQuotes(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -1093,7 +1093,7 @@ func (a *API) CancelBatchQuotes(ctx context.Context, params map[string]any) (jso
 
 // CancelBatchRFQs cancels every RFQ whose id appears in `rfq_ids`, or
 // every open RFQ on the subaccount when the field is omitted.
-func (a *API) CancelBatchRFQs(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) CancelBatchRFQs(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -1114,7 +1114,7 @@ func (a *API) CancelBatchRFQs(ctx context.Context, params map[string]any) (json.
 // RFQGetBestQuote returns the best quote currently outstanding on one
 // RFQ — the helper a taker uses to pick a counterparty before calling
 // ExecuteQuote.
-func (a *API) RFQGetBestQuote(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) RFQGetBestQuote(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -1135,7 +1135,7 @@ func (a *API) RFQGetBestQuote(ctx context.Context, params map[string]any) (json.
 // OrderQuote routes an order through the RFQ matching path instead of
 // the central order book. Useful for instruments with thin books where
 // makers respond on demand.
-func (a *API) OrderQuote(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+func (a *apiCalls) OrderQuote(ctx context.Context, params map[string]any) (json.RawMessage, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -1154,7 +1154,7 @@ func (a *API) OrderQuote(ctx context.Context, params map[string]any) (json.RawMe
 }
 
 // GetSubaccount fetches the configured subaccount snapshot. Private.
-func (a *API) GetSubaccount(ctx context.Context) (SubAccount, error) {
+func (a *apiCalls) GetSubaccount(ctx context.Context) (SubAccount, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return SubAccount{}, err
 	}
@@ -1166,7 +1166,7 @@ func (a *API) GetSubaccount(ctx context.Context) (SubAccount, error) {
 }
 
 // GetSubaccounts lists every subaccount owned by the wallet. Private.
-func (a *API) GetSubaccounts(ctx context.Context) ([]int64, error) {
+func (a *apiCalls) GetSubaccounts(ctx context.Context) ([]int64, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -1180,7 +1180,7 @@ func (a *API) GetSubaccounts(ctx context.Context) ([]int64, error) {
 }
 
 // GetTradeHistory paginates the user's fills. Private.
-func (a *API) GetTradeHistory(ctx context.Context, page PageRequest) ([]Trade, Page, error) {
+func (a *apiCalls) GetTradeHistory(ctx context.Context, page PageRequest) ([]Trade, Page, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return nil, Page{}, err
 	}
@@ -1202,7 +1202,7 @@ func (a *API) GetTradeHistory(ctx context.Context, page PageRequest) ([]Trade, P
 }
 
 // GetDepositHistory paginates deposit transactions. Private.
-func (a *API) GetDepositHistory(ctx context.Context, page PageRequest) ([]DepositTx, Page, error) {
+func (a *apiCalls) GetDepositHistory(ctx context.Context, page PageRequest) ([]DepositTx, Page, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return nil, Page{}, err
 	}
@@ -1224,7 +1224,7 @@ func (a *API) GetDepositHistory(ctx context.Context, page PageRequest) ([]Deposi
 }
 
 // GetWithdrawalHistory paginates withdrawal transactions. Private.
-func (a *API) GetWithdrawalHistory(ctx context.Context, page PageRequest) ([]WithdrawTx, Page, error) {
+func (a *apiCalls) GetWithdrawalHistory(ctx context.Context, page PageRequest) ([]WithdrawTx, Page, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return nil, Page{}, err
 	}

@@ -1,32 +1,39 @@
-package derive_test
+package derive
 
 import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/amiwrpremium/go-derive"
-	"github.com/amiwrpremium/go-derive/internal/testutil"
+	"strings"
+	"testing"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"strings"
-	"testing"
+
+	"github.com/amiwrpremium/go-derive/internal/testutil"
 )
 
-// newAPI returns a *derive.API wired to a FakeTransport.
-// signed=true attaches a LocalSigner and a default subaccount id.
-func newAPI(t *testing.T, signed bool, sub int64) (*derive.API, *testutil.FakeTransport) {
+// methodsTestKey is the canonical go-ethereum test private key, scoped
+// to the methods internal-test file. Other internal/external test
+// files declare the same value under different names; redeclaring it
+// here keeps this file independent of test-file load order.
+const methodsTestKey = "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318"
+
+// newAPI returns an *apiCalls wired to a FakeTransport. signed=true
+// attaches a LocalSigner and a default subaccount id.
+func newAPI(t *testing.T, signed bool, sub int64) (*apiCalls, *testutil.FakeTransport) {
 	t.Helper()
 	ft := testutil.NewFakeTransport()
-	api := &derive.API{
+	api := &apiCalls{
 		T:               ft,
-		Domain:          derive.Mainnet().EIP712Domain(),
-		Nonces:          derive.NewNonceGen(),
+		Domain:          Mainnet().EIP712Domain(),
+		Nonces:          NewNonceGen(),
 		SignatureExpiry: 300,
 	}
-	api.SetTradeModule(common.HexToAddress(derive.Mainnet().Contracts.TradeModule))
+	api.SetTradeModule(common.HexToAddress(Mainnet().Contracts.TradeModule))
 	if signed {
-		s, err := derive.NewLocalSigner(testKey)
+		s, err := NewLocalSigner(methodsTestKey)
 		require.NoError(t, err)
 		api.Signer = s
 		api.Subaccount = sub
@@ -68,12 +75,12 @@ func TestGetCollateral_Empty(t *testing.T) {
 func TestGetCollateral_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
 	_, err := api.GetCollateral(context.Background())
-	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
+	assert.ErrorIs(t, err, ErrSubaccountRequired)
 }
 
 // boom is the error injected by the fake transport on every wrapper under
 // test below. Using a single sentinel keeps the table compact.
-var boom = &derive.APIError{Code: 9999, Message: "boom"}
+var boom = &APIError{Code: 9999, Message: "boom"}
 
 // rawWrapper is a generic adapter for the family of wrappers that take
 // (ctx, map[string]any) and return (json.RawMessage, error). It lets us
@@ -85,38 +92,38 @@ func TestRPCWrappers_PropagateError(t *testing.T) {
 		name   string
 		method string
 		needs  int64
-		fn     func(*derive.API) rawWrapper
+		fn     func(*apiCalls) rawWrapper
 	}{
 
-		{"GetFundingHistory", "private/get_funding_history", 1, func(a *derive.API) rawWrapper { return a.GetFundingHistory }},
-		{"GetLiquidationHistory", "private/get_liquidation_history", 1, func(a *derive.API) rawWrapper { return a.GetLiquidationHistory }},
-		{"GetOptionSettlementHistory", "private/get_option_settlement_history", 1, func(a *derive.API) rawWrapper { return a.GetOptionSettlementHistory }},
-		{"GetSubaccountValueHistory", "private/get_subaccount_value_history", 1, func(a *derive.API) rawWrapper { return a.GetSubaccountValueHistory }},
-		{"GetERC20TransferHistory", "private/get_erc20_transfer_history", 1, func(a *derive.API) rawWrapper { return a.GetERC20TransferHistory }},
-		{"GetInterestHistory", "private/get_interest_history", 1, func(a *derive.API) rawWrapper { return a.GetInterestHistory }},
-		{"ExpiredAndCancelledHistory", "private/expired_and_cancelled_history", 1, func(a *derive.API) rawWrapper { return a.ExpiredAndCancelledHistory }},
-		{"GetNotifications", "private/get_notifications", 1, func(a *derive.API) rawWrapper { return a.GetNotifications }},
-		{"UpdateNotifications", "private/update_notifications", 1, func(a *derive.API) rawWrapper { return a.UpdateNotifications }},
-		{"Replace", "private/replace", 1, func(a *derive.API) rawWrapper { return a.Replace }},
-		{"OrderDebug", "private/order_debug", 1, func(a *derive.API) rawWrapper { return a.OrderDebug }},
+		{"GetFundingHistory", "private/get_funding_history", 1, func(a *apiCalls) rawWrapper { return a.GetFundingHistory }},
+		{"GetLiquidationHistory", "private/get_liquidation_history", 1, func(a *apiCalls) rawWrapper { return a.GetLiquidationHistory }},
+		{"GetOptionSettlementHistory", "private/get_option_settlement_history", 1, func(a *apiCalls) rawWrapper { return a.GetOptionSettlementHistory }},
+		{"GetSubaccountValueHistory", "private/get_subaccount_value_history", 1, func(a *apiCalls) rawWrapper { return a.GetSubaccountValueHistory }},
+		{"GetERC20TransferHistory", "private/get_erc20_transfer_history", 1, func(a *apiCalls) rawWrapper { return a.GetERC20TransferHistory }},
+		{"GetInterestHistory", "private/get_interest_history", 1, func(a *apiCalls) rawWrapper { return a.GetInterestHistory }},
+		{"ExpiredAndCancelledHistory", "private/expired_and_cancelled_history", 1, func(a *apiCalls) rawWrapper { return a.ExpiredAndCancelledHistory }},
+		{"GetNotifications", "private/get_notifications", 1, func(a *apiCalls) rawWrapper { return a.GetNotifications }},
+		{"UpdateNotifications", "private/update_notifications", 1, func(a *apiCalls) rawWrapper { return a.UpdateNotifications }},
+		{"Replace", "private/replace", 1, func(a *apiCalls) rawWrapper { return a.Replace }},
+		{"OrderDebug", "private/order_debug", 1, func(a *apiCalls) rawWrapper { return a.OrderDebug }},
 
-		{"GetRFQs", "private/get_rfqs", 1, func(a *derive.API) rawWrapper { return a.GetRFQs }},
-		{"GetQuotes", "private/get_quotes", 1, func(a *derive.API) rawWrapper { return a.GetQuotes }},
-		{"PollQuotes", "private/poll_quotes", 1, func(a *derive.API) rawWrapper { return a.PollQuotes }},
-		{"SendQuote", "private/send_quote", 1, func(a *derive.API) rawWrapper { return a.SendQuote }},
-		{"ExecuteQuote", "private/execute_quote", 1, func(a *derive.API) rawWrapper { return a.ExecuteQuote }},
-		{"CancelQuote", "private/cancel_quote", 1, func(a *derive.API) rawWrapper { return a.CancelQuote }},
-		{"CancelBatchQuotes", "private/cancel_batch_quotes", 1, func(a *derive.API) rawWrapper { return a.CancelBatchQuotes }},
-		{"CancelBatchRFQs", "private/cancel_batch_rfqs", 1, func(a *derive.API) rawWrapper { return a.CancelBatchRFQs }},
-		{"RFQGetBestQuote", "private/rfq_get_best_quote", 1, func(a *derive.API) rawWrapper { return a.RFQGetBestQuote }},
-		{"OrderQuote", "private/order_quote", 1, func(a *derive.API) rawWrapper { return a.OrderQuote }},
+		{"GetRFQs", "private/get_rfqs", 1, func(a *apiCalls) rawWrapper { return a.GetRFQs }},
+		{"GetQuotes", "private/get_quotes", 1, func(a *apiCalls) rawWrapper { return a.GetQuotes }},
+		{"PollQuotes", "private/poll_quotes", 1, func(a *apiCalls) rawWrapper { return a.PollQuotes }},
+		{"SendQuote", "private/send_quote", 1, func(a *apiCalls) rawWrapper { return a.SendQuote }},
+		{"ExecuteQuote", "private/execute_quote", 1, func(a *apiCalls) rawWrapper { return a.ExecuteQuote }},
+		{"CancelQuote", "private/cancel_quote", 1, func(a *apiCalls) rawWrapper { return a.CancelQuote }},
+		{"CancelBatchQuotes", "private/cancel_batch_quotes", 1, func(a *apiCalls) rawWrapper { return a.CancelBatchQuotes }},
+		{"CancelBatchRFQs", "private/cancel_batch_rfqs", 1, func(a *apiCalls) rawWrapper { return a.CancelBatchRFQs }},
+		{"RFQGetBestQuote", "private/rfq_get_best_quote", 1, func(a *apiCalls) rawWrapper { return a.RFQGetBestQuote }},
+		{"OrderQuote", "private/order_quote", 1, func(a *apiCalls) rawWrapper { return a.OrderQuote }},
 
-		{"GetFundingRateHistory", "public/get_funding_rate_history", 0, func(a *derive.API) rawWrapper { return a.GetFundingRateHistory }},
-		{"GetPerpImpactTWAP", "public/get_perp_impact_twap", 0, func(a *derive.API) rawWrapper { return a.GetPerpImpactTWAP }},
-		{"GetPublicMargin", "public/get_margin", 0, func(a *derive.API) rawWrapper { return a.GetPublicMargin }},
-		{"GetLatestSignedFeeds", "public/get_latest_signed_feeds", 0, func(a *derive.API) rawWrapper { return a.GetLatestSignedFeeds }},
-		{"GetSpotFeedHistory", "public/get_spot_feed_history", 0, func(a *derive.API) rawWrapper { return a.GetSpotFeedHistory }},
-		{"GetPublicOptionSettlementHistory", "public/get_option_settlement_history", 0, func(a *derive.API) rawWrapper { return a.GetPublicOptionSettlementHistory }},
+		{"GetFundingRateHistory", "public/get_funding_rate_history", 0, func(a *apiCalls) rawWrapper { return a.GetFundingRateHistory }},
+		{"GetPerpImpactTWAP", "public/get_perp_impact_twap", 0, func(a *apiCalls) rawWrapper { return a.GetPerpImpactTWAP }},
+		{"GetPublicMargin", "public/get_margin", 0, func(a *apiCalls) rawWrapper { return a.GetPublicMargin }},
+		{"GetLatestSignedFeeds", "public/get_latest_signed_feeds", 0, func(a *apiCalls) rawWrapper { return a.GetLatestSignedFeeds }},
+		{"GetSpotFeedHistory", "public/get_spot_feed_history", 0, func(a *apiCalls) rawWrapper { return a.GetSpotFeedHistory }},
+		{"GetPublicOptionSettlementHistory", "public/get_option_settlement_history", 0, func(a *apiCalls) rawWrapper { return a.GetPublicOptionSettlementHistory }},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -124,7 +131,7 @@ func TestRPCWrappers_PropagateError(t *testing.T) {
 			ft.HandleError(c.method, boom)
 			_, err := c.fn(api)(context.Background(), map[string]any{})
 			assert.Error(t, err)
-			var apiErr *derive.APIError
+			var apiErr *APIError
 			assert.True(t, errors.As(err, &apiErr))
 			assert.Equal(t, 9999, apiErr.Code)
 		})
@@ -138,91 +145,91 @@ func TestNoArgWrappers_PropagateError(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/get_margin", boom)
 		_, err := api.GetMargin(context.Background())
-		assert.ErrorAs(t, err, new(*derive.APIError))
+		assert.ErrorAs(t, err, new(*APIError))
 	})
 	t.Run("GetMMPConfig", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/get_mmp_config", boom)
 		_, err := api.GetMMPConfig(context.Background())
-		assert.ErrorAs(t, err, new(*derive.APIError))
+		assert.ErrorAs(t, err, new(*APIError))
 	})
 	t.Run("GetAccount", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/get_account", boom)
 		_, err := api.GetAccount(context.Background())
-		assert.ErrorAs(t, err, new(*derive.APIError))
+		assert.ErrorAs(t, err, new(*APIError))
 	})
 	t.Run("CancelByNonce", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/cancel_by_nonce", boom)
 		_, err := api.CancelByNonce(context.Background(), "BTC-PERP", 42)
-		assert.ErrorAs(t, err, new(*derive.APIError))
+		assert.ErrorAs(t, err, new(*APIError))
 	})
 	t.Run("SetCancelOnDisconnect", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/set_cancel_on_disconnect", boom)
 		_, err := api.SetCancelOnDisconnect(context.Background(), true)
-		assert.ErrorAs(t, err, new(*derive.APIError))
+		assert.ErrorAs(t, err, new(*APIError))
 	})
 	t.Run("ChangeSubaccountLabel", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/change_subaccount_label", boom)
 		_, err := api.ChangeSubaccountLabel(context.Background(), "newlabel")
-		assert.ErrorAs(t, err, new(*derive.APIError))
+		assert.ErrorAs(t, err, new(*APIError))
 	})
 	t.Run("GetStatistics", func(t *testing.T) {
 		api, ft := newAPI(t, true, 0)
 		ft.HandleError("public/statistics", boom)
 		_, err := api.GetStatistics(context.Background(), "BTC-PERP")
-		assert.ErrorAs(t, err, new(*derive.APIError))
+		assert.ErrorAs(t, err, new(*APIError))
 	})
 	t.Run("GetTransaction", func(t *testing.T) {
 		api, ft := newAPI(t, true, 0)
 		ft.HandleError("public/get_transaction", boom)
 		_, err := api.GetTransaction(context.Background(), "TX1")
-		assert.ErrorAs(t, err, new(*derive.APIError))
+		assert.ErrorAs(t, err, new(*APIError))
 	})
 	t.Run("GetCurrencies", func(t *testing.T) {
 		api, ft := newAPI(t, true, 0)
 		ft.HandleError("public/get_all_currencies", boom)
 		_, err := api.GetCurrencies(context.Background())
-		assert.ErrorAs(t, err, new(*derive.APIError))
+		assert.ErrorAs(t, err, new(*APIError))
 	})
 	t.Run("CancelByLabel", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/cancel_by_label", boom)
 		_, err := api.CancelByLabel(context.Background(), "L")
-		assert.ErrorAs(t, err, new(*derive.APIError))
+		assert.ErrorAs(t, err, new(*APIError))
 	})
 	t.Run("CancelByInstrument", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/cancel_by_instrument", boom)
 		_, err := api.CancelByInstrument(context.Background(), "BTC-PERP")
-		assert.ErrorAs(t, err, new(*derive.APIError))
+		assert.ErrorAs(t, err, new(*APIError))
 	})
 	t.Run("CancelAll", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/cancel_all", boom)
 		_, err := api.CancelAll(context.Background())
-		assert.ErrorAs(t, err, new(*derive.APIError))
+		assert.ErrorAs(t, err, new(*APIError))
 	})
 	t.Run("GetDepositHistory_ServerError", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/get_deposit_history", boom)
-		_, _, err := api.GetDepositHistory(context.Background(), derive.PageRequest{Page: 1, PageSize: 10})
-		assert.ErrorAs(t, err, new(*derive.APIError))
+		_, _, err := api.GetDepositHistory(context.Background(), PageRequest{Page: 1, PageSize: 10})
+		assert.ErrorAs(t, err, new(*APIError))
 	})
 	t.Run("GetWithdrawalHistory_ServerError", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/get_withdrawal_history", boom)
-		_, _, err := api.GetWithdrawalHistory(context.Background(), derive.PageRequest{})
-		assert.ErrorAs(t, err, new(*derive.APIError))
+		_, _, err := api.GetWithdrawalHistory(context.Background(), PageRequest{})
+		assert.ErrorAs(t, err, new(*APIError))
 	})
 	t.Run("GetTradeHistory_ServerError", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/get_trade_history", boom)
-		_, _, err := api.GetTradeHistory(context.Background(), derive.PageRequest{})
-		assert.ErrorAs(t, err, new(*derive.APIError))
+		_, _, err := api.GetTradeHistory(context.Background(), PageRequest{})
+		assert.ErrorAs(t, err, new(*APIError))
 	})
 }
 
@@ -430,7 +437,7 @@ func TestExtras_PrivateRequiresSigner(t *testing.T) {
 	}
 	for _, fn := range checks {
 		_, err := fn()
-		assert.ErrorIs(t, err, derive.ErrUnauthorized)
+		assert.ErrorIs(t, err, ErrUnauthorized)
 	}
 }
 func TestGetInstruments(t *testing.T) {
@@ -441,7 +448,7 @@ func TestGetInstruments(t *testing.T) {
 			"tick_size": "0.5", "minimum_amount": "0.001", "maximum_amount": "100", "amount_step": "0.001"},
 	})
 
-	insts, err := api.GetInstruments(context.Background(), "BTC", derive.InstrumentTypePerp)
+	insts, err := api.GetInstruments(context.Background(), "BTC", InstrumentTypePerp)
 	require.NoError(t, err)
 	require.Len(t, insts, 1)
 	assert.Equal(t, "BTC-PERP", insts[0].Name)
@@ -507,7 +514,7 @@ func TestGetPublicTradeHistory(t *testing.T) {
 		"trades":     []any{},
 		"pagination": map[string]any{"num_pages": 1, "count": 0, "current_page": 1, "page_size": 50},
 	})
-	trades, page, err := api.GetPublicTradeHistory(context.Background(), "BTC-PERP", derive.PageRequest{Page: 2, PageSize: 50})
+	trades, page, err := api.GetPublicTradeHistory(context.Background(), "BTC-PERP", PageRequest{Page: 2, PageSize: 50})
 	require.NoError(t, err)
 	assert.Empty(t, trades)
 	assert.Equal(t, 1, page.NumPages)
@@ -545,25 +552,25 @@ func TestPublicMethods_PropagateUnhandledTransportError(t *testing.T) {
 var _ = json.Marshal
 
 func TestMMPConfig_Validate_Happy(t *testing.T) {
-	cfg := derive.MMPConfig{Currency: "BTC", MMPFrozenTimeMs: 1000, MMPIntervalMs: 500}
+	cfg := MMPConfig{Currency: "BTC", MMPFrozenTimeMs: 1000, MMPIntervalMs: 500}
 	require.NoError(t, cfg.Validate())
 }
 
 func TestMMPConfig_Validate_Rejects(t *testing.T) {
 	cases := []struct {
 		name string
-		cfg  derive.MMPConfig
+		cfg  MMPConfig
 		want string
 	}{
-		{"empty currency", derive.MMPConfig{}, "currency"},
-		{"negative frozen", derive.MMPConfig{Currency: "BTC", MMPFrozenTimeMs: -1}, "mmp_frozen_time"},
-		{"negative interval", derive.MMPConfig{Currency: "BTC", MMPIntervalMs: -1}, "mmp_interval"},
+		{"empty currency", MMPConfig{}, "currency"},
+		{"negative frozen", MMPConfig{Currency: "BTC", MMPFrozenTimeMs: -1}, "mmp_frozen_time"},
+		{"negative interval", MMPConfig{Currency: "BTC", MMPIntervalMs: -1}, "mmp_interval"},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			err := c.cfg.Validate()
 			require.Error(t, err)
-			assert.True(t, errors.Is(err, derive.ErrInvalidParams))
+			assert.True(t, errors.Is(err, ErrInvalidParams))
 			assert.Contains(t, err.Error(), c.want)
 		})
 	}
@@ -572,7 +579,7 @@ func TestMMPConfig_Validate_Rejects(t *testing.T) {
 func TestSetMMPConfig_AllFieldsPopulated(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleResult("private/set_mmp_config", nil)
-	cfg := derive.MMPConfig{
+	cfg := MMPConfig{
 		Currency:        "BTC",
 		MMPFrozenTimeMs: 1000,
 		MMPIntervalMs:   500,
@@ -591,7 +598,7 @@ func TestSetMMPConfig_AllFieldsPopulated(t *testing.T) {
 func TestSetMMPConfig_OmitsEmptyAmountLimit(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleResult("private/set_mmp_config", nil)
-	cfg := derive.MMPConfig{Currency: "BTC", MMPDeltaLimit: "1"}
+	cfg := MMPConfig{Currency: "BTC", MMPDeltaLimit: "1"}
 	require.NoError(t, api.SetMMPConfig(context.Background(), cfg))
 	params := paramsAsMap(t, ft.LastCall().Params)
 	_, has := params["mmp_amount_limit"]
@@ -601,7 +608,7 @@ func TestSetMMPConfig_OmitsEmptyAmountLimit(t *testing.T) {
 func TestSetMMPConfig_OmitsEmptyDeltaLimit(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleResult("private/set_mmp_config", nil)
-	cfg := derive.MMPConfig{Currency: "BTC", MMPAmountLimit: "1"}
+	cfg := MMPConfig{Currency: "BTC", MMPAmountLimit: "1"}
 	require.NoError(t, api.SetMMPConfig(context.Background(), cfg))
 	params := paramsAsMap(t, ft.LastCall().Params)
 	_, has := params["mmp_delta_limit"]
@@ -611,7 +618,7 @@ func TestSetMMPConfig_OmitsEmptyDeltaLimit(t *testing.T) {
 func TestSetMMPConfig_OmitsBothLimits(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleResult("private/set_mmp_config", nil)
-	cfg := derive.MMPConfig{Currency: "BTC"}
+	cfg := MMPConfig{Currency: "BTC"}
 	require.NoError(t, api.SetMMPConfig(context.Background(), cfg))
 	params := paramsAsMap(t, ft.LastCall().Params)
 	_, hasA := params["mmp_amount_limit"]
@@ -622,8 +629,8 @@ func TestSetMMPConfig_OmitsBothLimits(t *testing.T) {
 
 func TestSetMMPConfig_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	err := api.SetMMPConfig(context.Background(), derive.MMPConfig{Currency: "BTC"})
-	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
+	err := api.SetMMPConfig(context.Background(), MMPConfig{Currency: "BTC"})
+	assert.ErrorIs(t, err, ErrSubaccountRequired)
 }
 
 func TestResetMMP_Happy(t *testing.T) {
@@ -638,17 +645,17 @@ func TestResetMMP_Happy(t *testing.T) {
 func TestResetMMP_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
 	err := api.ResetMMP(context.Background(), "BTC")
-	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
+	assert.ErrorIs(t, err, ErrSubaccountRequired)
 }
-func validPlaceOrderInput() derive.PlaceOrderInput {
-	return derive.PlaceOrderInput{
+func validPlaceOrderInput() PlaceOrderInput {
+	return PlaceOrderInput{
 		InstrumentName: "BTC-PERP",
 		Asset:          common.HexToAddress("0x1111111111111111111111111111111111111111"),
-		Direction:      derive.DirectionBuy,
-		OrderType:      derive.OrderTypeLimit,
-		Amount:         derive.MustDecimal("1"),
-		LimitPrice:     derive.MustDecimal("100"),
-		MaxFee:         derive.MustDecimal("1"),
+		Direction:      DirectionBuy,
+		OrderType:      OrderTypeLimit,
+		Amount:         MustDecimal("1"),
+		LimitPrice:     MustDecimal("100"),
+		MaxFee:         MustDecimal("1"),
 	}
 }
 
@@ -659,17 +666,17 @@ func TestPlaceOrderInput_Validate_Happy(t *testing.T) {
 func TestPlaceOrderInput_Validate_Rejects(t *testing.T) {
 	cases := []struct {
 		name string
-		mut  func(*derive.PlaceOrderInput)
+		mut  func(*PlaceOrderInput)
 		want string
 	}{
-		{"empty instrument", func(in *derive.PlaceOrderInput) { in.InstrumentName = "" }, "instrument_name"},
-		{"zero asset", func(in *derive.PlaceOrderInput) { in.Asset = common.Address{} }, "asset"},
-		{"bad direction", func(in *derive.PlaceOrderInput) { in.Direction = derive.Direction("x") }, "direction"},
-		{"bad order type", func(in *derive.PlaceOrderInput) { in.OrderType = derive.OrderType("x") }, "order_type"},
-		{"bad time-in-force", func(in *derive.PlaceOrderInput) { in.TimeInForce = derive.TimeInForce("x") }, "time_in_force"},
-		{"zero amount", func(in *derive.PlaceOrderInput) { in.Amount = derive.MustDecimal("0") }, "amount"},
-		{"zero price", func(in *derive.PlaceOrderInput) { in.LimitPrice = derive.MustDecimal("0") }, "limit_price"},
-		{"negative fee", func(in *derive.PlaceOrderInput) { in.MaxFee = derive.MustDecimal("-1") }, "max_fee"},
+		{"empty instrument", func(in *PlaceOrderInput) { in.InstrumentName = "" }, "instrument_name"},
+		{"zero asset", func(in *PlaceOrderInput) { in.Asset = common.Address{} }, "asset"},
+		{"bad direction", func(in *PlaceOrderInput) { in.Direction = Direction("x") }, "direction"},
+		{"bad order type", func(in *PlaceOrderInput) { in.OrderType = OrderType("x") }, "order_type"},
+		{"bad time-in-force", func(in *PlaceOrderInput) { in.TimeInForce = TimeInForce("x") }, "time_in_force"},
+		{"zero amount", func(in *PlaceOrderInput) { in.Amount = MustDecimal("0") }, "amount"},
+		{"zero price", func(in *PlaceOrderInput) { in.LimitPrice = MustDecimal("0") }, "limit_price"},
+		{"negative fee", func(in *PlaceOrderInput) { in.MaxFee = MustDecimal("-1") }, "max_fee"},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -677,7 +684,7 @@ func TestPlaceOrderInput_Validate_Rejects(t *testing.T) {
 			c.mut(&in)
 			err := in.Validate()
 			require.Error(t, err)
-			assert.True(t, errors.Is(err, derive.ErrInvalidParams))
+			assert.True(t, errors.Is(err, ErrInvalidParams))
 			assert.Contains(t, err.Error(), c.want)
 		})
 	}
@@ -691,14 +698,14 @@ func TestPlaceOrderInput_Validate_AllowsEmptyTimeInForce(t *testing.T) {
 
 func TestPlaceOrder_RequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
-	_, err := api.PlaceOrder(context.Background(), derive.PlaceOrderInput{})
-	assert.ErrorIs(t, err, derive.ErrUnauthorized)
+	_, err := api.PlaceOrder(context.Background(), PlaceOrderInput{})
+	assert.ErrorIs(t, err, ErrUnauthorized)
 }
 
 func TestPlaceOrder_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	_, err := api.PlaceOrder(context.Background(), derive.PlaceOrderInput{})
-	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
+	_, err := api.PlaceOrder(context.Background(), PlaceOrderInput{})
+	assert.ErrorIs(t, err, ErrSubaccountRequired)
 }
 
 func TestPlaceOrder_Success_PopulatesSignatureFields(t *testing.T) {
@@ -718,16 +725,16 @@ func TestPlaceOrder_Success_PopulatesSignatureFields(t *testing.T) {
 		}, nil
 	})
 
-	in := derive.PlaceOrderInput{
+	in := PlaceOrderInput{
 		InstrumentName: "BTC-PERP",
 		Asset:          common.HexToAddress("0x1111111111111111111111111111111111111111"),
 		SubID:          0,
-		Direction:      derive.DirectionBuy,
-		OrderType:      derive.OrderTypeLimit,
-		TimeInForce:    derive.TimeInForceGTC,
-		Amount:         derive.MustDecimal("0.1"),
-		LimitPrice:     derive.MustDecimal("65000"),
-		MaxFee:         derive.MustDecimal("10"),
+		Direction:      DirectionBuy,
+		OrderType:      OrderTypeLimit,
+		TimeInForce:    TimeInForceGTC,
+		Amount:         MustDecimal("0.1"),
+		LimitPrice:     MustDecimal("65000"),
+		MaxFee:         MustDecimal("10"),
 	}
 	order, err := api.PlaceOrder(context.Background(), in)
 	require.NoError(t, err)
@@ -756,7 +763,7 @@ func TestCancelOrder(t *testing.T) {
 func TestCancelOrder_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
 	err := api.CancelOrder(context.Background(), "BTC-PERP", "O1")
-	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
+	assert.ErrorIs(t, err, ErrSubaccountRequired)
 }
 
 func TestCancelByLabel(t *testing.T) {
@@ -815,7 +822,7 @@ func TestGetOrderHistory(t *testing.T) {
 		"orders":     []any{},
 		"pagination": map[string]any{"num_pages": 2, "count": 100},
 	})
-	_, page, err := api.GetOrderHistory(context.Background(), derive.PageRequest{Page: 1, PageSize: 50})
+	_, page, err := api.GetOrderHistory(context.Background(), PageRequest{Page: 1, PageSize: 50})
 	require.NoError(t, err)
 	assert.Equal(t, 2, page.NumPages)
 	assert.Equal(t, 100, page.Count)
@@ -827,7 +834,7 @@ func TestPrivateMethods_RequireSubaccount_Across(t *testing.T) {
 		"GetOrder":      func() error { _, e := api.GetOrder(context.Background(), "x"); return e },
 		"GetOpenOrders": func() error { _, e := api.GetOpenOrders(context.Background()); return e },
 		"GetOrderHistory": func() error {
-			_, _, e := api.GetOrderHistory(context.Background(), derive.PageRequest{})
+			_, _, e := api.GetOrderHistory(context.Background(), PageRequest{})
 			return e
 		},
 		"CancelByLabel":      func() error { _, e := api.CancelByLabel(context.Background(), "x"); return e },
@@ -836,7 +843,7 @@ func TestPrivateMethods_RequireSubaccount_Across(t *testing.T) {
 	}
 	for name, fn := range cases {
 		t.Run(name, func(t *testing.T) {
-			assert.ErrorIs(t, fn(), derive.ErrSubaccountRequired)
+			assert.ErrorIs(t, fn(), ErrSubaccountRequired)
 		})
 	}
 }
@@ -872,7 +879,7 @@ func TestGetPositions_NonEmpty(t *testing.T) {
 func TestGetPositions_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
 	_, err := api.GetPositions(context.Background())
-	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
+	assert.ErrorIs(t, err, ErrSubaccountRequired)
 }
 func TestSendRFQ_Happy(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
@@ -880,15 +887,15 @@ func TestSendRFQ_Happy(t *testing.T) {
 		"rfq_id": "R1", "subaccount_id": 1, "status": "open",
 		"legs": []any{}, "creation_timestamp": 1, "last_update_timestamp": 1,
 	})
-	rfq, err := api.SendRFQ(context.Background(), nil, derive.MustDecimal("100"))
+	rfq, err := api.SendRFQ(context.Background(), nil, MustDecimal("100"))
 	require.NoError(t, err)
 	assert.Equal(t, "R1", rfq.RFQID)
 }
 
 func TestSendRFQ_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	_, err := api.SendRFQ(context.Background(), nil, derive.MustDecimal("0"))
-	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
+	_, err := api.SendRFQ(context.Background(), nil, MustDecimal("0"))
+	assert.ErrorIs(t, err, ErrSubaccountRequired)
 }
 
 func TestPollRFQs_Happy(t *testing.T) {
@@ -902,7 +909,7 @@ func TestPollRFQs_Happy(t *testing.T) {
 func TestPollRFQs_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
 	_, err := api.PollRFQs(context.Background())
-	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
+	assert.ErrorIs(t, err, ErrSubaccountRequired)
 }
 
 func TestCancelRFQ_Happy(t *testing.T) {
@@ -916,7 +923,7 @@ func TestCancelRFQ_Happy(t *testing.T) {
 func TestCancelRFQ_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
 	err := api.CancelRFQ(context.Background(), "R1")
-	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
+	assert.ErrorIs(t, err, ErrSubaccountRequired)
 }
 func TestRFQExtras_AllMethods(t *testing.T) {
 	api, ft := newAPI(t, true, 9)
@@ -992,7 +999,7 @@ func TestRFQExtras_RequireSigner(t *testing.T) {
 	}
 	for _, fn := range checks {
 		_, err := fn()
-		assert.ErrorIs(t, err, derive.ErrUnauthorized)
+		assert.ErrorIs(t, err, ErrUnauthorized)
 	}
 }
 func TestGetSubaccount_Happy(t *testing.T) {
@@ -1017,7 +1024,7 @@ func TestGetSubaccount_Happy(t *testing.T) {
 func TestGetSubaccount_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
 	_, err := api.GetSubaccount(context.Background())
-	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
+	assert.ErrorIs(t, err, ErrSubaccountRequired)
 }
 
 func TestGetSubaccounts_Happy(t *testing.T) {
@@ -1034,7 +1041,7 @@ func TestGetSubaccounts_Happy(t *testing.T) {
 func TestGetSubaccounts_RequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
 	_, err := api.GetSubaccounts(context.Background())
-	assert.ErrorIs(t, err, derive.ErrUnauthorized)
+	assert.ErrorIs(t, err, ErrUnauthorized)
 }
 func TestGetTradeHistory_Happy(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
@@ -1042,7 +1049,7 @@ func TestGetTradeHistory_Happy(t *testing.T) {
 		"trades":     []any{},
 		"pagination": map[string]any{"num_pages": 4, "count": 100},
 	})
-	_, page, err := api.GetTradeHistory(context.Background(), derive.PageRequest{Page: 1, PageSize: 25})
+	_, page, err := api.GetTradeHistory(context.Background(), PageRequest{Page: 1, PageSize: 25})
 	require.NoError(t, err)
 	assert.Equal(t, 4, page.NumPages)
 	assert.Equal(t, 100, page.Count)
@@ -1057,7 +1064,7 @@ func TestGetTradeHistory_OmitsZeroPagination(t *testing.T) {
 	ft.HandleResult("private/get_trade_history", map[string]any{
 		"trades": []any{}, "pagination": map[string]any{},
 	})
-	_, _, err := api.GetTradeHistory(context.Background(), derive.PageRequest{})
+	_, _, err := api.GetTradeHistory(context.Background(), PageRequest{})
 	require.NoError(t, err)
 	params := paramsAsMap(t, ft.LastCall().Params)
 	_, hasPage := params["page"]
@@ -1068,8 +1075,8 @@ func TestGetTradeHistory_OmitsZeroPagination(t *testing.T) {
 
 func TestGetTradeHistory_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	_, _, err := api.GetTradeHistory(context.Background(), derive.PageRequest{})
-	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
+	_, _, err := api.GetTradeHistory(context.Background(), PageRequest{})
+	assert.ErrorIs(t, err, ErrSubaccountRequired)
 }
 
 func TestGetDepositHistory_Happy(t *testing.T) {
@@ -1078,14 +1085,14 @@ func TestGetDepositHistory_Happy(t *testing.T) {
 		"events":     []any{},
 		"pagination": map[string]any{"num_pages": 0, "count": 0, "current_page": 1, "page_size": 10},
 	})
-	_, _, err := api.GetDepositHistory(context.Background(), derive.PageRequest{Page: 0, PageSize: 0})
+	_, _, err := api.GetDepositHistory(context.Background(), PageRequest{Page: 0, PageSize: 0})
 	require.NoError(t, err)
 }
 
 func TestGetDepositHistory_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	_, _, err := api.GetDepositHistory(context.Background(), derive.PageRequest{})
-	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
+	_, _, err := api.GetDepositHistory(context.Background(), PageRequest{})
+	assert.ErrorIs(t, err, ErrSubaccountRequired)
 }
 
 func TestGetWithdrawalHistory_Happy(t *testing.T) {
@@ -1094,7 +1101,7 @@ func TestGetWithdrawalHistory_Happy(t *testing.T) {
 		"events":     []any{},
 		"pagination": map[string]any{"num_pages": 0, "count": 0, "current_page": 1, "page_size": 10},
 	})
-	_, _, err := api.GetWithdrawalHistory(context.Background(), derive.PageRequest{Page: 2, PageSize: 50})
+	_, _, err := api.GetWithdrawalHistory(context.Background(), PageRequest{Page: 2, PageSize: 50})
 	require.NoError(t, err)
 	params := paramsAsMap(t, ft.LastCall().Params)
 	assert.Equal(t, float64(2), params["page"])
@@ -1103,6 +1110,6 @@ func TestGetWithdrawalHistory_Happy(t *testing.T) {
 
 func TestGetWithdrawalHistory_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	_, _, err := api.GetWithdrawalHistory(context.Background(), derive.PageRequest{})
-	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
+	_, _, err := api.GetWithdrawalHistory(context.Background(), PageRequest{})
+	assert.ErrorIs(t, err, ErrSubaccountRequired)
 }
