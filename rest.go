@@ -127,11 +127,15 @@ type config struct {
 	network    NetworkConfig
 	signer     Signer
 	subaccount int64
+	// REST-only.
 	httpClient *http.Client
 	userAgent  string
 	tps        float64
 	burst      float64
 	expiry     int64
+	// WS-only.
+	pingInterval time.Duration
+	reconnect    bool
 }
 
 // WithMainnet selects Derive's mainnet endpoints (chain id 957). Required

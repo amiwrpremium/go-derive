@@ -23,7 +23,6 @@ import (
 
 	goderive "github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/pkg/derive"
-	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 // integrationEnv is the configuration loaded from environment variables.
@@ -128,11 +127,11 @@ func newAuthRESTClient(t *testing.T, env integrationEnv) *goderive.RestClient {
 }
 
 // newWSClient wires up a public-only WS client and connects.
-func newWSClient(t *testing.T, env integrationEnv) *ws.Client {
+func newWSClient(t *testing.T, env integrationEnv) *goderive.WsClient {
 	t.Helper()
-	c, err := ws.New(ws.WithCustomNetwork(env.network))
+	c, err := goderive.NewWsClient(goderive.WithCustomNetwork(env.network))
 	if err != nil {
-		t.Fatalf("ws.New: %v", err)
+		t.Fatalf("derive.NewWsClient: %v", err)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -146,16 +145,16 @@ func newWSClient(t *testing.T, env integrationEnv) *ws.Client {
 
 // newAuthWSClient wires up an authenticated WS client, connects and logs
 // in. Skips if creds are missing.
-func newAuthWSClient(t *testing.T, env integrationEnv) *ws.Client {
+func newAuthWSClient(t *testing.T, env integrationEnv) *goderive.WsClient {
 	t.Helper()
 	signer := requireSigner(t, env)
-	c, err := ws.New(
-		ws.WithCustomNetwork(env.network),
-		ws.WithSigner(signer),
-		ws.WithSubaccount(env.subaccount),
+	c, err := goderive.NewWsClient(
+		goderive.WithCustomNetwork(env.network),
+		goderive.WithSigner(signer),
+		goderive.WithSubaccount(env.subaccount),
 	)
 	if err != nil {
-		t.Fatalf("ws.New: %v", err)
+		t.Fatalf("derive.NewWsClient: %v", err)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()

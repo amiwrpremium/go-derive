@@ -9,7 +9,6 @@ package main
 import (
 	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/examples/example"
-	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 func main() {
@@ -18,7 +17,7 @@ func main() {
 	c := example.MustWSPublic(ctx)
 	defer c.Close()
 
-	sub, err := ws.Subscribe[derive.SpotFeed](ctx, c, derive.PublicSpotFeed{Currency: "BTC"})
+	sub, err := derive.Subscribe[derive.SpotFeed](ctx, c, derive.PublicSpotFeed{Currency: "BTC"})
 	example.Fatal(err)
 	defer sub.Close()
 

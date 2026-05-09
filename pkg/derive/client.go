@@ -1,6 +1,6 @@
 // Package derive is the top-level convenience facade for the SDK. It
 // composes a *[github.com/amiwrpremium/go-derive.RestClient] and a
-// [github.com/amiwrpremium/go-derive/pkg/ws.Client] sharing the same
+// *[github.com/amiwrpremium/go-derive.WsClient] sharing the same
 // signer, subaccount and network configuration.
 //
 // # Most users want this
@@ -19,16 +19,16 @@
 // # When to skip the facade
 //
 // Use the root *[github.com/amiwrpremium/go-derive.RestClient] or
-// pkg/ws directly when you only need one transport — both expose the
-// full RPC method surface independently. The facade is just a shortcut
-// for the common case where you want both.
+// *[github.com/amiwrpremium/go-derive.WsClient] directly when you only
+// need one transport — both expose the full RPC method surface
+// independently. The facade is just a shortcut for the common case
+// where you want both.
 package derive
 
 import (
 	"context"
 
 	"github.com/amiwrpremium/go-derive"
-	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 // Client bundles a REST client and a WebSocket client sharing the same
@@ -41,7 +41,7 @@ type Client struct {
 	// REST is the HTTP-backed JSON-RPC client.
 	REST *derive.RestClient
 	// WS is the WebSocket-backed JSON-RPC + subscription client.
-	WS *ws.Client
+	WS *derive.WsClient
 
 	cfg derive.NetworkConfig
 }
@@ -105,10 +105,10 @@ func NewClient(opts ...Option) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	w, err := ws.New(
-		ws.WithCustomNetwork(cfg.network),
-		ws.WithSigner(cfg.signer),
-		ws.WithSubaccount(cfg.subaccount),
+	w, err := derive.NewWsClient(
+		derive.WithCustomNetwork(cfg.network),
+		derive.WithSigner(cfg.signer),
+		derive.WithSubaccount(cfg.subaccount),
 	)
 	if err != nil {
 		_ = r.Close()

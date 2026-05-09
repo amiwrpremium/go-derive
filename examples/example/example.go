@@ -24,7 +24,6 @@ import (
 
 	goderive "github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/pkg/derive"
-	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 // Network returns the configured Derive network (default: testnet).
@@ -111,10 +110,10 @@ func MustRESTPrivate() *goderive.RestClient {
 }
 
 // MustWSPublic returns a connected public WS client. Caller must defer Close.
-func MustWSPublic(ctx context.Context) *ws.Client {
-	c, err := ws.New(ws.WithCustomNetwork(Network()))
+func MustWSPublic(ctx context.Context) *goderive.WsClient {
+	c, err := goderive.NewWsClient(goderive.WithCustomNetwork(Network()))
 	if err != nil {
-		log.Fatalf("ws.New: %v", err)
+		log.Fatalf("derive.NewWsClient: %v", err)
 	}
 	if err := c.Connect(ctx); err != nil {
 		_ = c.Close()
@@ -124,14 +123,14 @@ func MustWSPublic(ctx context.Context) *ws.Client {
 }
 
 // MustWSPrivate returns a connected, logged-in WS client.
-func MustWSPrivate(ctx context.Context) *ws.Client {
-	c, err := ws.New(
-		ws.WithCustomNetwork(Network()),
-		ws.WithSigner(MustSigner()),
-		ws.WithSubaccount(Subaccount()),
+func MustWSPrivate(ctx context.Context) *goderive.WsClient {
+	c, err := goderive.NewWsClient(
+		goderive.WithCustomNetwork(Network()),
+		goderive.WithSigner(MustSigner()),
+		goderive.WithSubaccount(Subaccount()),
 	)
 	if err != nil {
-		log.Fatalf("ws.New: %v", err)
+		log.Fatalf("derive.NewWsClient: %v", err)
 	}
 	if err := c.Connect(ctx); err != nil {
 		_ = c.Close()

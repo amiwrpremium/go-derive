@@ -9,7 +9,6 @@ import "github.com/amiwrpremium/go-derive"
 
 import (
 	"github.com/amiwrpremium/go-derive/examples/example"
-	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 func main() {
@@ -18,7 +17,7 @@ func main() {
 	c := example.MustWSPublic(ctx)
 	defer c.Close()
 
-	sub, err := ws.Subscribe[[]derive.Trade](ctx, c, derive.PublicTradesByType{
+	sub, err := derive.Subscribe[[]derive.Trade](ctx, c, derive.PublicTradesByType{
 		InstrumentType: derive.InstrumentTypePerp,
 		Currency:       "BTC",
 	})

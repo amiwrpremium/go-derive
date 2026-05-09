@@ -7,7 +7,6 @@ package main
 import (
 	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/examples/example"
-	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 func main() {
@@ -16,7 +15,7 @@ func main() {
 	c := example.MustWSPublic(ctx)
 	defer c.Close()
 
-	sub, err := ws.Subscribe[derive.TickerSlim](ctx, c, derive.PublicTickerSlim{
+	sub, err := derive.Subscribe[derive.TickerSlim](ctx, c, derive.PublicTickerSlim{
 		Instrument: example.Instrument(),
 	})
 	example.Fatal(err)

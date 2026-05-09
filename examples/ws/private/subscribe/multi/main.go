@@ -19,7 +19,6 @@ package main
 import (
 	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/examples/example"
-	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 func main() {
@@ -30,15 +29,15 @@ func main() {
 
 	subID := example.Subaccount()
 
-	orders, err := ws.Subscribe[[]derive.Order](ctx, c, derive.PrivateOrders{SubaccountID: subID})
+	orders, err := derive.Subscribe[[]derive.Order](ctx, c, derive.PrivateOrders{SubaccountID: subID})
 	example.Fatal(err)
 	defer orders.Close()
 
-	balances, err := ws.Subscribe[derive.Balance](ctx, c, derive.PrivateBalances{SubaccountID: subID})
+	balances, err := derive.Subscribe[derive.Balance](ctx, c, derive.PrivateBalances{SubaccountID: subID})
 	example.Fatal(err)
 	defer balances.Close()
 
-	trades, err := ws.Subscribe[[]derive.Trade](ctx, c, derive.PrivateTrades{SubaccountID: subID})
+	trades, err := derive.Subscribe[[]derive.Trade](ctx, c, derive.PrivateTrades{SubaccountID: subID})
 	example.Fatal(err)
 	defer trades.Close()
 

@@ -14,7 +14,6 @@ package main
 import (
 	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/examples/example"
-	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 func main() {
@@ -25,19 +24,19 @@ func main() {
 
 	inst := example.Instrument()
 
-	ob, err := ws.Subscribe[derive.OrderBook](ctx, c, derive.PublicOrderBook{
+	ob, err := derive.Subscribe[derive.OrderBook](ctx, c, derive.PublicOrderBook{
 		Instrument: inst, Depth: 10,
 	})
 	example.Fatal(err)
 	defer ob.Close()
 
-	tk, err := ws.Subscribe[derive.TickerSlim](ctx, c, derive.PublicTickerSlim{
+	tk, err := derive.Subscribe[derive.TickerSlim](ctx, c, derive.PublicTickerSlim{
 		Instrument: inst,
 	})
 	example.Fatal(err)
 	defer tk.Close()
 
-	tr, err := ws.Subscribe[[]derive.Trade](ctx, c, derive.PublicTrades{
+	tr, err := derive.Subscribe[[]derive.Trade](ctx, c, derive.PublicTrades{
 		Instrument: inst,
 	})
 	example.Fatal(err)

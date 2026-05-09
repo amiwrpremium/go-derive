@@ -13,8 +13,6 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 // requireLiveOrders skips the test unless DERIVE_RUN_LIVE_ORDERS=1 AND
@@ -110,7 +108,7 @@ func TestPrivate_OrderEventsArrive(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	sub, err := ws.Subscribe[[]derive.Order](ctx, c, derive.PrivateOrders{SubaccountID: env.subaccount})
+	sub, err := derive.Subscribe[[]derive.Order](ctx, c, derive.PrivateOrders{SubaccountID: env.subaccount})
 	require.NoError(t, err)
 	defer sub.Close()
 
