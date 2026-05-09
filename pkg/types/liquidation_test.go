@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/amiwrpremium/go-derive/pkg/enums"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
@@ -24,7 +25,7 @@ func TestLiquidationAuction_Decode(t *testing.T) {
 	var l types.LiquidationAuction
 	require.NoError(t, json.Unmarshal([]byte(payload), &l))
 	assert.Equal(t, "auc-9", l.AuctionID)
-	assert.Equal(t, "solvent", l.AuctionType)
+	assert.Equal(t, enums.AuctionTypeSolvent, l.AuctionType)
 	assert.Equal(t, int64(9), l.SubaccountID)
 	assert.Equal(t, "1.5", l.Fee.String())
 	assert.False(t, l.TxHash.IsZero())
@@ -47,7 +48,7 @@ func TestLiquidationAuction_NullEndTimestamp(t *testing.T) {
 	}`
 	var l types.LiquidationAuction
 	require.NoError(t, json.Unmarshal([]byte(payload), &l))
-	assert.Equal(t, "insolvent", l.AuctionType)
+	assert.Equal(t, enums.AuctionTypeInsolvent, l.AuctionType)
 	assert.True(t, l.EndTimestamp.Time().IsZero(), "null end_timestamp should leave the field zero")
 }
 
