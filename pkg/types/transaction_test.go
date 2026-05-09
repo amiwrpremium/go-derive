@@ -48,3 +48,32 @@ func TestDepositTx_RoundTrip(t *testing.T) {
 	assert.Equal(t, in.Asset, out.Asset)
 	assert.Equal(t, in.Status, out.Status)
 }
+
+func TestTransaction_Decode(t *testing.T) {
+	raw := []byte(`{
+		"data":"{\"foo\":\"bar\"}",
+		"error_log":null,
+		"status":"settled",
+		"transaction_hash":"0xabc"
+	}`)
+	var got types.Transaction
+	require.NoError(t, json.Unmarshal(raw, &got))
+	assert.Equal(t, "settled", got.Status)
+	assert.Equal(t, "0xabc", got.TransactionHash)
+	assert.Equal(t, "", got.ErrorLog)
+}
+
+func TestTransaction_FailedTx(t *testing.T) {
+	// A failed transaction reports error_log; transaction_hash may be null.
+	raw := []byte(`{
+		"data":"...",
+		"error_log":"reverted: insufficient balance",
+		"status":"reverted",
+		"transaction_hash":null
+	}`)
+	var got types.Transaction
+	require.NoError(t, json.Unmarshal(raw, &got))
+	assert.Equal(t, "reverted", got.Status)
+	assert.Equal(t, "reverted: insufficient balance", got.ErrorLog)
+	assert.Equal(t, "", got.TransactionHash)
+}
