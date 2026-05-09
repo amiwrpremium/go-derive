@@ -48,18 +48,6 @@ func (a *API) GetPerpImpactTWAP(ctx context.Context, params map[string]any) (jso
 	return raw, err
 }
 
-// GetPublicMargin runs Derive's risk-engine margin calculation against a
-// user-supplied set of `simulated_collaterals` and `simulated_positions`,
-// returning the resulting margin requirement.
-//
-// Required params: `simulated_collaterals`, `simulated_positions`,
-// `margin_type` ("PM" / "PM2" / "SM"). Public — no signer required.
-func (a *API) GetPublicMargin(ctx context.Context, params map[string]any) (json.RawMessage, error) {
-	var raw json.RawMessage
-	err := a.call(ctx, "public/get_margin", params, &raw)
-	return raw, err
-}
-
 // GetLatestSignedFeeds returns the latest oracle signed-feed snapshot.
 //
 // Optional params: `currency`. Pass nil to get every currency the venue
@@ -120,35 +108,6 @@ func (a *API) GetPublicOptionSettlementHistory(ctx context.Context, params map[s
 // ---------------------------------------------------------------------------
 // Private read methods
 // ---------------------------------------------------------------------------
-
-// GetAccount returns wallet-level account information for the signer.
-//
-// No params. Private.
-func (a *API) GetAccount(ctx context.Context) (json.RawMessage, error) {
-	if err := a.requireSigner(); err != nil {
-		return nil, err
-	}
-	params := map[string]any{"wallet": a.Signer.Owner().Hex()}
-	var raw json.RawMessage
-	err := a.call(ctx, "private/get_account", params, &raw)
-	return raw, err
-}
-
-// GetMargin returns the live margin breakdown for the configured
-// subaccount.
-//
-// No params. Private.
-func (a *API) GetMargin(ctx context.Context) (json.RawMessage, error) {
-	if err := a.requireSigner(); err != nil {
-		return nil, err
-	}
-	if err := a.requireSubaccount(); err != nil {
-		return nil, err
-	}
-	var raw json.RawMessage
-	err := a.call(ctx, "private/get_margin", map[string]any{"subaccount_id": a.Subaccount}, &raw)
-	return raw, err
-}
 
 // GetFundingHistory returns funding payments received / paid by the
 // configured subaccount.
@@ -296,20 +255,6 @@ func (a *API) ExpiredAndCancelledHistory(ctx context.Context, params map[string]
 	}
 	var raw json.RawMessage
 	err := a.call(ctx, "private/expired_and_cancelled_history", params, &raw)
-	return raw, err
-}
-
-// GetMMPConfig returns the active market-maker-protection config for the
-// configured subaccount.
-func (a *API) GetMMPConfig(ctx context.Context) (json.RawMessage, error) {
-	if err := a.requireSigner(); err != nil {
-		return nil, err
-	}
-	if err := a.requireSubaccount(); err != nil {
-		return nil, err
-	}
-	var raw json.RawMessage
-	err := a.call(ctx, "private/get_mmp_config", map[string]any{"subaccount_id": a.Subaccount}, &raw)
 	return raw, err
 }
 

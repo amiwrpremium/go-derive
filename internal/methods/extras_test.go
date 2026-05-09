@@ -42,18 +42,6 @@ func TestExtras_PublicMethods(t *testing.T) {
 			mockOut: map[string]any{"impact_price": "100"},
 		},
 		{
-			name:   "GetPublicMargin",
-			method: "public/get_margin",
-			invoke: func() (json.RawMessage, error) {
-				return api.GetPublicMargin(context.Background(), map[string]any{
-					"simulated_collaterals": []any{},
-					"simulated_positions":   []any{},
-					"margin_type":           "PM",
-				})
-			},
-			mockOut: map[string]any{"initial_margin": "0", "maintenance_margin": "0"},
-		},
-		{
 			name:   "GetLatestSignedFeeds",
 			method: "public/get_latest_signed_feeds",
 			invoke: func() (json.RawMessage, error) {
@@ -117,12 +105,6 @@ func TestExtras_PrivateMethods(t *testing.T) {
 		invoke  func() (json.RawMessage, error)
 		mockOut any
 	}{
-		{"GetAccount", "private/get_account",
-			func() (json.RawMessage, error) { return api.GetAccount(context.Background()) },
-			map[string]any{"wallet": "0x"}},
-		{"GetMargin", "private/get_margin",
-			func() (json.RawMessage, error) { return api.GetMargin(context.Background()) },
-			map[string]any{"initial_margin": "0"}},
 		{"GetFundingHistory", "private/get_funding_history",
 			func() (json.RawMessage, error) { return api.GetFundingHistory(context.Background(), nil) },
 			[]any{}},
@@ -152,9 +134,6 @@ func TestExtras_PrivateMethods(t *testing.T) {
 			func() (json.RawMessage, error) {
 				return api.ExpiredAndCancelledHistory(context.Background(), nil)
 			}, []any{}},
-		{"GetMMPConfig", "private/get_mmp_config",
-			func() (json.RawMessage, error) { return api.GetMMPConfig(context.Background()) },
-			map[string]any{}},
 		{"GetNotifications", "private/get_notifications",
 			func() (json.RawMessage, error) {
 				return api.GetNotifications(context.Background(), nil)
@@ -201,8 +180,6 @@ func TestExtras_PrivateMethods(t *testing.T) {
 func TestExtras_PrivateRequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
 	checks := []func() (json.RawMessage, error){
-		func() (json.RawMessage, error) { return api.GetAccount(context.Background()) },
-		func() (json.RawMessage, error) { return api.GetMargin(context.Background()) },
 		func() (json.RawMessage, error) { return api.GetFundingHistory(context.Background(), nil) },
 		func() (json.RawMessage, error) { return api.GetLiquidationHistory(context.Background(), nil) },
 		func() (json.RawMessage, error) { return api.OrderDebug(context.Background(), nil) },

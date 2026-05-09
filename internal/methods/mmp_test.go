@@ -109,3 +109,57 @@ func TestResetMMP_RequiresSubaccount(t *testing.T) {
 	err := api.ResetMMP(context.Background(), "BTC")
 	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
 }
+
+func TestGetMMPConfig_Decode(t *testing.T) {
+	api, ft := newAPI(t, true, 7)
+	ft.HandleResult("private/get_mmp_config", []any{
+		map[string]any{
+			"subaccount_id":     int64(7),
+			"currency":          "BTC",
+			"mmp_frozen_time":   int64(5000),
+			"mmp_interval":      int64(1000),
+			"mmp_amount_limit":  "100",
+			"mmp_delta_limit":   "50",
+			"mmp_unfreeze_time": int64(0),
+			"is_frozen":         false,
+		},
+	})
+	got, err := api.GetMMPConfig(context.Background(), "")
+	require.NoError(t, err)
+	require.Len(t, got, 1)
+	assert.Equal(t, "BTC", got[0].Currency)
+	assert.Equal(t, "100", got[0].MMPAmountLimit.String())
+	assert.False(t, got[0].IsFrozen)
+}
+
+func TestGetMMPConfig_FilterByCurrency(t *testing.T) {
+	api, ft := newAPI(t, true, 7)
+	ft.HandleResult("private/get_mmp_config", []any{})
+	_, err := api.GetMMPConfig(context.Background(), "ETH")
+	require.NoError(t, err)
+	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.Equal(t, "ETH", params["currency"])
+}
+
+func TestGetMMPConfig_OmitsEmptyCurrency(t *testing.T) {
+	api, ft := newAPI(t, true, 7)
+	ft.HandleResult("private/get_mmp_config", []any{})
+	_, err := api.GetMMPConfig(context.Background(), "")
+	require.NoError(t, err)
+	params := paramsAsMap(t, ft.LastCall().Params)
+	_, has := params["currency"]
+	assert.False(t, has, "empty currency must be omitted from the params map")
+}
+
+func TestGetMMPConfig_RequiresSubaccount(t *testing.T) {
+	api, _ := newAPI(t, true, 0)
+	_, err := api.GetMMPConfig(context.Background(), "")
+	assert.True(t, errors.Is(err, derrors.ErrSubaccountRequired))
+}
+
+func TestGetMMPConfig_PropagatesAPIError(t *testing.T) {
+	api, ft := newAPI(t, true, 1)
+	ft.HandleError("private/get_mmp_config", boom)
+	_, err := api.GetMMPConfig(context.Background(), "")
+	assert.ErrorAs(t, err, new(*derrors.APIError))
+}

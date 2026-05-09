@@ -56,7 +56,6 @@ func TestRPCWrappers_PropagateError(t *testing.T) {
 		// public — map-of-any wrappers (no subaccount required)
 		{"GetFundingRateHistory", "public/get_funding_rate_history", 0, func(a *methods.API) rawWrapper { return a.GetFundingRateHistory }},
 		{"GetPerpImpactTWAP", "public/get_perp_impact_twap", 0, func(a *methods.API) rawWrapper { return a.GetPerpImpactTWAP }},
-		{"GetPublicMargin", "public/get_margin", 0, func(a *methods.API) rawWrapper { return a.GetPublicMargin }},
 		{"GetLatestSignedFeeds", "public/get_latest_signed_feeds", 0, func(a *methods.API) rawWrapper { return a.GetLatestSignedFeeds }},
 		{"GetSpotFeedHistory", "public/get_spot_feed_history", 0, func(a *methods.API) rawWrapper { return a.GetSpotFeedHistory }},
 		{"GetPublicOptionSettlementHistory", "public/get_option_settlement_history", 0, func(a *methods.API) rawWrapper { return a.GetPublicOptionSettlementHistory }},
@@ -77,24 +76,6 @@ func TestRPCWrappers_PropagateError(t *testing.T) {
 // TestNoArgWrappers_PropagateError covers wrappers that don't take a
 // params map and so don't fit rawWrapper.
 func TestNoArgWrappers_PropagateError(t *testing.T) {
-	t.Run("GetMargin", func(t *testing.T) {
-		api, ft := newAPI(t, true, 1)
-		ft.HandleError("private/get_margin", boom)
-		_, err := api.GetMargin(context.Background())
-		assert.ErrorAs(t, err, new(*derrors.APIError))
-	})
-	t.Run("GetMMPConfig", func(t *testing.T) {
-		api, ft := newAPI(t, true, 1)
-		ft.HandleError("private/get_mmp_config", boom)
-		_, err := api.GetMMPConfig(context.Background())
-		assert.ErrorAs(t, err, new(*derrors.APIError))
-	})
-	t.Run("GetAccount", func(t *testing.T) {
-		api, ft := newAPI(t, true, 1)
-		ft.HandleError("private/get_account", boom)
-		_, err := api.GetAccount(context.Background())
-		assert.ErrorAs(t, err, new(*derrors.APIError))
-	})
 	t.Run("CancelByNonce", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/cancel_by_nonce", boom)

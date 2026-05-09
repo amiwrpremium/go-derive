@@ -9,7 +9,9 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	raw, err := c.GetAccount(ctx)
+	acc, err := c.GetAccount(ctx)
 	example.Fatal(err)
-	example.Print("account bytes", len(raw))
+	example.Print("wallet", acc.Wallet)
+	example.Print("subaccount count", len(acc.SubaccountIDs))
+	example.Print("perp taker fee", acc.FeeInfo.PerpTakerFee.String())
 }
