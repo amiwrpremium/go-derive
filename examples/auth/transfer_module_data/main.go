@@ -7,12 +7,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/shopspring/decimal"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/examples/example"
-	"github.com/amiwrpremium/go-derive/pkg/auth"
 )
 
 func main() {
-	t := auth.TransferModuleData{
+	t := derive.TransferModuleData{
 		ToSubaccount: 99,
 		Asset:        common.HexToAddress("0x1111111111111111111111111111111111111111"),
 		Amount:       decimal.RequireFromString("10"),

@@ -7,7 +7,7 @@
 //
 // # Authentication
 //
-// Pass a [github.com/amiwrpremium/go-derive/pkg/auth.Signer] via [WithSigner]
+// Pass a [github.com/amiwrpremium/go-derive/pkg/derive.Signer] via [WithSigner]
 // to enable private endpoints. The transport adds X-LyraWallet,
 // X-LyraTimestamp and X-LyraSignature headers to every request automatically.
 // Public endpoints work without a signer.
@@ -31,8 +31,8 @@ package rest
 import (
 	"net/http"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/netconf"
-	"github.com/amiwrpremium/go-derive/pkg/auth"
 )
 
 // Option configures a [Client] at construction time. Compose any number of
@@ -41,7 +41,7 @@ type Option func(*config)
 
 type config struct {
 	network    netconf.Config
-	signer     auth.Signer
+	signer     derive.Signer
 	subaccount int64
 	httpClient *http.Client
 	userAgent  string
@@ -63,12 +63,12 @@ func WithTestnet() Option { return func(c *config) { c.network = netconf.Testnet
 // endpoints do not apply.
 func WithCustomNetwork(cfg netconf.Config) Option { return func(c *config) { c.network = cfg } }
 
-// WithSigner attaches an auth [github.com/amiwrpremium/go-derive/pkg/auth.Signer]
+// WithSigner attaches an auth [github.com/amiwrpremium/go-derive/pkg/derive.Signer]
 // used for both REST auth headers and per-action EIP-712 signing.
 //
 // Without a signer, only public endpoints will succeed; private endpoints
 // return [github.com/amiwrpremium/go-derive/pkg/errors.ErrUnauthorized].
-func WithSigner(s auth.Signer) Option { return func(c *config) { c.signer = s } }
+func WithSigner(s derive.Signer) Option { return func(c *config) { c.signer = s } }
 
 // WithSubaccount sets the subaccount id used by private methods that don't
 // take an explicit subaccount.

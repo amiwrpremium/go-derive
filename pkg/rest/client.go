@@ -7,7 +7,7 @@
 //
 // # Authentication
 //
-// Pass a [github.com/amiwrpremium/go-derive/pkg/auth.Signer] via [WithSigner]
+// Pass a [github.com/amiwrpremium/go-derive/pkg/derive.Signer] via [WithSigner]
 // to enable private endpoints. The transport adds X-LyraWallet,
 // X-LyraTimestamp and X-LyraSignature headers to every request automatically.
 // Public endpoints work without a signer.
@@ -39,7 +39,6 @@ import (
 	"github.com/amiwrpremium/go-derive/internal/methods"
 	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/transport"
-	"github.com/amiwrpremium/go-derive/pkg/auth"
 )
 
 // Client is the HTTP JSON-RPC client.
@@ -49,7 +48,7 @@ import (
 type Client struct {
 	*methods.API
 	http   *transport.HTTPTransport
-	signer auth.Signer
+	signer derive.Signer
 	cfg    netconf.Config
 }
 
@@ -80,7 +79,7 @@ func New(opts ...Option) (*Client, error) {
 		if c.signer == nil {
 			return nil, nil
 		}
-		return auth.HTTPHeaders(ctx, c.signer, time.Now())
+		return derive.HTTPHeaders(ctx, c.signer, time.Now())
 	}
 
 	httpT, err := transport.NewHTTP(transport.HTTPConfig{
@@ -99,7 +98,7 @@ func New(opts ...Option) (*Client, error) {
 		Signer:          c.signer,
 		Domain:          c.network.EIP712Domain(),
 		Subaccount:      c.subaccount,
-		Nonces:          auth.NewNonceGen(),
+		Nonces:          derive.NewNonceGen(),
 		SignatureExpiry: c.expiry,
 	}
 	api.SetTradeModule(common.HexToAddress(c.network.Contracts.TradeModule))

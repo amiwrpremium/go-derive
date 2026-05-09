@@ -13,7 +13,6 @@ import (
 	"github.com/amiwrpremium/go-derive/internal/jsonrpc"
 	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/testutil"
-	"github.com/amiwrpremium/go-derive/pkg/auth"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
 )
 
@@ -48,7 +47,7 @@ func TestRest_AllOptionsApplied(t *testing.T) {
 	cfg := netconf.Testnet()
 	cfg.HTTPURL = srv.URL()
 
-	signer, err := auth.NewLocalSigner(testKey)
+	signer, err := derive.NewLocalSigner(testKey)
 	require.NoError(t, err)
 
 	customClient := &http.Client{Timeout: 10 * time.Second}
@@ -81,7 +80,7 @@ func TestRest_SignerAttachesAuthHeaders(t *testing.T) {
 
 	cfg := netconf.Testnet()
 	cfg.HTTPURL = srv.URL()
-	signer, err := auth.NewLocalSigner(testKey)
+	signer, err := derive.NewLocalSigner(testKey)
 	require.NoError(t, err)
 
 	c, err := rest.New(rest.WithCustomNetwork(cfg), rest.WithSigner(signer))

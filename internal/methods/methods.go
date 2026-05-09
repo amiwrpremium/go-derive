@@ -16,7 +16,6 @@ import (
 	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/transport"
-	"github.com/amiwrpremium/go-derive/pkg/auth"
 )
 
 // API is a transport-agnostic facade that holds the ambient configuration
@@ -24,13 +23,13 @@ import (
 // package. Construct it once per client.
 type API struct {
 	T      transport.Transport
-	Signer auth.Signer
+	Signer derive.Signer
 	Domain netconf.Domain
 	// Subaccount is the default subaccount id used by private endpoints. It
 	// can be 0 for public-only clients.
 	Subaccount int64
 	// Nonces is the source of action nonces; one per client is fine.
-	Nonces *auth.NonceGen
+	Nonces *derive.NonceGen
 	// SignatureExpiry is added to time.Now() to populate signature_expiry_sec
 	// on signed actions.
 	SignatureExpiry int64

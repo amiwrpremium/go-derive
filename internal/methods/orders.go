@@ -16,7 +16,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/amiwrpremium/go-derive"
-	"github.com/amiwrpremium/go-derive/pkg/auth"
 )
 
 // invalidInput wraps [derive.ErrInvalidParams] for input DTOs declared in
@@ -105,7 +104,7 @@ func (a *API) PlaceOrder(ctx context.Context, in PlaceOrderInput) (derive.Order,
 		module = a.tradeModuleOverride()
 	}
 
-	tmd := auth.TradeModuleData{
+	tmd := derive.TradeModuleData{
 		Asset:       in.Asset,
 		SubID:       in.SubID,
 		LimitPrice:  in.LimitPrice.Inner(),
@@ -119,7 +118,7 @@ func (a *API) PlaceOrder(ctx context.Context, in PlaceOrderInput) (derive.Order,
 		return derive.Order{}, err
 	}
 
-	action := auth.ActionData{
+	action := derive.ActionData{
 		SubaccountID: a.Subaccount,
 		Nonce:        nonce,
 		Module:       module,

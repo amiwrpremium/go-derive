@@ -10,7 +10,6 @@ import (
 	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/testutil"
-	"github.com/amiwrpremium/go-derive/pkg/auth"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -46,7 +45,7 @@ func TestWS_AllOptionsCompose(t *testing.T) {
 	srv := testutil.NewMockWSServer()
 	defer srv.Close()
 
-	signer, err := auth.NewLocalSigner(testKey)
+	signer, err := derive.NewLocalSigner(testKey)
 	require.NoError(t, err)
 
 	cfg := netconf.Testnet()

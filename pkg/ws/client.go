@@ -42,7 +42,6 @@ import (
 	"github.com/amiwrpremium/go-derive/internal/methods"
 	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/transport"
-	"github.com/amiwrpremium/go-derive/pkg/auth"
 )
 
 // Client is a JSON-RPC plus subscription client over a single WebSocket.
@@ -52,7 +51,7 @@ import (
 type Client struct {
 	*methods.API
 	wt     *transport.WSTransport
-	signer auth.Signer
+	signer derive.Signer
 	cfg    netconf.Config
 }
 
@@ -94,7 +93,7 @@ func New(opts ...Option) (*Client, error) {
 		Signer:          c.signer,
 		Domain:          c.network.EIP712Domain(),
 		Subaccount:      c.subaccount,
-		Nonces:          auth.NewNonceGen(),
+		Nonces:          derive.NewNonceGen(),
 		SignatureExpiry: c.expiry,
 	}
 	api.SetTradeModule(common.HexToAddress(c.network.Contracts.TradeModule))

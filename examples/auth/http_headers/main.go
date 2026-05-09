@@ -4,8 +4,8 @@ package main
 import (
 	"time"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/examples/example"
-	"github.com/amiwrpremium/go-derive/pkg/auth"
 )
 
 func main() {
@@ -13,7 +13,7 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	h, err := auth.HTTPHeaders(ctx, s, time.Now())
+	h, err := derive.HTTPHeaders(ctx, s, time.Now())
 	example.Fatal(err)
 	example.Print("X-LyraWallet", h.Get("X-LyraWallet"))
 	example.Print("X-LyraTimestamp", h.Get("X-LyraTimestamp"))

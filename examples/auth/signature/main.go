@@ -2,12 +2,12 @@
 package main
 
 import (
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/examples/example"
-	"github.com/amiwrpremium/go-derive/pkg/auth"
 )
 
 func main() {
-	var s auth.Signature
+	var s derive.Signature
 	for i := range s {
 		s[i] = byte(i)
 	}

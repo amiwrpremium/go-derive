@@ -11,7 +11,7 @@
 //	    "github.com/amiwrpremium/go-derive/pkg/derive"
 //	)
 //
-//	signer, _ := auth.NewLocalSigner("0xPRIVATEKEY")
+//	signer, _ := derive.NewLocalSigner("0xPRIVATEKEY")
 //	c, _ := derive.NewClient(
 //	    derive.WithMainnet(),
 //	    derive.WithSigner(signer),

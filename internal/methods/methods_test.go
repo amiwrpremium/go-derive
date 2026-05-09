@@ -7,10 +7,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/methods"
 	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/testutil"
-	"github.com/amiwrpremium/go-derive/pkg/auth"
 )
 
 const testKey = "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318"
@@ -23,12 +23,12 @@ func newAPI(t *testing.T, signed bool, sub int64) (*methods.API, *testutil.FakeT
 	api := &methods.API{
 		T:               ft,
 		Domain:          netconf.Mainnet().EIP712Domain(),
-		Nonces:          auth.NewNonceGen(),
+		Nonces:          derive.NewNonceGen(),
 		SignatureExpiry: 300,
 	}
 	api.SetTradeModule(common.HexToAddress(netconf.Mainnet().Contracts.TradeModule))
 	if signed {
-		s, err := auth.NewLocalSigner(testKey)
+		s, err := derive.NewLocalSigner(testKey)
 		require.NoError(t, err)
 		api.Signer = s
 		api.Subaccount = sub

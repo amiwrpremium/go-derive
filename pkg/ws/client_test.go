@@ -13,7 +13,6 @@ import (
 	"github.com/amiwrpremium/go-derive/internal/jsonrpc"
 	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/testutil"
-	"github.com/amiwrpremium/go-derive/pkg/auth"
 	"github.com/amiwrpremium/go-derive/pkg/channels/public"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
@@ -26,7 +25,7 @@ func newWSClient(t *testing.T, srv *testutil.MockWSServer, signed bool) *ws.Clie
 	cfg.WSURL = srv.URL()
 	opts := []ws.Option{ws.WithCustomNetwork(cfg), ws.WithReconnect(false), ws.WithPingInterval(50 * time.Millisecond)}
 	if signed {
-		s, err := auth.NewLocalSigner(testKey)
+		s, err := derive.NewLocalSigner(testKey)
 		require.NoError(t, err)
 		opts = append(opts, ws.WithSigner(s), ws.WithSubaccount(1))
 	}

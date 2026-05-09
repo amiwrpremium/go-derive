@@ -2,17 +2,17 @@
 package main
 
 import (
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/examples/example"
-	"github.com/amiwrpremium/go-derive/pkg/auth"
 )
 
 func main() {
 	s := example.MustSigner()
 	domain := example.Network().EIP712Domain()
 
-	action := auth.ActionData{
+	action := derive.ActionData{
 		SubaccountID: example.Subaccount(),
-		Nonce:        auth.NewNonceGen().Next(),
+		Nonce:        derive.NewNonceGen().Next(),
 		Expiry:       1_700_000_000,
 	}
 	ctx, cancel := example.Timeout()

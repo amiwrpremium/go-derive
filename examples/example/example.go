@@ -22,8 +22,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
+	goderive "github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/netconf"
-	"github.com/amiwrpremium/go-derive/pkg/auth"
 	"github.com/amiwrpremium/go-derive/pkg/derive"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
@@ -69,21 +69,21 @@ func Subaccount() int64 {
 	return n
 }
 
-// MustSigner returns an auth.Signer built from the env, or fatal-exits
+// MustSigner returns an goderive.Signer built from the env, or fatal-exits
 // when DERIVE_SESSION_KEY is missing.
-func MustSigner() auth.Signer {
+func MustSigner() goderive.Signer {
 	key := os.Getenv("DERIVE_SESSION_KEY")
 	if key == "" {
 		log.Fatal("DERIVE_SESSION_KEY required for this example")
 	}
 	if owner := os.Getenv("DERIVE_OWNER"); owner != "" {
-		s, err := auth.NewSessionKeySigner(key, common.HexToAddress(owner))
+		s, err := goderive.NewSessionKeySigner(key, common.HexToAddress(owner))
 		if err != nil {
 			log.Fatalf("session key signer: %v", err)
 		}
 		return s
 	}
-	s, err := auth.NewLocalSigner(key)
+	s, err := goderive.NewLocalSigner(key)
 	if err != nil {
 		log.Fatalf("local signer: %v", err)
 	}

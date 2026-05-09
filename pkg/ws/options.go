@@ -34,8 +34,8 @@ package ws
 import (
 	"time"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/netconf"
-	"github.com/amiwrpremium/go-derive/pkg/auth"
 )
 
 // Option configures a [Client] at construction time. Compose any number of
@@ -44,7 +44,7 @@ type Option func(*config)
 
 type config struct {
 	network      netconf.Config
-	signer       auth.Signer
+	signer       derive.Signer
 	subaccount   int64
 	userAgent    string
 	tps          float64
@@ -64,13 +64,13 @@ func WithTestnet() Option { return func(c *config) { c.network = netconf.Testnet
 // staging or vendored deployments.
 func WithCustomNetwork(cfg netconf.Config) Option { return func(c *config) { c.network = cfg } }
 
-// WithSigner attaches an auth [github.com/amiwrpremium/go-derive/pkg/auth.Signer]
+// WithSigner attaches an auth [github.com/amiwrpremium/go-derive/pkg/derive.Signer]
 // used for both per-action EIP-712 signing and the WS `public/login`
 // timestamp signature.
 //
 // Without a signer, only public RPCs and channels work; private calls
 // return [github.com/amiwrpremium/go-derive/pkg/errors.ErrUnauthorized].
-func WithSigner(s auth.Signer) Option { return func(c *config) { c.signer = s } }
+func WithSigner(s derive.Signer) Option { return func(c *config) { c.signer = s } }
 
 // WithSubaccount sets the subaccount id used by private methods and
 // private subscription channels.

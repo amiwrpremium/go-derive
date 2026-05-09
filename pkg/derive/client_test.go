@@ -8,7 +8,6 @@ import (
 
 	goderive "github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/netconf"
-	"github.com/amiwrpremium/go-derive/pkg/auth"
 	"github.com/amiwrpremium/go-derive/pkg/derive"
 )
 
@@ -45,7 +44,7 @@ func TestNewClient_CustomNetwork(t *testing.T) {
 }
 
 func TestNewClient_WithSignerAndSubaccount(t *testing.T) {
-	signer, err := auth.NewLocalSigner(testKey)
+	signer, err := goderive.NewLocalSigner(testKey)
 	require.NoError(t, err)
 	c, err := derive.NewClient(
 		derive.WithMainnet(),

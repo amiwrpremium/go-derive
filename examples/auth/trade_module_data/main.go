@@ -7,12 +7,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/shopspring/decimal"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/examples/example"
-	"github.com/amiwrpremium/go-derive/pkg/auth"
 )
 
 func main() {
-	t := auth.TradeModuleData{
+	t := derive.TradeModuleData{
 		Asset:       common.HexToAddress("0x1111111111111111111111111111111111111111"),
 		LimitPrice:  decimal.RequireFromString("65000"),
 		Amount:      decimal.RequireFromString("0.1"),

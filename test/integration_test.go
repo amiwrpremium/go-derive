@@ -24,7 +24,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/amiwrpremium/go-derive/internal/netconf"
-	"github.com/amiwrpremium/go-derive/pkg/auth"
 	"github.com/amiwrpremium/go-derive/pkg/derive"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
@@ -83,19 +82,19 @@ func (e integrationEnv) hasPrivateCreds() bool {
 
 // requireSigner skips the test when private creds are absent; otherwise
 // returns a configured Signer.
-func requireSigner(t *testing.T, env integrationEnv) auth.Signer {
+func requireSigner(t *testing.T, env integrationEnv) derive.Signer {
 	t.Helper()
 	if !env.hasPrivateCreds() {
 		t.Skip("private creds not configured (DERIVE_SESSION_KEY + DERIVE_SUBACCOUNT)")
 	}
 	var (
-		s   auth.Signer
+		s   derive.Signer
 		err error
 	)
 	if env.owner == (common.Address{}) {
-		s, err = auth.NewLocalSigner(env.sessionKey)
+		s, err = derive.NewLocalSigner(env.sessionKey)
 	} else {
-		s, err = auth.NewSessionKeySigner(env.sessionKey, env.owner)
+		s, err = derive.NewSessionKeySigner(env.sessionKey, env.owner)
 	}
 	if err != nil {
 		t.Fatalf("build signer: %v", err)

@@ -28,7 +28,6 @@ import (
 
 	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/netconf"
-	"github.com/amiwrpremium/go-derive/pkg/auth"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
@@ -54,7 +53,7 @@ type Option func(*config)
 
 type config struct {
 	network    netconf.Config
-	signer     auth.Signer
+	signer     derive.Signer
 	subaccount int64
 	connectWS  bool
 }
@@ -69,9 +68,9 @@ func WithTestnet() Option { return func(c *config) { c.network = netconf.Testnet
 // staging or vendored deployments.
 func WithCustomNetwork(cfg netconf.Config) Option { return func(c *config) { c.network = cfg } }
 
-// WithSigner attaches an auth [github.com/amiwrpremium/go-derive/pkg/auth.Signer].
+// WithSigner attaches an auth [github.com/amiwrpremium/go-derive/pkg/derive.Signer].
 // Without one, only public endpoints work.
-func WithSigner(s auth.Signer) Option { return func(c *config) { c.signer = s } }
+func WithSigner(s derive.Signer) Option { return func(c *config) { c.signer = s } }
 
 // WithSubaccount sets the subaccount id used by private REST and WS calls.
 func WithSubaccount(id int64) Option { return func(c *config) { c.subaccount = id } }
