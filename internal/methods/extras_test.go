@@ -76,14 +76,6 @@ func TestExtras_PublicMethods(t *testing.T) {
 			},
 			mockOut: map[string]any{"status": "settled"},
 		},
-		{
-			name:   "GetPublicOptionSettlementHistory",
-			method: "public/get_option_settlement_history",
-			invoke: func() (json.RawMessage, error) {
-				return api.GetPublicOptionSettlementHistory(context.Background(), nil)
-			},
-			mockOut: []any{},
-		},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -105,35 +97,6 @@ func TestExtras_PrivateMethods(t *testing.T) {
 		invoke  func() (json.RawMessage, error)
 		mockOut any
 	}{
-		{"GetFundingHistory", "private/get_funding_history",
-			func() (json.RawMessage, error) { return api.GetFundingHistory(context.Background(), nil) },
-			[]any{}},
-		{"GetLiquidationHistory", "private/get_liquidation_history",
-			func() (json.RawMessage, error) { return api.GetLiquidationHistory(context.Background(), nil) },
-			[]any{}},
-		{"GetOptionSettlementHistory", "private/get_option_settlement_history",
-			func() (json.RawMessage, error) {
-				return api.GetOptionSettlementHistory(context.Background(), nil)
-			},
-			[]any{}},
-		{"GetSubaccountValueHistory", "private/get_subaccount_value_history",
-			func() (json.RawMessage, error) {
-				return api.GetSubaccountValueHistory(context.Background(),
-					map[string]any{"period": "1h", "start_timestamp": 0, "end_timestamp": 1})
-			},
-			[]any{}},
-		{"GetERC20TransferHistory", "private/get_erc20_transfer_history",
-			func() (json.RawMessage, error) {
-				return api.GetERC20TransferHistory(context.Background(), nil)
-			}, []any{}},
-		{"GetInterestHistory", "private/get_interest_history",
-			func() (json.RawMessage, error) {
-				return api.GetInterestHistory(context.Background(), nil)
-			}, []any{}},
-		{"ExpiredAndCancelledHistory", "private/expired_and_cancelled_history",
-			func() (json.RawMessage, error) {
-				return api.ExpiredAndCancelledHistory(context.Background(), nil)
-			}, []any{}},
 		{"GetNotifications", "private/get_notifications",
 			func() (json.RawMessage, error) {
 				return api.GetNotifications(context.Background(), nil)
@@ -180,8 +143,6 @@ func TestExtras_PrivateMethods(t *testing.T) {
 func TestExtras_PrivateRequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
 	checks := []func() (json.RawMessage, error){
-		func() (json.RawMessage, error) { return api.GetFundingHistory(context.Background(), nil) },
-		func() (json.RawMessage, error) { return api.GetLiquidationHistory(context.Background(), nil) },
 		func() (json.RawMessage, error) { return api.OrderDebug(context.Background(), nil) },
 		func() (json.RawMessage, error) { return api.Replace(context.Background(), nil) },
 		func() (json.RawMessage, error) { return api.SetCancelOnDisconnect(context.Background(), true) },

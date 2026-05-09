@@ -31,13 +31,6 @@ func TestRPCWrappers_PropagateError(t *testing.T) {
 		fn     func(*methods.API) rawWrapper
 	}{
 		// extras.go — private map-of-any wrappers
-		{"GetFundingHistory", "private/get_funding_history", 1, func(a *methods.API) rawWrapper { return a.GetFundingHistory }},
-		{"GetLiquidationHistory", "private/get_liquidation_history", 1, func(a *methods.API) rawWrapper { return a.GetLiquidationHistory }},
-		{"GetOptionSettlementHistory", "private/get_option_settlement_history", 1, func(a *methods.API) rawWrapper { return a.GetOptionSettlementHistory }},
-		{"GetSubaccountValueHistory", "private/get_subaccount_value_history", 1, func(a *methods.API) rawWrapper { return a.GetSubaccountValueHistory }},
-		{"GetERC20TransferHistory", "private/get_erc20_transfer_history", 1, func(a *methods.API) rawWrapper { return a.GetERC20TransferHistory }},
-		{"GetInterestHistory", "private/get_interest_history", 1, func(a *methods.API) rawWrapper { return a.GetInterestHistory }},
-		{"ExpiredAndCancelledHistory", "private/expired_and_cancelled_history", 1, func(a *methods.API) rawWrapper { return a.ExpiredAndCancelledHistory }},
 		{"GetNotifications", "private/get_notifications", 1, func(a *methods.API) rawWrapper { return a.GetNotifications }},
 		{"UpdateNotifications", "private/update_notifications", 1, func(a *methods.API) rawWrapper { return a.UpdateNotifications }},
 		{"Replace", "private/replace", 1, func(a *methods.API) rawWrapper { return a.Replace }},
@@ -58,7 +51,6 @@ func TestRPCWrappers_PropagateError(t *testing.T) {
 		{"GetPerpImpactTWAP", "public/get_perp_impact_twap", 0, func(a *methods.API) rawWrapper { return a.GetPerpImpactTWAP }},
 		{"GetLatestSignedFeeds", "public/get_latest_signed_feeds", 0, func(a *methods.API) rawWrapper { return a.GetLatestSignedFeeds }},
 		{"GetSpotFeedHistory", "public/get_spot_feed_history", 0, func(a *methods.API) rawWrapper { return a.GetSpotFeedHistory }},
-		{"GetPublicOptionSettlementHistory", "public/get_option_settlement_history", 0, func(a *methods.API) rawWrapper { return a.GetPublicOptionSettlementHistory }},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {

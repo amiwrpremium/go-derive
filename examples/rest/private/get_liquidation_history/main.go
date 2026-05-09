@@ -9,7 +9,13 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	raw, err := c.GetLiquidationHistory(ctx, nil)
+	auctions, err := c.GetLiquidationHistory(ctx, nil)
 	example.Fatal(err)
-	example.Print("liquidation history bytes", len(raw))
+	example.Print("auction count", len(auctions))
+	if len(auctions) > 0 {
+		a := auctions[0]
+		example.Print("first auction", a.AuctionID)
+		example.Print("first auction type", a.AuctionType)
+		example.Print("first auction fee", a.Fee.String())
+	}
 }
