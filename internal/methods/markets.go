@@ -93,3 +93,14 @@ func (a *API) GetCurrencies(ctx context.Context) ([]string, error) {
 	}
 	return out, nil
 }
+
+// GetStatistics returns rolling 24-hour and all-time statistics for
+// one instrument: volume, premium volume, fees, trades count, plus
+// total open interest. Public.
+func (a *API) GetStatistics(ctx context.Context, instrument string) (*types.Statistics, error) {
+	var resp types.Statistics
+	if err := a.call(ctx, "public/statistics", map[string]any{"instrument_name": instrument}, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}

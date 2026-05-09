@@ -41,11 +41,8 @@ func TestRPCWrappers_PropagateError(t *testing.T) {
 		{"CancelBatchRFQs", "private/cancel_batch_rfqs", 1, func(a *methods.API) rawWrapper { return a.CancelBatchRFQs }},
 		{"RFQGetBestQuote", "private/rfq_get_best_quote", 1, func(a *methods.API) rawWrapper { return a.RFQGetBestQuote }},
 		{"OrderQuote", "private/order_quote", 1, func(a *methods.API) rawWrapper { return a.OrderQuote }},
-		// public — map-of-any wrappers (no subaccount required)
-		{"GetFundingRateHistory", "public/get_funding_rate_history", 0, func(a *methods.API) rawWrapper { return a.GetFundingRateHistory }},
+		// public — the only remaining map-of-any wrapper
 		{"GetPerpImpactTWAP", "public/get_perp_impact_twap", 0, func(a *methods.API) rawWrapper { return a.GetPerpImpactTWAP }},
-		{"GetLatestSignedFeeds", "public/get_latest_signed_feeds", 0, func(a *methods.API) rawWrapper { return a.GetLatestSignedFeeds }},
-		{"GetSpotFeedHistory", "public/get_spot_feed_history", 0, func(a *methods.API) rawWrapper { return a.GetSpotFeedHistory }},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -91,6 +88,24 @@ func TestNoArgWrappers_PropagateError(t *testing.T) {
 		api, ft := newAPI(t, true, 0)
 		ft.HandleError("public/get_transaction", boom)
 		_, err := api.GetTransaction(context.Background(), "TX1")
+		assert.ErrorAs(t, err, new(*derrors.APIError))
+	})
+	t.Run("GetFundingRateHistory", func(t *testing.T) {
+		api, ft := newAPI(t, true, 0)
+		ft.HandleError("public/get_funding_rate_history", boom)
+		_, err := api.GetFundingRateHistory(context.Background(), nil)
+		assert.ErrorAs(t, err, new(*derrors.APIError))
+	})
+	t.Run("GetSpotFeedHistory", func(t *testing.T) {
+		api, ft := newAPI(t, true, 0)
+		ft.HandleError("public/get_spot_feed_history", boom)
+		_, _, err := api.GetSpotFeedHistory(context.Background(), nil)
+		assert.ErrorAs(t, err, new(*derrors.APIError))
+	})
+	t.Run("GetLatestSignedFeeds", func(t *testing.T) {
+		api, ft := newAPI(t, true, 0)
+		ft.HandleError("public/get_latest_signed_feeds", boom)
+		_, err := api.GetLatestSignedFeeds(context.Background(), nil)
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 	t.Run("GetCurrencies", func(t *testing.T) {

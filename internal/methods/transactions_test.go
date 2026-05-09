@@ -81,3 +81,32 @@ func TestGetWithdrawalHistory_RequiresSubaccount(t *testing.T) {
 	_, _, err := api.GetWithdrawalHistory(context.Background(), types.PageRequest{})
 	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
 }
+
+func TestGetTransaction_Decode(t *testing.T) {
+	api, ft := newAPI(t, false, 0)
+	ft.HandleResult("public/get_transaction", map[string]any{
+		"data":             "{\"foo\":\"bar\"}",
+		"error_log":        nil,
+		"status":           "settled",
+		"transaction_hash": "0xabc",
+	})
+	got, err := api.GetTransaction(context.Background(), "tx-1")
+	require.NoError(t, err)
+	assert.Equal(t, "settled", got.Status)
+	assert.Equal(t, "0xabc", got.TransactionHash)
+	assert.Equal(t, "", got.ErrorLog)
+}
+
+func TestGetTransaction_FailedTx(t *testing.T) {
+	api, ft := newAPI(t, false, 0)
+	ft.HandleResult("public/get_transaction", map[string]any{
+		"data":             "...",
+		"error_log":        "reverted: insufficient",
+		"status":           "reverted",
+		"transaction_hash": nil,
+	})
+	got, err := api.GetTransaction(context.Background(), "tx-1")
+	require.NoError(t, err)
+	assert.Equal(t, "reverted", got.Status)
+	assert.Equal(t, "reverted: insufficient", got.ErrorLog)
+}

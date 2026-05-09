@@ -120,5 +120,24 @@ func TestPublicMethods_PropagateUnhandledTransportError(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestGetStatistics_Decode(t *testing.T) {
+	api, ft := newAPI(t, false, 0)
+	ft.HandleResult("public/statistics", map[string]any{
+		"daily_fees":            "100",
+		"daily_notional_volume": "1000000",
+		"daily_premium_volume":  "50000",
+		"daily_trades":          int64(250),
+		"open_interest":         "500",
+		"total_fees":            "10000",
+		"total_notional_volume": "100000000",
+		"total_premium_volume":  "500000",
+		"total_trades":          int64(25000),
+	})
+	got, err := api.GetStatistics(context.Background(), "BTC-PERP")
+	require.NoError(t, err)
+	assert.Equal(t, int64(250), got.DailyTrades)
+	assert.Equal(t, "500", got.OpenInterest.String())
+}
+
 // silence unused json import warning on platforms where compiler is strict.
 var _ = json.Marshal
