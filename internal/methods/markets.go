@@ -94,6 +94,103 @@ func (a *API) GetCurrencies(ctx context.Context) ([]string, error) {
 	return out, nil
 }
 
+// GetCurrency returns the per-asset margin parameters, manager
+// addresses, and protocol-asset addresses for one underlying
+// currency. Public.
+//
+// Counterpart to the plural [API.GetCurrencies] (which returns just
+// the currency names).
+func (a *API) GetCurrency(ctx context.Context, currency string) (*types.Currency, error) {
+	var c types.Currency
+	if err := a.call(ctx, "public/get_currency", map[string]any{"currency": currency}, &c); err != nil {
+		return nil, err
+	}
+	return &c, nil
+}
+
+// GetAllInstruments lists every instrument matching the supplied
+// kind, paginated. Public.
+//
+// Distinct from [API.GetInstruments] — `public/get_instruments` is
+// for the live, currency-filtered list a UI uses; this method backs
+// `public/get_all_instruments`, which paginates across all
+// currencies and can include expired instruments via `includeExpired`.
+func (a *API) GetAllInstruments(ctx context.Context, kind enums.InstrumentType, includeExpired bool, page types.PageRequest) ([]types.Instrument, types.Page, error) {
+	params := map[string]any{
+		"instrument_type": kind,
+		"expired":         includeExpired,
+	}
+	if page.Page > 0 {
+		params["page"] = page.Page
+	}
+	if page.PageSize > 0 {
+		params["page_size"] = page.PageSize
+	}
+	var resp struct {
+		Instruments []types.Instrument `json:"instruments"`
+		Pagination  types.Page         `json:"pagination"`
+	}
+	if err := a.call(ctx, "public/get_all_instruments", params, &resp); err != nil {
+		return nil, types.Page{}, err
+	}
+	return resp.Instruments, resp.Pagination, nil
+}
+
+// GetTickers returns the ticker snapshot keyed by instrument name
+// for every instrument matching the filter. Public.
+//
+// Required `params`: `instrument_type`. Optional: `currency` (required
+// for option queries) and `expiry_date` (required for option
+// queries) — pass them via `params` since they're not always
+// applicable.
+//
+// Each value is a [types.InstrumentTickerSlim] — the bare per-
+// instrument compact-wire payload — not the WS subscription envelope
+// [types.TickerSlim], which wraps the same payload with an outer
+// `{timestamp, instrument_ticker}` shape that this REST endpoint
+// does not emit.
+func (a *API) GetTickers(ctx context.Context, params map[string]any) (map[string]types.InstrumentTickerSlim, error) {
+	if params == nil {
+		params = map[string]any{}
+	}
+	var resp struct {
+		Tickers map[string]types.InstrumentTickerSlim `json:"tickers"`
+	}
+	if err := a.call(ctx, "public/get_tickers", params, &resp); err != nil {
+		return nil, err
+	}
+	return resp.Tickers, nil
+}
+
+// GetOptionSettlementPrices returns the per-expiry settlement prices
+// for one currency's option market. Public.
+//
+// Pre-settlement entries return Price as the zero-value Decimal
+// (the wire field is null until the expiry settles on chain).
+func (a *API) GetOptionSettlementPrices(ctx context.Context, currency string) ([]types.OptionSettlementPrice, error) {
+	var resp struct {
+		Expiries []types.OptionSettlementPrice `json:"expiries"`
+	}
+	if err := a.call(ctx, "public/get_option_settlement_prices", map[string]any{"currency": currency}, &resp); err != nil {
+		return nil, err
+	}
+	return resp.Expiries, nil
+}
+
+// GetLiveIncidents returns the list of platform incidents currently
+// in progress. Public.
+//
+// Empty list means no active incidents.
+func (a *API) GetLiveIncidents(ctx context.Context) ([]types.Incident, error) {
+	var resp struct {
+		Incidents []types.Incident `json:"incidents"`
+	}
+	if err := a.call(ctx, "public/get_live_incidents", map[string]any{}, &resp); err != nil {
+		return nil, err
+	}
+	return resp.Incidents, nil
+}
+
 // GetStatistics returns rolling 24-hour and all-time statistics for
 // one instrument: volume, premium volume, fees, trades count, plus
 // total open interest. Public.
