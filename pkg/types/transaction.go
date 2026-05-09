@@ -37,6 +37,28 @@ type DepositTx struct {
 	Timestamp MillisTime `json:"timestamp"`
 }
 
+// Transaction is the response of `public/get_transaction`. It carries
+// the engine's view of one Derive transaction by its server-side id.
+//
+// Mirrors `PublicGetTransactionResultSchema` in Derive's v2.2
+// OpenAPI spec.
+type Transaction struct {
+	// Data is the request body that produced the transaction.
+	// Surfaced as a string by the API even though it's a structured
+	// payload — decode at the call site if needed.
+	Data string `json:"data"`
+	// ErrorLog is populated if the transaction failed. Nullable on
+	// the wire; absent decodes to empty string.
+	ErrorLog string `json:"error_log,omitempty"`
+	// Status is the transaction lifecycle state: "requested",
+	// "pending", "settled", "reverted", "ignored", or "timed_out".
+	Status string `json:"status"`
+	// TransactionHash is the on-chain transaction hash. Nullable on
+	// the wire (the server returns it once submitted); absent
+	// decodes to empty string.
+	TransactionHash string `json:"transaction_hash,omitempty"`
+}
+
 // WithdrawTx records a single withdrawal from a subaccount.
 //
 // Withdrawals are two-phase: first the subaccount is debited (status

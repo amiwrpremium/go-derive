@@ -79,3 +79,13 @@ func (a *API) GetWithdrawalHistory(ctx context.Context, page types.PageRequest) 
 	}
 	return resp.Events, resp.Pagination, nil
 }
+
+// GetTransaction returns the on-chain status / receipt of one Derive
+// transaction by its server-side id. Public.
+func (a *API) GetTransaction(ctx context.Context, transactionID string) (*types.Transaction, error) {
+	var resp types.Transaction
+	if err := a.call(ctx, "public/get_transaction", map[string]any{"transaction_id": transactionID}, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}

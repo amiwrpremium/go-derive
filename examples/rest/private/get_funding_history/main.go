@@ -9,7 +9,13 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	raw, err := c.GetFundingHistory(ctx, nil)
+	events, page, err := c.GetFundingHistory(ctx, nil)
 	example.Fatal(err)
-	example.Print("funding history bytes", len(raw))
+	example.Print("event count", len(events))
+	example.Print("page count", page.Count)
+	if len(events) > 0 {
+		e := events[0]
+		example.Print("first instrument", e.InstrumentName)
+		example.Print("first funding", e.Funding.String())
+	}
 }

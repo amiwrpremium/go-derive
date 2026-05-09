@@ -4,20 +4,10 @@
 package main
 
 import (
-	"encoding/json"
 	"sort"
 
 	"github.com/amiwrpremium/go-derive/examples/example"
 )
-
-type spotEntry struct {
-	Currency  string `json:"currency"`
-	Timestamp int64  `json:"timestamp"`
-}
-
-type signedFeeds struct {
-	SpotData map[string]spotEntry `json:"spot_data"`
-}
 
 func main() {
 	c := example.MustRESTPublic()
@@ -25,14 +15,12 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	raw, err := c.GetLatestSignedFeeds(ctx, nil)
+	feeds, err := c.GetLatestSignedFeeds(ctx, nil)
 	example.Fatal(err)
 
-	var sf signedFeeds
-	example.Fatal(json.Unmarshal(raw, &sf))
-	example.Print("currencies with feeds", len(sf.SpotData))
-	keys := make([]string, 0, len(sf.SpotData))
-	for k := range sf.SpotData {
+	example.Print("currencies with feeds", len(feeds.SpotData))
+	keys := make([]string, 0, len(feeds.SpotData))
+	for k := range feeds.SpotData {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
@@ -40,6 +28,7 @@ func main() {
 		if i >= 5 {
 			break
 		}
-		example.Print("  "+k+" timestamp", sf.SpotData[k].Timestamp)
+		example.Print("  "+k+" timestamp", feeds.SpotData[k].Timestamp.Millis())
+		example.Print("  "+k+" price", feeds.SpotData[k].Price.String())
 	}
 }

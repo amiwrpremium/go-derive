@@ -13,7 +13,6 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	raw, err := c.SetCancelOnDisconnect(ctx, true)
-	example.Fatal(err)
-	example.Print("set_cancel_on_disconnect bytes", len(raw))
+	example.Fatal(c.SetCancelOnDisconnect(ctx, true))
+	example.Print("set_cancel_on_disconnect", "armed")
 }

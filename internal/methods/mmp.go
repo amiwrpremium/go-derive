@@ -8,7 +8,11 @@
 // the per-action EIP-712 hash.
 package methods
 
-import "context"
+import (
+	"context"
+
+	"github.com/amiwrpremium/go-derive/pkg/types"
+)
 
 // MMPConfig is the input to SetMMPConfig — Market Maker Protection rules.
 type MMPConfig struct {
@@ -64,4 +68,25 @@ func (a *API) ResetMMP(ctx context.Context, currency string) error {
 		"subaccount_id": a.Subaccount,
 		"currency":      currency,
 	}, nil)
+}
+
+// GetMMPConfig returns the active market-maker-protection rules
+// for the configured subaccount, optionally filtered to a single
+// currency. Private.
+//
+// Pass an empty currency to return every rule. The response is one
+// record per (subaccount, currency) pair.
+func (a *API) GetMMPConfig(ctx context.Context, currency string) ([]types.MMPConfigResult, error) {
+	if err := a.requireSubaccount(); err != nil {
+		return nil, err
+	}
+	params := map[string]any{"subaccount_id": a.Subaccount}
+	if currency != "" {
+		params["currency"] = currency
+	}
+	var resp []types.MMPConfigResult
+	if err := a.call(ctx, "private/get_mmp_config", params, &resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
 }

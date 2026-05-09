@@ -17,7 +17,7 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	raw, err := c.Replace(ctx, map[string]any{
+	res, err := c.Replace(ctx, map[string]any{
 		"order_id_to_cancel": "<order-id>",
 		"instrument_name":    example.Instrument(),
 		"direction":          "buy",
@@ -27,5 +27,13 @@ func main() {
 		"limit_price":        "50000",
 	})
 	example.Fatal(err)
-	example.Print("replace response bytes", len(raw))
+	example.Print("cancelled_order", res.CancelledOrder.OrderID)
+	if res.Order != nil {
+		example.Print("new_order", res.Order.OrderID)
+	}
+	if res.CreateOrderError != nil {
+		example.Print("create_order_error code", res.CreateOrderError.Code)
+		example.Print("create_order_error message", res.CreateOrderError.Message)
+	}
+	example.Print("trade count", len(res.Trades))
 }

@@ -39,3 +39,21 @@ func (a *API) GetSubaccounts(ctx context.Context) ([]int64, error) {
 	}, &resp)
 	return resp.SubaccountIDs, err
 }
+
+// ChangeSubaccountLabel sets the human-readable label on the
+// configured subaccount. Private.
+//
+// The endpoint returns no useful data on success; this method
+// surfaces a `nil` error.
+func (a *API) ChangeSubaccountLabel(ctx context.Context, label string) error {
+	if err := a.requireSigner(); err != nil {
+		return err
+	}
+	if err := a.requireSubaccount(); err != nil {
+		return err
+	}
+	return a.call(ctx, "private/change_subaccount_label", map[string]any{
+		"subaccount_id": a.Subaccount,
+		"label":         label,
+	}, nil)
+}
