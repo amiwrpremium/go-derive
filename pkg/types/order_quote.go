@@ -4,6 +4,8 @@
 // This file holds the response shape of `private/order_quote`.
 package types
 
+import "github.com/amiwrpremium/go-derive/pkg/enums"
+
 // OrderQuoteResult is the response of `private/order_quote`. The
 // endpoint runs a hypothetical order through the matching engine
 // without submitting and reports the engine's estimates for fill
@@ -16,9 +18,11 @@ type OrderQuoteResult struct {
 	// IsValid reports whether the order is expected to clear
 	// margin requirements.
 	IsValid bool `json:"is_valid"`
-	// InvalidReason carries a human-readable reason when IsValid
-	// is false. Empty when valid; the wire field is nullable.
-	InvalidReason string `json:"invalid_reason,omitempty"`
+	// InvalidReason carries the engine's reason when IsValid is
+	// false. Empty (zero-value) when the request is valid. The wire
+	// field is nullable; the documented value set is shared with
+	// [BestQuoteResult.InvalidReason] — see [enums.RFQInvalidReason].
+	InvalidReason enums.RFQInvalidReason `json:"invalid_reason,omitempty"`
 	// EstimatedFillAmount is the amount the engine projects will
 	// be crossed instantly on submission.
 	EstimatedFillAmount Decimal `json:"estimated_fill_amount"`
@@ -32,11 +36,12 @@ type OrderQuoteResult struct {
 	// (possibly partial) fill.
 	EstimatedRealizedPnL Decimal `json:"estimated_realized_pnl"`
 	// EstimatedOrderStatus is the engine's projected lifecycle
-	// state for the order on submission. Fully filled = "filled";
-	// limit/maker = "open"; partially filled IOC/market =
-	// "cancelled"; "rejected" / "expired" if margin or expiry
-	// rules trip.
-	EstimatedOrderStatus string `json:"estimated_order_status"`
+	// state for the order on submission. Fully filled =
+	// [enums.OrderStatusFilled]; limit/maker =
+	// [enums.OrderStatusOpen]; partially filled IOC/market =
+	// [enums.OrderStatusCancelled]; [enums.OrderStatusRejected] /
+	// [enums.OrderStatusExpired] if margin or expiry rules trip.
+	EstimatedOrderStatus enums.OrderStatus `json:"estimated_order_status"`
 	// SuggestedMaxFee is the engine's recommended `max_fee` value
 	// for the trade (per contract).
 	SuggestedMaxFee Decimal `json:"suggested_max_fee"`

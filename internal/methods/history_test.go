@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/amiwrpremium/go-derive/pkg/enums"
 	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 )
 
@@ -64,7 +65,7 @@ func TestGetPublicLiquidationHistory_Decode(t *testing.T) {
 	auctions, page, err := api.GetPublicLiquidationHistory(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, auctions, 1)
-	assert.Equal(t, "insolvent", auctions[0].AuctionType)
+	assert.Equal(t, enums.AuctionTypeInsolvent, auctions[0].AuctionType)
 	assert.Equal(t, 1, page.Count)
 }
 
@@ -120,7 +121,7 @@ func TestGetLiquidationHistory_Decode(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, got, 1)
 	assert.Equal(t, "auc-1", got[0].AuctionID)
-	assert.Equal(t, "solvent", got[0].AuctionType)
+	assert.Equal(t, enums.AuctionTypeSolvent, got[0].AuctionType)
 }
 
 func TestGetLiquidationHistory_PropagatesAPIError(t *testing.T) {

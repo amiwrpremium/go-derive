@@ -5,6 +5,8 @@
 // `private/get_liquidation_history`.
 package types
 
+import "github.com/amiwrpremium/go-derive/pkg/enums"
+
 // LiquidationAuction is one entry in `private/get_liquidation_history`.
 // Derive's liquidation engine runs auctions to wind down
 // undercollateralised subaccounts; each auction can include multiple
@@ -15,10 +17,11 @@ package types
 type LiquidationAuction struct {
 	// AuctionID is the unique auction id.
 	AuctionID string `json:"auction_id"`
-	// AuctionType is "solvent" or "insolvent" depending on whether
-	// the subaccount's equity was positive or negative when the
-	// auction kicked off.
-	AuctionType string `json:"auction_type"`
+	// AuctionType is the regime under which the auction ran (solvent
+	// vs insolvent). The value comes from the OAS-documented
+	// `auction_type` enum and decodes to a typed [enums.AuctionType]
+	// rather than a bare string.
+	AuctionType enums.AuctionType `json:"auction_type"`
 	// SubaccountID is the liquidated subaccount.
 	SubaccountID int64 `json:"subaccount_id"`
 	// StartTimestamp is when the auction began (millisecond Unix
