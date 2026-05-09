@@ -23,19 +23,18 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	goderive "github.com/amiwrpremium/go-derive"
-	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/pkg/derive"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 // Network returns the configured Derive network (default: testnet).
-func Network() netconf.Config {
+func Network() goderive.NetworkConfig {
 	switch os.Getenv("DERIVE_NETWORK") {
 	case "mainnet":
-		return netconf.Mainnet()
+		return goderive.Mainnet()
 	default:
-		return netconf.Testnet()
+		return goderive.Testnet()
 	}
 }
 

@@ -14,7 +14,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/amiwrpremium/go-derive"
-	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/transport"
 )
 
@@ -24,7 +23,7 @@ import (
 type API struct {
 	T      transport.Transport
 	Signer derive.Signer
-	Domain netconf.Domain
+	Domain derive.Domain
 	// Subaccount is the default subaccount id used by private endpoints. It
 	// can be 0 for public-only clients.
 	Subaccount int64

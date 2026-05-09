@@ -9,7 +9,6 @@ import (
 
 	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/jsonrpc"
-	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/testutil"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
 )
@@ -18,7 +17,7 @@ import (
 // helpers like WithTestnet would otherwise resolve to the real Derive URL.
 func withMock(t *testing.T, srv *testutil.MockServer) *rest.Client {
 	t.Helper()
-	cfg := netconf.Testnet()
+	cfg := derive.Testnet()
 	cfg.HTTPURL = srv.URL()
 	c, err := rest.New(rest.WithCustomNetwork(cfg))
 	require.NoError(t, err)

@@ -12,8 +12,6 @@
 // around live order placement.
 package integration_test
 
-import "github.com/amiwrpremium/go-derive"
-
 import (
 	"context"
 	"os"
@@ -23,7 +21,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/amiwrpremium/go-derive/internal/netconf"
+	goderive "github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/pkg/derive"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
@@ -31,7 +29,7 @@ import (
 
 // integrationEnv is the configuration loaded from environment variables.
 type integrationEnv struct {
-	network    netconf.Config
+	network    goderive.NetworkConfig
 	sessionKey string
 	owner      common.Address
 	subaccount int64
@@ -52,9 +50,9 @@ func loadEnv(t *testing.T) integrationEnv {
 
 	switch getenv("DERIVE_NETWORK", "testnet") {
 	case "mainnet":
-		env.network = netconf.Mainnet()
+		env.network = goderive.Mainnet()
 	default:
-		env.network = netconf.Testnet()
+		env.network = goderive.Testnet()
 	}
 
 	env.sessionKey = os.Getenv("DERIVE_SESSION_KEY")
@@ -82,19 +80,19 @@ func (e integrationEnv) hasPrivateCreds() bool {
 
 // requireSigner skips the test when private creds are absent; otherwise
 // returns a configured Signer.
-func requireSigner(t *testing.T, env integrationEnv) derive.Signer {
+func requireSigner(t *testing.T, env integrationEnv) goderive.Signer {
 	t.Helper()
 	if !env.hasPrivateCreds() {
 		t.Skip("private creds not configured (DERIVE_SESSION_KEY + DERIVE_SUBACCOUNT)")
 	}
 	var (
-		s   derive.Signer
+		s   goderive.Signer
 		err error
 	)
 	if env.owner == (common.Address{}) {
-		s, err = derive.NewLocalSigner(env.sessionKey)
+		s, err = goderive.NewLocalSigner(env.sessionKey)
 	} else {
-		s, err = derive.NewSessionKeySigner(env.sessionKey, env.owner)
+		s, err = goderive.NewSessionKeySigner(env.sessionKey, env.owner)
 	}
 	if err != nil {
 		t.Fatalf("build signer: %v", err)

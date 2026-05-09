@@ -1,8 +1,10 @@
-// Package netconf carries the network constants — endpoint URLs, chain IDs,
-// and EIP-712 domain separators — for each Derive environment. These values
-// are not user-tunable enums; they are concrete configuration that varies
-// between mainnet and testnet.
-package netconf
+// Network constants — endpoint URLs, chain IDs, and EIP-712 domain
+// separators — for each Derive environment live in this file (and in
+// netconf_domain.go for the EIP-712 [Domain] separator). These values
+// are not user-tunable enums; they are concrete configuration that
+// varies between mainnet and testnet.
+
+package derive
 
 import "fmt"
 
@@ -18,8 +20,10 @@ const (
 	NetworkTestnet
 )
 
-// Config is the bundle of endpoints and chain parameters for one network.
-type Config struct {
+// NetworkConfig is the bundle of endpoints and chain parameters for one
+// network. Pass a custom value to [WithCustomNetwork] (on any of the
+// three constructors) to point the SDK at a non-public Derive deployment.
+type NetworkConfig struct {
 	Network     Network
 	ChainID     int64
 	HTTPURL     string
@@ -31,7 +35,8 @@ type Config struct {
 
 // Contracts collects on-chain addresses referenced by the SDK. Only the
 // matching engine and trade-module addresses are needed to compute action
-// hashes for signing; deposit/withdraw addresses are used by pkg/contracts.
+// hashes for signing; deposit/withdraw addresses are used by the
+// on-chain helper interfaces in contracts.go.
 type Contracts struct {
 	MatchingEngine string
 	TradeModule    string
@@ -44,8 +49,8 @@ type Contracts struct {
 //
 // Endpoint addresses are the publicly documented values at
 // https://docs.derive.xyz/. Update them here if Derive moves them.
-func Mainnet() Config {
-	return Config{
+func Mainnet() NetworkConfig {
+	return NetworkConfig{
 		Network:     NetworkMainnet,
 		ChainID:     957,
 		HTTPURL:     "https://api.lyra.finance",
@@ -62,8 +67,8 @@ func Mainnet() Config {
 }
 
 // Testnet returns Derive testnet (staging) configuration.
-func Testnet() Config {
-	return Config{
+func Testnet() NetworkConfig {
+	return NetworkConfig{
 		Network:     NetworkTestnet,
 		ChainID:     901,
 		HTTPURL:     "https://api-demo.lyra.finance",

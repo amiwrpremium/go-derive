@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/amiwrpremium/go-derive"
-	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/testutil"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
@@ -22,18 +21,18 @@ func TestWS_WithMainnet(t *testing.T) {
 	c, err := ws.New(ws.WithMainnet())
 	require.NoError(t, err)
 	defer func() { _ = c.Close() }()
-	assert.Equal(t, netconf.NetworkMainnet, c.Network().Network)
+	assert.Equal(t, derive.NetworkMainnet, c.Network().Network)
 }
 
 func TestWS_WithTestnet(t *testing.T) {
 	c, err := ws.New(ws.WithTestnet())
 	require.NoError(t, err)
 	defer func() { _ = c.Close() }()
-	assert.Equal(t, netconf.NetworkTestnet, c.Network().Network)
+	assert.Equal(t, derive.NetworkTestnet, c.Network().Network)
 }
 
 func TestWS_WithCustomNetwork(t *testing.T) {
-	custom := netconf.Testnet()
+	custom := derive.Testnet()
 	custom.WSURL = "ws://example.invalid/ws"
 	c, err := ws.New(ws.WithCustomNetwork(custom))
 	require.NoError(t, err)
@@ -48,7 +47,7 @@ func TestWS_AllOptionsCompose(t *testing.T) {
 	signer, err := derive.NewLocalSigner(testKey)
 	require.NoError(t, err)
 
-	cfg := netconf.Testnet()
+	cfg := derive.Testnet()
 	cfg.WSURL = srv.URL()
 
 	c, err := ws.New(

@@ -11,7 +11,6 @@ import (
 
 	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/jsonrpc"
-	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/testutil"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
@@ -20,7 +19,7 @@ const testKey = "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362
 
 func newWSClient(t *testing.T, srv *testutil.MockWSServer, signed bool) *ws.Client {
 	t.Helper()
-	cfg := netconf.Testnet()
+	cfg := derive.Testnet()
 	cfg.WSURL = srv.URL()
 	opts := []ws.Option{ws.WithCustomNetwork(cfg), ws.WithReconnect(false), ws.WithPingInterval(50 * time.Millisecond)}
 	if signed {
@@ -188,7 +187,7 @@ func TestWSClient_NetworkAccessor(t *testing.T) {
 	defer srv.Close()
 	c := newWSClient(t, srv, false)
 	defer func() { _ = c.Close() }()
-	assert.Equal(t, netconf.NetworkTestnet, c.Network().Network)
+	assert.Equal(t, derive.NetworkTestnet, c.Network().Network)
 }
 
 // silence the "imported and not used" lint when building before tests run.

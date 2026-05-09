@@ -37,7 +37,6 @@ import (
 
 	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/methods"
-	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/transport"
 )
 
@@ -49,7 +48,7 @@ type Client struct {
 	*methods.API
 	http   *transport.HTTPTransport
 	signer derive.Signer
-	cfg    netconf.Config
+	cfg    derive.NetworkConfig
 }
 
 // New constructs a [Client] with the given options.
@@ -71,7 +70,7 @@ func New(opts ...Option) (*Client, error) {
 	for _, opt := range opts {
 		opt(c)
 	}
-	if c.network.Network == netconf.NetworkUnknown {
+	if c.network.Network == derive.NetworkUnknown {
 		return nil, derive.ErrInvalidConfig
 	}
 
@@ -112,4 +111,4 @@ func (c *Client) Close() error { return c.http.Close() }
 
 // Network returns the active network configuration. Useful for diagnostics
 // and for plumbing the same configuration into a separate WS client.
-func (c *Client) Network() netconf.Config { return c.cfg }
+func (c *Client) Network() derive.NetworkConfig { return c.cfg }

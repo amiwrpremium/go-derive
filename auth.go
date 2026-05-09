@@ -43,7 +43,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/amiwrpremium/go-derive/internal/codec"
-	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/shopspring/decimal"
@@ -277,7 +276,7 @@ func keccak(b ...[]byte) []byte {
 //
 // pinned to name="Matching", version="1", and the per-network matching
 // engine address as the verifying contract.
-func domainSeparator(d netconf.Domain) []byte {
+func domainSeparator(d Domain) []byte {
 	const typ = "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
 	typeHash := keccak([]byte(typ))
 	nameHash := keccak([]byte(d.Name))
@@ -295,7 +294,7 @@ func domainSeparator(d netconf.Domain) []byte {
 //	keccak256( "\x19\x01" || domainSeparator || structHash )
 //
 // It is the digest signed by [Signer.SignAction].
-func hashTypedData(domain netconf.Domain, structHash []byte) []byte {
+func hashTypedData(domain Domain, structHash []byte) []byte {
 	return keccak([]byte{0x19, 0x01}, domainSeparator(domain), structHash)
 }
 
@@ -353,7 +352,7 @@ func (s *LocalSigner) Address() common.Address { return s.addr }
 func (s *LocalSigner) Owner() common.Address { return s.addr }
 
 // SignAction signs Derive's EIP-712 Action struct.
-func (s *LocalSigner) SignAction(_ context.Context, domain netconf.Domain, action ActionData) (Signature, error) {
+func (s *LocalSigner) SignAction(_ context.Context, domain Domain, action ActionData) (Signature, error) {
 	if action.Owner == (common.Address{}) {
 		action.Owner = s.addr
 	}
@@ -466,7 +465,7 @@ func (s *SessionKeySigner) Address() common.Address { return s.inner.Address() }
 func (s *SessionKeySigner) Owner() common.Address { return s.owner }
 
 // SignAction populates Owner with the wallet owner address before signing.
-func (s *SessionKeySigner) SignAction(ctx context.Context, domain netconf.Domain, action ActionData) (Signature, error) {
+func (s *SessionKeySigner) SignAction(ctx context.Context, domain Domain, action ActionData) (Signature, error) {
 	action.Owner = s.owner
 	action.Signer = s.inner.Address()
 	return s.inner.SignAction(ctx, domain, action)
@@ -523,7 +522,7 @@ type Signer interface {
 	// hash with Derive's per-network domain. The implementation is
 	// responsible for filling Action.Owner and Action.Signer if they
 	// are zero.
-	SignAction(ctx context.Context, domain netconf.Domain, action ActionData) (Signature, error)
+	SignAction(ctx context.Context, domain Domain, action ActionData) (Signature, error)
 
 	// SignAuthHeader produces an EIP-191 personal-sign signature over
 	// the millisecond-timestamp string. The result is used as the

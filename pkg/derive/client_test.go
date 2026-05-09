@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	goderive "github.com/amiwrpremium/go-derive"
-	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/pkg/derive"
 )
 
@@ -24,18 +23,18 @@ func TestNewClient_Mainnet(t *testing.T) {
 	defer func() { _ = c.Close() }()
 	assert.NotNil(t, c.REST)
 	assert.NotNil(t, c.WS)
-	assert.Equal(t, netconf.NetworkMainnet, c.Network().Network)
+	assert.Equal(t, goderive.NetworkMainnet, c.Network().Network)
 }
 
 func TestNewClient_Testnet(t *testing.T) {
 	c, err := derive.NewClient(derive.WithTestnet())
 	require.NoError(t, err)
 	defer func() { _ = c.Close() }()
-	assert.Equal(t, netconf.NetworkTestnet, c.Network().Network)
+	assert.Equal(t, goderive.NetworkTestnet, c.Network().Network)
 }
 
 func TestNewClient_CustomNetwork(t *testing.T) {
-	custom := netconf.Testnet()
+	custom := goderive.Testnet()
 	custom.HTTPURL = "https://custom.example/api"
 	c, err := derive.NewClient(derive.WithCustomNetwork(custom))
 	require.NoError(t, err)

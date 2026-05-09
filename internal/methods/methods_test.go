@@ -9,7 +9,6 @@ import (
 
 	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/methods"
-	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/testutil"
 )
 
@@ -22,11 +21,11 @@ func newAPI(t *testing.T, signed bool, sub int64) (*methods.API, *testutil.FakeT
 	ft := testutil.NewFakeTransport()
 	api := &methods.API{
 		T:               ft,
-		Domain:          netconf.Mainnet().EIP712Domain(),
+		Domain:          derive.Mainnet().EIP712Domain(),
 		Nonces:          derive.NewNonceGen(),
 		SignatureExpiry: 300,
 	}
-	api.SetTradeModule(common.HexToAddress(netconf.Mainnet().Contracts.TradeModule))
+	api.SetTradeModule(common.HexToAddress(derive.Mainnet().Contracts.TradeModule))
 	if signed {
 		s, err := derive.NewLocalSigner(testKey)
 		require.NoError(t, err)

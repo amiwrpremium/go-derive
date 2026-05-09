@@ -281,8 +281,7 @@ func (d Direction) Validate() error {
 
 // Environment selects which Derive deployment a client talks to. It is
 // surfaced to users via the With* options on each client; the SDK turns
-// it into the corresponding network configuration in
-// [github.com/amiwrpremium/go-derive/internal/netconf].
+// it into the corresponding [NetworkConfig].
 type Environment string
 
 const (

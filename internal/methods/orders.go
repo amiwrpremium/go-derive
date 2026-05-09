@@ -98,7 +98,7 @@ func (a *API) PlaceOrder(ctx context.Context, in PlaceOrderInput) (derive.Order,
 
 	module := common.HexToAddress(a.Domain.VerifyingContract) // override below
 	// The TradeModule address differs from the matching engine domain; the
-	// caller-side wiring fills it in via the netconf.Contracts struct. For
+	// caller-side wiring fills it in via the derive.Contracts struct. For
 	// safety we read it from a hidden field on the action input.
 	if a.tradeModuleOverride() != (common.Address{}) {
 		module = a.tradeModuleOverride()
@@ -159,7 +159,7 @@ func (a *API) PlaceOrder(ctx context.Context, in PlaceOrderInput) (derive.Order,
 }
 
 // tradeModuleOverride returns the TradeModule address from the ambient
-// netconf.Contracts struct if available. The API struct doesn't carry the
+// derive.Contracts struct if available. The API struct doesn't carry the
 // full config to keep its size small; we expose it via a setter (see
 // SetTradeModule below) that pkg/rest and pkg/ws set up at construction.
 func (a *API) tradeModuleOverride() common.Address { return a.tradeModule }

@@ -35,7 +35,6 @@ import (
 	"time"
 
 	"github.com/amiwrpremium/go-derive"
-	"github.com/amiwrpremium/go-derive/internal/netconf"
 )
 
 // Option configures a [Client] at construction time. Compose any number of
@@ -43,7 +42,7 @@ import (
 type Option func(*config)
 
 type config struct {
-	network      netconf.Config
+	network      derive.NetworkConfig
 	signer       derive.Signer
 	subaccount   int64
 	userAgent    string
@@ -55,14 +54,14 @@ type config struct {
 }
 
 // WithMainnet selects Derive's mainnet endpoints (chain id 957).
-func WithMainnet() Option { return func(c *config) { c.network = netconf.Mainnet() } }
+func WithMainnet() Option { return func(c *config) { c.network = derive.Mainnet() } }
 
 // WithTestnet selects Derive's demo (testnet) endpoints (chain id 901).
-func WithTestnet() Option { return func(c *config) { c.network = netconf.Testnet() } }
+func WithTestnet() Option { return func(c *config) { c.network = derive.Testnet() } }
 
 // WithCustomNetwork overrides the entire network configuration. Use it for
 // staging or vendored deployments.
-func WithCustomNetwork(cfg netconf.Config) Option { return func(c *config) { c.network = cfg } }
+func WithCustomNetwork(cfg derive.NetworkConfig) Option { return func(c *config) { c.network = cfg } }
 
 // WithSigner attaches an auth [github.com/amiwrpremium/go-derive/pkg/derive.Signer]
 // used for both per-action EIP-712 signing and the WS `public/login`

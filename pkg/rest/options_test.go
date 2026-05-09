@@ -11,7 +11,6 @@ import (
 
 	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/jsonrpc"
-	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/testutil"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
 )
@@ -22,14 +21,14 @@ func TestRest_WithMainnet(t *testing.T) {
 	c, err := rest.New(rest.WithMainnet())
 	require.NoError(t, err)
 	defer func() { _ = c.Close() }()
-	assert.Equal(t, netconf.NetworkMainnet, c.Network().Network)
+	assert.Equal(t, derive.NetworkMainnet, c.Network().Network)
 }
 
 func TestRest_WithTestnet(t *testing.T) {
 	c, err := rest.New(rest.WithTestnet())
 	require.NoError(t, err)
 	defer func() { _ = c.Close() }()
-	assert.Equal(t, netconf.NetworkTestnet, c.Network().Network)
+	assert.Equal(t, derive.NetworkTestnet, c.Network().Network)
 }
 
 func TestRest_RequiresNetwork(t *testing.T) {
@@ -44,7 +43,7 @@ func TestRest_AllOptionsApplied(t *testing.T) {
 		return 1700000000000, nil
 	})
 
-	cfg := netconf.Testnet()
+	cfg := derive.Testnet()
 	cfg.HTTPURL = srv.URL()
 
 	signer, err := derive.NewLocalSigner(testKey)
@@ -78,7 +77,7 @@ func TestRest_SignerAttachesAuthHeaders(t *testing.T) {
 		return 1700000000000, nil
 	})
 
-	cfg := netconf.Testnet()
+	cfg := derive.Testnet()
 	cfg.HTTPURL = srv.URL()
 	signer, err := derive.NewLocalSigner(testKey)
 	require.NoError(t, err)

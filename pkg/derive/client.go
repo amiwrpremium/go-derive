@@ -27,7 +27,6 @@ import (
 	"context"
 
 	"github.com/amiwrpremium/go-derive"
-	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
@@ -44,7 +43,7 @@ type Client struct {
 	// WS is the WebSocket-backed JSON-RPC + subscription client.
 	WS *ws.Client
 
-	cfg netconf.Config
+	cfg derive.NetworkConfig
 }
 
 // Option configures a [Client] at construction time. Compose any number of
@@ -52,21 +51,21 @@ type Client struct {
 type Option func(*config)
 
 type config struct {
-	network    netconf.Config
+	network    derive.NetworkConfig
 	signer     derive.Signer
 	subaccount int64
 	connectWS  bool
 }
 
 // WithMainnet selects Derive's mainnet endpoints.
-func WithMainnet() Option { return func(c *config) { c.network = netconf.Mainnet() } }
+func WithMainnet() Option { return func(c *config) { c.network = derive.Mainnet() } }
 
 // WithTestnet selects Derive's demo (testnet) endpoints.
-func WithTestnet() Option { return func(c *config) { c.network = netconf.Testnet() } }
+func WithTestnet() Option { return func(c *config) { c.network = derive.Testnet() } }
 
 // WithCustomNetwork overrides the entire network configuration. Use it for
 // staging or vendored deployments.
-func WithCustomNetwork(cfg netconf.Config) Option { return func(c *config) { c.network = cfg } }
+func WithCustomNetwork(cfg derive.NetworkConfig) Option { return func(c *config) { c.network = cfg } }
 
 // WithSigner attaches an auth [github.com/amiwrpremium/go-derive/pkg/derive.Signer].
 // Without one, only public endpoints work.
@@ -94,7 +93,7 @@ func NewClient(opts ...Option) (*Client, error) {
 	for _, opt := range opts {
 		opt(cfg)
 	}
-	if cfg.network.Network == netconf.NetworkUnknown {
+	if cfg.network.Network == derive.NetworkUnknown {
 		return nil, derive.ErrInvalidConfig
 	}
 
@@ -145,4 +144,4 @@ func (c *Client) Close() error {
 
 // Network returns the active network configuration. Useful for diagnostics
 // and for plumbing the same config into auxiliary tooling.
-func (c *Client) Network() netconf.Config { return c.cfg }
+func (c *Client) Network() derive.NetworkConfig { return c.cfg }

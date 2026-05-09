@@ -40,7 +40,6 @@ import (
 
 	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/methods"
-	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/transport"
 )
 
@@ -52,7 +51,7 @@ type Client struct {
 	*methods.API
 	wt     *transport.WSTransport
 	signer derive.Signer
-	cfg    netconf.Config
+	cfg    derive.NetworkConfig
 }
 
 // New constructs a [Client] without dialing — Connect opens the socket.
@@ -73,7 +72,7 @@ func New(opts ...Option) (*Client, error) {
 	for _, opt := range opts {
 		opt(c)
 	}
-	if c.network.Network == netconf.NetworkUnknown {
+	if c.network.Network == derive.NetworkUnknown {
 		return nil, derive.ErrInvalidConfig
 	}
 
@@ -172,7 +171,7 @@ func (c *Client) Close() error { return c.wt.Close() }
 func (c *Client) IsConnected() bool { return c.wt.IsConnected() }
 
 // Network returns the active network configuration.
-func (c *Client) Network() netconf.Config { return c.cfg }
+func (c *Client) Network() derive.NetworkConfig { return c.cfg }
 
 // transport exposes the WS transport to the subscription helpers in this
 // package. Lower-cased so it stays internal to pkg/ws.

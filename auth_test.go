@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/amiwrpremium/go-derive"
-	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/shopspring/decimal"
@@ -231,9 +230,9 @@ func TestDomain_ChainIDAffectsSignature(t *testing.T) {
 	require.NoError(t, err)
 	a := derive.ActionData{Nonce: 1, Expiry: 1}
 
-	mainnetSig, err := s.SignAction(context.Background(), netconf.Mainnet().EIP712Domain(), a)
+	mainnetSig, err := s.SignAction(context.Background(), derive.Mainnet().EIP712Domain(), a)
 	require.NoError(t, err)
-	testnetSig, err := s.SignAction(context.Background(), netconf.Testnet().EIP712Domain(), a)
+	testnetSig, err := s.SignAction(context.Background(), derive.Testnet().EIP712Domain(), a)
 	require.NoError(t, err)
 
 	assert.NotEqual(t, mainnetSig, testnetSig,
@@ -245,7 +244,7 @@ func TestDomain_VerifyingContractAffectsSignature(t *testing.T) {
 	require.NoError(t, err)
 	a := derive.ActionData{Nonce: 1}
 
-	cfg := netconf.Mainnet()
+	cfg := derive.Mainnet()
 	d1 := cfg.EIP712Domain()
 	d2 := d1
 	d2.VerifyingContract = common.HexToAddress("0xdeadbeef00000000000000000000000000000000").Hex()
@@ -261,7 +260,7 @@ func TestDomain_SameInputsSameSignature(t *testing.T) {
 
 	s, err := derive.NewLocalSigner(testKey)
 	require.NoError(t, err)
-	d := netconf.Mainnet().EIP712Domain()
+	d := derive.Mainnet().EIP712Domain()
 	a := derive.ActionData{Nonce: 99, Expiry: 1700000000}
 	x, err := s.SignAction(context.Background(), d, a)
 	require.NoError(t, err)
@@ -415,7 +414,7 @@ func TestLocalSigner_SignAuthHeader_Recover(t *testing.T) {
 func TestLocalSigner_SignAction_Determinism(t *testing.T) {
 	s, err := derive.NewLocalSigner(testKey)
 	require.NoError(t, err)
-	domain := netconf.Mainnet().EIP712Domain()
+	domain := derive.Mainnet().EIP712Domain()
 	action := derive.ActionData{SubaccountID: 1, Nonce: 12345, Expiry: 1700000000}
 	a, err := s.SignAction(context.Background(), domain, action)
 	require.NoError(t, err)
@@ -428,7 +427,7 @@ func TestLocalSigner_SignAction_PopulatesOwnerAndSignerWhenZero(t *testing.T) {
 
 	s, err := derive.NewLocalSigner(testKey)
 	require.NoError(t, err)
-	domain := netconf.Mainnet().EIP712Domain()
+	domain := derive.Mainnet().EIP712Domain()
 
 	a, err := s.SignAction(context.Background(), domain, derive.ActionData{Nonce: 1})
 	require.NoError(t, err)
@@ -515,7 +514,7 @@ func TestSessionKeySigner_SignActionStampsOwnerAndSigner(t *testing.T) {
 	owner := common.HexToAddress("0x2222222222222222222222222222222222222222")
 	s, err := derive.NewSessionKeySigner(testKey, owner)
 	require.NoError(t, err)
-	domain := netconf.Mainnet().EIP712Domain()
+	domain := derive.Mainnet().EIP712Domain()
 	a := derive.ActionData{Nonce: 1, Owner: common.Address{}, Signer: common.Address{}}
 	b := derive.ActionData{Nonce: 1, Owner: common.HexToAddress("0xdeadbeef00000000000000000000000000000000"), Signer: common.HexToAddress("0xfeedface00000000000000000000000000000000")}
 
