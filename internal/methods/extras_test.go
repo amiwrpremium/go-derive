@@ -97,15 +97,6 @@ func TestExtras_PrivateMethods(t *testing.T) {
 		invoke  func() (json.RawMessage, error)
 		mockOut any
 	}{
-		{"GetNotifications", "private/get_notifications",
-			func() (json.RawMessage, error) {
-				return api.GetNotifications(context.Background(), nil)
-			}, []any{}},
-		{"UpdateNotifications", "private/update_notifications",
-			func() (json.RawMessage, error) {
-				return api.UpdateNotifications(context.Background(),
-					map[string]any{"notification_ids": []int{1}, "status": "seen"})
-			}, map[string]any{}},
 		{"Replace", "private/replace",
 			func() (json.RawMessage, error) {
 				return api.Replace(context.Background(),

@@ -31,8 +31,6 @@ func TestRPCWrappers_PropagateError(t *testing.T) {
 		fn     func(*methods.API) rawWrapper
 	}{
 		// extras.go — private map-of-any wrappers
-		{"GetNotifications", "private/get_notifications", 1, func(a *methods.API) rawWrapper { return a.GetNotifications }},
-		{"UpdateNotifications", "private/update_notifications", 1, func(a *methods.API) rawWrapper { return a.UpdateNotifications }},
 		{"Replace", "private/replace", 1, func(a *methods.API) rawWrapper { return a.Replace }},
 		{"OrderDebug", "private/order_debug", 1, func(a *methods.API) rawWrapper { return a.OrderDebug }},
 		// rfq_extras.go

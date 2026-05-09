@@ -92,34 +92,6 @@ func (a *API) GetTransaction(ctx context.Context, transactionID string) (json.Ra
 	return raw, err
 }
 
-// GetNotifications returns the wallet's notification feed.
-func (a *API) GetNotifications(ctx context.Context, params map[string]any) (json.RawMessage, error) {
-	if err := a.requireSigner(); err != nil {
-		return nil, err
-	}
-	if params == nil {
-		params = map[string]any{}
-	}
-	if _, ok := params["subaccount_id"]; !ok && a.Subaccount != 0 {
-		params["subaccount_id"] = a.Subaccount
-	}
-	var raw json.RawMessage
-	err := a.call(ctx, "private/get_notifications", params, &raw)
-	return raw, err
-}
-
-// UpdateNotifications marks one or more notifications as seen / dismissed.
-//
-// Required params: `notification_ids` ([]int) and `status`. Private.
-func (a *API) UpdateNotifications(ctx context.Context, params map[string]any) (json.RawMessage, error) {
-	if err := a.requireSigner(); err != nil {
-		return nil, err
-	}
-	var raw json.RawMessage
-	err := a.call(ctx, "private/update_notifications", params, &raw)
-	return raw, err
-}
-
 // ---------------------------------------------------------------------------
 // Private write methods
 // ---------------------------------------------------------------------------
