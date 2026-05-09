@@ -11,15 +11,15 @@ package methods
 import (
 	"context"
 
-	"github.com/amiwrpremium/go-derive/pkg/types"
+	"github.com/amiwrpremium/go-derive"
 )
 
 // GetSubaccount fetches the configured subaccount snapshot. Private.
-func (a *API) GetSubaccount(ctx context.Context) (types.SubAccount, error) {
+func (a *API) GetSubaccount(ctx context.Context) (derive.SubAccount, error) {
 	if err := a.requireSubaccount(); err != nil {
-		return types.SubAccount{}, err
+		return derive.SubAccount{}, err
 	}
-	var sa types.SubAccount
+	var sa derive.SubAccount
 	err := a.call(ctx, "private/get_subaccount", map[string]any{
 		"subaccount_id": a.Subaccount,
 	}, &sa)

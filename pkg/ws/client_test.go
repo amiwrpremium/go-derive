@@ -9,13 +9,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/jsonrpc"
 	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/testutil"
 	"github.com/amiwrpremium/go-derive/pkg/auth"
 	"github.com/amiwrpremium/go-derive/pkg/channels/public"
 	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
-	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -99,7 +99,7 @@ func TestWSClient_SubscribeTyped(t *testing.T) {
 	require.NoError(t, c.Connect(context.Background()))
 	defer func() { _ = c.Close() }()
 
-	sub, err := ws.Subscribe[types.OrderBook](context.Background(), c, public.OrderBook{
+	sub, err := ws.Subscribe[derive.OrderBook](context.Background(), c, public.OrderBook{
 		Instrument: "BTC-PERP", Group: "1", Depth: 5,
 	})
 	require.NoError(t, err)
@@ -132,11 +132,11 @@ func TestWSClient_SubscribeFunc(t *testing.T) {
 	require.NoError(t, c.Connect(context.Background()))
 	defer func() { _ = c.Close() }()
 
-	got := make(chan types.OrderBook, 1)
+	got := make(chan derive.OrderBook, 1)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {
-		_ = ws.SubscribeFunc(ctx, c, public.OrderBook{Instrument: "ETH-PERP"}, func(ob types.OrderBook) {
+		_ = ws.SubscribeFunc(ctx, c, public.OrderBook{Instrument: "ETH-PERP"}, func(ob derive.OrderBook) {
 			got <- ob
 		})
 	}()
@@ -158,7 +158,7 @@ func TestWSClient_SubscribeFunc(t *testing.T) {
 }
 
 func TestWSClient_SubscribeMethodTypeMismatch(t *testing.T) {
-	// Channel decodes into types.OrderBook but the test asks for a different type;
+	// Channel decodes into derive.OrderBook but the test asks for a different type;
 	// the generic glue must reject the mismatch without crashing.
 	srv := testutil.NewMockWSServer()
 	defer srv.Close()

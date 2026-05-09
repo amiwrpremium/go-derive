@@ -12,7 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/amiwrpremium/go-derive/pkg/types"
+	"github.com/amiwrpremium/go-derive"
 )
 
 // Trades subscribes to fill events for one subaccount.
@@ -21,7 +21,7 @@ import (
 //
 //	subaccount.{id}.trades
 //
-// Pair this descriptor with T = [[]types.Trade] when calling
+// Pair this descriptor with T = [[]derive.Trade] when calling
 // [github.com/amiwrpremium/go-derive/pkg/ws.Subscribe]. Each notification
 // is a batch of fills since the last update.
 type Trades struct {
@@ -32,9 +32,9 @@ type Trades struct {
 // Name returns the dotted server-side channel string.
 func (t Trades) Name() string { return fmt.Sprintf("subaccount.%d.trades", t.SubaccountID) }
 
-// Decode parses an inbound notification payload into a [[]types.Trade].
+// Decode parses an inbound notification payload into a [[]derive.Trade].
 func (Trades) Decode(raw json.RawMessage) (any, error) {
-	var trades []types.Trade
+	var trades []derive.Trade
 	if err := json.Unmarshal(raw, &trades); err != nil {
 		return nil, err
 	}

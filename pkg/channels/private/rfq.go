@@ -12,7 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/amiwrpremium/go-derive/pkg/types"
+	"github.com/amiwrpremium/go-derive"
 )
 
 // RFQs subscribes to lifecycle updates for RFQs initiated by one wallet.
@@ -25,7 +25,7 @@ import (
 // RFQ it issued across all of its subaccounts. Address must be a 0x-prefixed
 // 20-byte hex string in standard EIP-55 form.
 //
-// Pair with T = [[]types.RFQ].
+// Pair with T = [[]derive.RFQ].
 type RFQs struct {
 	// Wallet is the owner address as a 0x-prefixed hex string.
 	Wallet string
@@ -34,9 +34,9 @@ type RFQs struct {
 // Name returns the dotted server-side channel string.
 func (r RFQs) Name() string { return fmt.Sprintf("wallet.%s.rfqs", r.Wallet) }
 
-// Decode parses an inbound notification payload into a [[]types.RFQ].
+// Decode parses an inbound notification payload into a [[]derive.RFQ].
 func (RFQs) Decode(raw json.RawMessage) (any, error) {
-	var rfqs []types.RFQ
+	var rfqs []derive.RFQ
 	if err := json.Unmarshal(raw, &rfqs); err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (RFQs) Decode(raw json.RawMessage) (any, error) {
 //
 //	subaccount.{id}.quotes
 //
-// Pair with T = [[]types.Quote].
+// Pair with T = [[]derive.Quote].
 type Quotes struct {
 	// SubaccountID scopes the stream to one subaccount.
 	SubaccountID int64
@@ -59,9 +59,9 @@ type Quotes struct {
 // Name returns the dotted server-side channel string.
 func (q Quotes) Name() string { return fmt.Sprintf("subaccount.%d.quotes", q.SubaccountID) }
 
-// Decode parses an inbound notification payload into a [[]types.Quote].
+// Decode parses an inbound notification payload into a [[]derive.Quote].
 func (Quotes) Decode(raw json.RawMessage) (any, error) {
-	var quotes []types.Quote
+	var quotes []derive.Quote
 	if err := json.Unmarshal(raw, &quotes); err != nil {
 		return nil, err
 	}

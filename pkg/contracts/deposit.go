@@ -20,7 +20,7 @@ import (
 
 	"github.com/shopspring/decimal"
 
-	"github.com/amiwrpremium/go-derive/pkg/types"
+	"github.com/amiwrpremium/go-derive"
 )
 
 // Depositor is the interface for crediting collateral into a subaccount.
@@ -30,7 +30,7 @@ type Depositor interface {
 	// returns the deposit transaction hash on success.
 	//
 	// Returns [ErrNotImplemented].
-	Deposit(ctx context.Context, asset types.Address, amount decimal.Decimal, subaccount int64) (types.TxHash, error)
+	Deposit(ctx context.Context, asset derive.Address, amount decimal.Decimal, subaccount int64) (derive.TxHash, error)
 }
 
 // ErrNotImplemented is returned by every method on the stubs in this

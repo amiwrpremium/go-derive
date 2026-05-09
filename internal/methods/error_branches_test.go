@@ -8,10 +8,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/methods"
 	"github.com/amiwrpremium/go-derive/internal/testutil"
 	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
-	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 // boom is the error injected by the fake transport on every wrapper under
@@ -152,19 +152,19 @@ func TestNoArgWrappers_PropagateError(t *testing.T) {
 	t.Run("GetDepositHistory_ServerError", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/get_deposit_history", boom)
-		_, _, err := api.GetDepositHistory(context.Background(), types.PageRequest{Page: 1, PageSize: 10})
+		_, _, err := api.GetDepositHistory(context.Background(), derive.PageRequest{Page: 1, PageSize: 10})
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 	t.Run("GetWithdrawalHistory_ServerError", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/get_withdrawal_history", boom)
-		_, _, err := api.GetWithdrawalHistory(context.Background(), types.PageRequest{})
+		_, _, err := api.GetWithdrawalHistory(context.Background(), derive.PageRequest{})
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 	t.Run("GetTradeHistory_ServerError", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/get_trade_history", boom)
-		_, _, err := api.GetTradeHistory(context.Background(), types.PageRequest{})
+		_, _, err := api.GetTradeHistory(context.Background(), derive.PageRequest{})
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 }

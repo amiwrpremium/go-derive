@@ -17,14 +17,13 @@ import (
 
 	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/pkg/auth"
-	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
-// invalidInput wraps [types.ErrInvalidParams] for input DTOs declared in
+// invalidInput wraps [derive.ErrInvalidParams] for input DTOs declared in
 // this package, so callers can match every Validate failure with one
 // errors.Is regardless of where the DTO was declared.
 func invalidInput(field, reason string) error {
-	return fmt.Errorf("%w: %s: %s", types.ErrInvalidParams, field, reason)
+	return fmt.Errorf("%w: %s: %s", derive.ErrInvalidParams, field, reason)
 }
 
 // PlaceOrderInput is a thin convenience wrapper for the user-facing
@@ -38,9 +37,9 @@ type PlaceOrderInput struct {
 	Direction      derive.Direction
 	OrderType      derive.OrderType
 	TimeInForce    derive.TimeInForce
-	Amount         types.Decimal
-	LimitPrice     types.Decimal
-	MaxFee         types.Decimal
+	Amount         derive.Decimal
+	LimitPrice     derive.Decimal
+	MaxFee         derive.Decimal
 	Label          string
 	MMP            bool
 	ReduceOnly     bool
@@ -49,9 +48,9 @@ type PlaceOrderInput struct {
 // Validate performs schema-level checks on the receiver: required fields
 // populated, enum values in range, numeric fields in bounds. It does not
 // validate against an instrument's tick / amount step (those live on
-// [types.Instrument] and require a network round-trip).
+// [derive.Instrument] and require a network round-trip).
 //
-// Returns nil on success or an error wrapping [types.ErrInvalidParams].
+// Returns nil on success or an error wrapping [derive.ErrInvalidParams].
 func (in PlaceOrderInput) Validate() error {
 	if in.InstrumentName == "" {
 		return invalidInput("instrument_name", "required")
@@ -87,12 +86,12 @@ func (in PlaceOrderInput) Validate() error {
 // The session key signs the action; the resulting signature, signer address,
 // nonce and expiry are embedded in the JSON-RPC params so the matching engine
 // can recompute the EIP-712 hash and verify.
-func (a *API) PlaceOrder(ctx context.Context, in PlaceOrderInput) (types.Order, error) {
+func (a *API) PlaceOrder(ctx context.Context, in PlaceOrderInput) (derive.Order, error) {
 	if err := a.requireSigner(); err != nil {
-		return types.Order{}, err
+		return derive.Order{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
-		return types.Order{}, err
+		return derive.Order{}, err
 	}
 
 	nonce := a.Nonces.Next()
@@ -117,7 +116,7 @@ func (a *API) PlaceOrder(ctx context.Context, in PlaceOrderInput) (types.Order, 
 	}
 	dataHash, err := tmd.Hash()
 	if err != nil {
-		return types.Order{}, err
+		return derive.Order{}, err
 	}
 
 	action := auth.ActionData{
@@ -131,10 +130,10 @@ func (a *API) PlaceOrder(ctx context.Context, in PlaceOrderInput) (types.Order, 
 	}
 	sig, err := a.Signer.SignAction(ctx, a.Domain, action)
 	if err != nil {
-		return types.Order{}, err
+		return derive.Order{}, err
 	}
 
-	params := types.OrderParams{
+	params := derive.OrderParams{
 		InstrumentName:  in.InstrumentName,
 		Direction:       in.Direction,
 		OrderType:       in.OrderType,
@@ -144,7 +143,7 @@ func (a *API) PlaceOrder(ctx context.Context, in PlaceOrderInput) (types.Order, 
 		MaxFee:          in.MaxFee,
 		SubaccountID:    a.Subaccount,
 		Nonce:           nonce,
-		Signer:          types.Address(a.Signer.Address()),
+		Signer:          derive.Address(a.Signer.Address()),
 		Signature:       sig.Hex(),
 		SignatureExpiry: expiry,
 		Label:           in.Label,
@@ -152,10 +151,10 @@ func (a *API) PlaceOrder(ctx context.Context, in PlaceOrderInput) (types.Order, 
 		ReduceOnly:      in.ReduceOnly,
 	}
 	var resp struct {
-		Order types.Order `json:"order"`
+		Order derive.Order `json:"order"`
 	}
 	if err := a.call(ctx, "private/order", params, &resp); err != nil {
-		return types.Order{}, err
+		return derive.Order{}, err
 	}
 	return resp.Order, nil
 }
@@ -235,38 +234,38 @@ func (a *API) CancelAll(ctx context.Context) (cancelled int, err error) {
 }
 
 // GetOrder fetches one order by id. Private.
-func (a *API) GetOrder(ctx context.Context, orderID string) (types.Order, error) {
+func (a *API) GetOrder(ctx context.Context, orderID string) (derive.Order, error) {
 	if err := a.requireSubaccount(); err != nil {
-		return types.Order{}, err
+		return derive.Order{}, err
 	}
 	params := map[string]any{
 		"subaccount_id": a.Subaccount,
 		"order_id":      orderID,
 	}
 	var resp struct {
-		Order types.Order `json:"order"`
+		Order derive.Order `json:"order"`
 	}
 	err := a.call(ctx, "private/get_order", params, &resp)
 	return resp.Order, err
 }
 
 // GetOpenOrders lists currently-open orders on the subaccount. Private.
-func (a *API) GetOpenOrders(ctx context.Context) ([]types.Order, error) {
+func (a *API) GetOpenOrders(ctx context.Context) ([]derive.Order, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return nil, err
 	}
 	params := map[string]any{"subaccount_id": a.Subaccount}
 	var resp struct {
-		Orders []types.Order `json:"orders"`
+		Orders []derive.Order `json:"orders"`
 	}
 	err := a.call(ctx, "private/get_open_orders", params, &resp)
 	return resp.Orders, err
 }
 
 // GetOrderHistory paginates past orders. Private.
-func (a *API) GetOrderHistory(ctx context.Context, page types.PageRequest) ([]types.Order, types.Page, error) {
+func (a *API) GetOrderHistory(ctx context.Context, page derive.PageRequest) ([]derive.Order, derive.Page, error) {
 	if err := a.requireSubaccount(); err != nil {
-		return nil, types.Page{}, err
+		return nil, derive.Page{}, err
 	}
 	params := map[string]any{"subaccount_id": a.Subaccount}
 	if page.Page > 0 {
@@ -276,11 +275,11 @@ func (a *API) GetOrderHistory(ctx context.Context, page types.PageRequest) ([]ty
 		params["page_size"] = page.PageSize
 	}
 	var resp struct {
-		Orders     []types.Order `json:"orders"`
-		Pagination types.Page    `json:"pagination"`
+		Orders     []derive.Order `json:"orders"`
+		Pagination derive.Page    `json:"pagination"`
 	}
 	if err := a.call(ctx, "private/get_orders", params, &resp); err != nil {
-		return nil, types.Page{}, err
+		return nil, derive.Page{}, err
 	}
 	return resp.Orders, resp.Pagination, nil
 }

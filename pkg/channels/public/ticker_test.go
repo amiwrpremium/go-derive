@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/pkg/channels/public"
-	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestTickerSlim_Name_DefaultInterval(t *testing.T) {
@@ -34,7 +34,7 @@ func TestTickerSlim_Decode_Happy(t *testing.T) {
 	}`)
 	v, err := public.TickerSlim{}.Decode(raw)
 	require.NoError(t, err)
-	tk, ok := v.(types.TickerSlim)
+	tk, ok := v.(derive.TickerSlim)
 	require.True(t, ok)
 	assert.Equal(t, "78752.1", tk.Ticker.BestBidPrice.String())
 	assert.Equal(t, "78758.5", tk.Ticker.BestAskPrice.String())

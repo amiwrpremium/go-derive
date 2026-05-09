@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/pkg/channels/private"
-	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestPrivateTrades_Name(t *testing.T) {
@@ -19,7 +19,7 @@ func TestPrivateTrades_Decode_Happy(t *testing.T) {
 	raw := json.RawMessage(`[{"trade_id":"T","instrument_name":"BTC-PERP","direction":"buy","trade_price":"1","trade_amount":"1","mark_price":"1","timestamp":1700000000000}]`)
 	v, err := private.Trades{}.Decode(raw)
 	require.NoError(t, err)
-	trades, ok := v.([]types.Trade)
+	trades, ok := v.([]derive.Trade)
 	require.True(t, ok)
 	require.Len(t, trades, 1)
 }

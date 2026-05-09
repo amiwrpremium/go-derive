@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/amiwrpremium/go-derive"
 	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
-	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestGetTradeHistory_Happy(t *testing.T) {
@@ -17,7 +17,7 @@ func TestGetTradeHistory_Happy(t *testing.T) {
 		"trades":     []any{},
 		"pagination": map[string]any{"num_pages": 4, "count": 100},
 	})
-	_, page, err := api.GetTradeHistory(context.Background(), types.PageRequest{Page: 1, PageSize: 25})
+	_, page, err := api.GetTradeHistory(context.Background(), derive.PageRequest{Page: 1, PageSize: 25})
 	require.NoError(t, err)
 	assert.Equal(t, 4, page.NumPages)
 	assert.Equal(t, 100, page.Count)
@@ -32,7 +32,7 @@ func TestGetTradeHistory_OmitsZeroPagination(t *testing.T) {
 	ft.HandleResult("private/get_trade_history", map[string]any{
 		"trades": []any{}, "pagination": map[string]any{},
 	})
-	_, _, err := api.GetTradeHistory(context.Background(), types.PageRequest{})
+	_, _, err := api.GetTradeHistory(context.Background(), derive.PageRequest{})
 	require.NoError(t, err)
 	params := paramsAsMap(t, ft.LastCall().Params)
 	_, hasPage := params["page"]
@@ -43,7 +43,7 @@ func TestGetTradeHistory_OmitsZeroPagination(t *testing.T) {
 
 func TestGetTradeHistory_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	_, _, err := api.GetTradeHistory(context.Background(), types.PageRequest{})
+	_, _, err := api.GetTradeHistory(context.Background(), derive.PageRequest{})
 	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
 }
 
@@ -53,13 +53,13 @@ func TestGetDepositHistory_Happy(t *testing.T) {
 		"events":     []any{},
 		"pagination": map[string]any{"num_pages": 0, "count": 0, "current_page": 1, "page_size": 10},
 	})
-	_, _, err := api.GetDepositHistory(context.Background(), types.PageRequest{Page: 0, PageSize: 0})
+	_, _, err := api.GetDepositHistory(context.Background(), derive.PageRequest{Page: 0, PageSize: 0})
 	require.NoError(t, err)
 }
 
 func TestGetDepositHistory_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	_, _, err := api.GetDepositHistory(context.Background(), types.PageRequest{})
+	_, _, err := api.GetDepositHistory(context.Background(), derive.PageRequest{})
 	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
 }
 
@@ -69,7 +69,7 @@ func TestGetWithdrawalHistory_Happy(t *testing.T) {
 		"events":     []any{},
 		"pagination": map[string]any{"num_pages": 0, "count": 0, "current_page": 1, "page_size": 10},
 	})
-	_, _, err := api.GetWithdrawalHistory(context.Background(), types.PageRequest{Page: 2, PageSize: 50})
+	_, _, err := api.GetWithdrawalHistory(context.Background(), derive.PageRequest{Page: 2, PageSize: 50})
 	require.NoError(t, err)
 	params := paramsAsMap(t, ft.LastCall().Params)
 	assert.Equal(t, float64(2), params["page"])
@@ -78,6 +78,6 @@ func TestGetWithdrawalHistory_Happy(t *testing.T) {
 
 func TestGetWithdrawalHistory_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	_, _, err := api.GetWithdrawalHistory(context.Background(), types.PageRequest{})
+	_, _, err := api.GetWithdrawalHistory(context.Background(), derive.PageRequest{})
 	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
 }

@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/amiwrpremium/go-derive"
 	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
-	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestSendRFQ_Happy(t *testing.T) {
@@ -17,14 +17,14 @@ func TestSendRFQ_Happy(t *testing.T) {
 		"rfq_id": "R1", "subaccount_id": 1, "status": "open",
 		"legs": []any{}, "creation_timestamp": 1, "last_update_timestamp": 1,
 	})
-	rfq, err := api.SendRFQ(context.Background(), nil, types.MustDecimal("100"))
+	rfq, err := api.SendRFQ(context.Background(), nil, derive.MustDecimal("100"))
 	require.NoError(t, err)
 	assert.Equal(t, "R1", rfq.RFQID)
 }
 
 func TestSendRFQ_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	_, err := api.SendRFQ(context.Background(), nil, types.MustDecimal("0"))
+	_, err := api.SendRFQ(context.Background(), nil, derive.MustDecimal("0"))
 	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
 }
 

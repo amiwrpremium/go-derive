@@ -12,9 +12,9 @@
 package main
 
 import (
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/examples/example"
 	"github.com/amiwrpremium/go-derive/pkg/channels/public"
-	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -26,19 +26,19 @@ func main() {
 
 	inst := example.Instrument()
 
-	ob, err := ws.Subscribe[types.OrderBook](ctx, c, public.OrderBook{
+	ob, err := ws.Subscribe[derive.OrderBook](ctx, c, public.OrderBook{
 		Instrument: inst, Depth: 10,
 	})
 	example.Fatal(err)
 	defer ob.Close()
 
-	tk, err := ws.Subscribe[types.TickerSlim](ctx, c, public.TickerSlim{
+	tk, err := ws.Subscribe[derive.TickerSlim](ctx, c, public.TickerSlim{
 		Instrument: inst,
 	})
 	example.Fatal(err)
 	defer tk.Close()
 
-	tr, err := ws.Subscribe[[]types.Trade](ctx, c, public.Trades{
+	tr, err := ws.Subscribe[[]derive.Trade](ctx, c, public.Trades{
 		Instrument: inst,
 	})
 	example.Fatal(err)

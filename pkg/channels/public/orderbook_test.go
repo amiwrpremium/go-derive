@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/pkg/channels/public"
-	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestOrderBook_Name_DefaultsApplied(t *testing.T) {
@@ -36,7 +36,7 @@ func TestOrderBook_Decode_Happy(t *testing.T) {
 	}`)
 	v, err := public.OrderBook{}.Decode(raw)
 	require.NoError(t, err)
-	ob, ok := v.(types.OrderBook)
+	ob, ok := v.(derive.OrderBook)
 	require.True(t, ok)
 	assert.Equal(t, "BTC-PERP", ob.InstrumentName)
 }

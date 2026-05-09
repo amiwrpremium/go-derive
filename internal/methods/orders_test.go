@@ -14,7 +14,6 @@ import (
 	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/methods"
 	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
-	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func validPlaceOrderInput() methods.PlaceOrderInput {
@@ -23,9 +22,9 @@ func validPlaceOrderInput() methods.PlaceOrderInput {
 		Asset:          common.HexToAddress("0x1111111111111111111111111111111111111111"),
 		Direction:      derive.DirectionBuy,
 		OrderType:      derive.OrderTypeLimit,
-		Amount:         types.MustDecimal("1"),
-		LimitPrice:     types.MustDecimal("100"),
-		MaxFee:         types.MustDecimal("1"),
+		Amount:         derive.MustDecimal("1"),
+		LimitPrice:     derive.MustDecimal("100"),
+		MaxFee:         derive.MustDecimal("1"),
 	}
 }
 
@@ -44,9 +43,9 @@ func TestPlaceOrderInput_Validate_Rejects(t *testing.T) {
 		{"bad direction", func(in *methods.PlaceOrderInput) { in.Direction = derive.Direction("x") }, "direction"},
 		{"bad order type", func(in *methods.PlaceOrderInput) { in.OrderType = derive.OrderType("x") }, "order_type"},
 		{"bad time-in-force", func(in *methods.PlaceOrderInput) { in.TimeInForce = derive.TimeInForce("x") }, "time_in_force"},
-		{"zero amount", func(in *methods.PlaceOrderInput) { in.Amount = types.MustDecimal("0") }, "amount"},
-		{"zero price", func(in *methods.PlaceOrderInput) { in.LimitPrice = types.MustDecimal("0") }, "limit_price"},
-		{"negative fee", func(in *methods.PlaceOrderInput) { in.MaxFee = types.MustDecimal("-1") }, "max_fee"},
+		{"zero amount", func(in *methods.PlaceOrderInput) { in.Amount = derive.MustDecimal("0") }, "amount"},
+		{"zero price", func(in *methods.PlaceOrderInput) { in.LimitPrice = derive.MustDecimal("0") }, "limit_price"},
+		{"negative fee", func(in *methods.PlaceOrderInput) { in.MaxFee = derive.MustDecimal("-1") }, "max_fee"},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -54,7 +53,7 @@ func TestPlaceOrderInput_Validate_Rejects(t *testing.T) {
 			c.mut(&in)
 			err := in.Validate()
 			require.Error(t, err)
-			assert.True(t, errors.Is(err, types.ErrInvalidParams))
+			assert.True(t, errors.Is(err, derive.ErrInvalidParams))
 			assert.Contains(t, err.Error(), c.want)
 		})
 	}
@@ -103,9 +102,9 @@ func TestPlaceOrder_Success_PopulatesSignatureFields(t *testing.T) {
 		Direction:      derive.DirectionBuy,
 		OrderType:      derive.OrderTypeLimit,
 		TimeInForce:    derive.TimeInForceGTC,
-		Amount:         types.MustDecimal("0.1"),
-		LimitPrice:     types.MustDecimal("65000"),
-		MaxFee:         types.MustDecimal("10"),
+		Amount:         derive.MustDecimal("0.1"),
+		LimitPrice:     derive.MustDecimal("65000"),
+		MaxFee:         derive.MustDecimal("10"),
 	}
 	order, err := api.PlaceOrder(context.Background(), in)
 	require.NoError(t, err)
@@ -194,7 +193,7 @@ func TestGetOrderHistory(t *testing.T) {
 		"orders":     []any{},
 		"pagination": map[string]any{"num_pages": 2, "count": 100},
 	})
-	_, page, err := api.GetOrderHistory(context.Background(), types.PageRequest{Page: 1, PageSize: 50})
+	_, page, err := api.GetOrderHistory(context.Background(), derive.PageRequest{Page: 1, PageSize: 50})
 	require.NoError(t, err)
 	assert.Equal(t, 2, page.NumPages)
 	assert.Equal(t, 100, page.Count)
@@ -206,7 +205,7 @@ func TestPrivateMethods_RequireSubaccount_Across(t *testing.T) {
 		"GetOrder":      func() error { _, e := api.GetOrder(context.Background(), "x"); return e },
 		"GetOpenOrders": func() error { _, e := api.GetOpenOrders(context.Background()); return e },
 		"GetOrderHistory": func() error {
-			_, _, e := api.GetOrderHistory(context.Background(), types.PageRequest{})
+			_, _, e := api.GetOrderHistory(context.Background(), derive.PageRequest{})
 			return e
 		},
 		"CancelByLabel":      func() error { _, e := api.CancelByLabel(context.Background(), "x"); return e },

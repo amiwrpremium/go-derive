@@ -4,9 +4,9 @@
 package main
 
 import (
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/examples/example"
 	"github.com/amiwrpremium/go-derive/pkg/channels/private"
-	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -17,7 +17,7 @@ func main() {
 	defer c.Close()
 
 	wallet := example.MustSigner().Owner().Hex()
-	sub, err := ws.Subscribe[[]types.RFQ](ctx, c, private.RFQs{Wallet: wallet})
+	sub, err := ws.Subscribe[[]derive.RFQ](ctx, c, private.RFQs{Wallet: wallet})
 	example.Fatal(err)
 	defer sub.Close()
 

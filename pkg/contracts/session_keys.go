@@ -18,7 +18,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/amiwrpremium/go-derive/pkg/types"
+	"github.com/amiwrpremium/go-derive"
 )
 
 // SessionKeyManager is the contract for the session-key lifecycle.
@@ -31,11 +31,11 @@ type SessionKeyManager interface {
 	// transaction hash on success.
 	//
 	// Returns [ErrNotImplemented].
-	Register(ctx context.Context, sessionKey types.Address, expiry time.Time) (types.TxHash, error)
+	Register(ctx context.Context, sessionKey derive.Address, expiry time.Time) (derive.TxHash, error)
 
 	// Revoke immediately deauthorises a session key. It returns the
 	// revocation transaction hash on success.
 	//
 	// Returns [ErrNotImplemented].
-	Revoke(ctx context.Context, sessionKey types.Address) (types.TxHash, error)
+	Revoke(ctx context.Context, sessionKey derive.Address) (derive.TxHash, error)
 }

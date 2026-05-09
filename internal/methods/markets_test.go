@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/amiwrpremium/go-derive"
-	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestGetInstruments(t *testing.T) {
@@ -86,7 +85,7 @@ func TestGetPublicTradeHistory(t *testing.T) {
 		"trades":     []any{},
 		"pagination": map[string]any{"num_pages": 1, "count": 0, "current_page": 1, "page_size": 50},
 	})
-	trades, page, err := api.GetPublicTradeHistory(context.Background(), "BTC-PERP", types.PageRequest{Page: 2, PageSize: 50})
+	trades, page, err := api.GetPublicTradeHistory(context.Background(), "BTC-PERP", derive.PageRequest{Page: 2, PageSize: 50})
 	require.NoError(t, err)
 	assert.Empty(t, trades)
 	assert.Equal(t, 1, page.NumPages)

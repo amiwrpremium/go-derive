@@ -3,8 +3,8 @@
 package main
 
 import (
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/examples/example"
-	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -14,7 +14,7 @@ func main() {
 	defer cancel()
 
 	trades, page, err := c.GetPublicTradeHistory(ctx, example.Instrument(),
-		types.PageRequest{PageSize: 5})
+		derive.PageRequest{PageSize: 5})
 	example.Fatal(err)
 	example.Print("trades returned", len(trades))
 	example.Print("total records", page.Count)

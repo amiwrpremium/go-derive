@@ -13,7 +13,6 @@ import (
 	"fmt"
 
 	"github.com/amiwrpremium/go-derive"
-	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 // TradesByType subscribes to all public trades for one (instrument_type,
@@ -26,7 +25,7 @@ import (
 // Where InstrumentType is one of [derive.InstrumentType] (perp, option, erc20)
 // and Currency is the underlying symbol (BTC, ETH, …).
 //
-// Pair this descriptor with T = [[]types.Trade]. Each notification carries
+// Pair this descriptor with T = [[]derive.Trade]. Each notification carries
 // a batch of trades that printed in the same window across every instrument
 // matching the (type, currency) tuple — useful for index-level analytics
 // without subscribing per-instrument.
@@ -42,9 +41,9 @@ func (t TradesByType) Name() string {
 	return fmt.Sprintf("trades.%s.%s", t.InstrumentType, t.Currency)
 }
 
-// Decode parses an inbound notification payload into a [[]types.Trade].
+// Decode parses an inbound notification payload into a [[]derive.Trade].
 func (TradesByType) Decode(raw json.RawMessage) (any, error) {
-	var trades []types.Trade
+	var trades []derive.Trade
 	if err := json.Unmarshal(raw, &trades); err != nil {
 		return nil, err
 	}

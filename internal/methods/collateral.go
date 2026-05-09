@@ -11,16 +11,16 @@ package methods
 import (
 	"context"
 
-	"github.com/amiwrpremium/go-derive/pkg/types"
+	"github.com/amiwrpremium/go-derive"
 )
 
 // GetCollateral returns the collateral breakdown for the subaccount. Private.
-func (a *API) GetCollateral(ctx context.Context) ([]types.Collateral, error) {
+func (a *API) GetCollateral(ctx context.Context) ([]derive.Collateral, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return nil, err
 	}
 	var resp struct {
-		Collaterals []types.Collateral `json:"collaterals"`
+		Collaterals []derive.Collateral `json:"collaterals"`
 	}
 	err := a.call(ctx, "private/get_collaterals", map[string]any{
 		"subaccount_id": a.Subaccount,

@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/amiwrpremium/go-derive/pkg/channels/public"
-	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestTradesByType_Name(t *testing.T) {
@@ -24,7 +23,7 @@ func TestTradesByType_Decode_Happy(t *testing.T) {
 	raw := json.RawMessage(`[{"trade_id":"t1","instrument_name":"BTC-PERP","direction":"buy","trade_price":"100","trade_amount":"1","timestamp":1700000000000}]`)
 	v, err := public.TradesByType{}.Decode(raw)
 	require.NoError(t, err)
-	trades, ok := v.([]types.Trade)
+	trades, ok := v.([]derive.Trade)
 	require.True(t, ok)
 	require.Len(t, trades, 1)
 	assert.Equal(t, "t1", trades[0].TradeID)

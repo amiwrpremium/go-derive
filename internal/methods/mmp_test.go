@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/methods"
 	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
-	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestMMPConfig_Validate_Happy(t *testing.T) {
@@ -32,7 +32,7 @@ func TestMMPConfig_Validate_Rejects(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			err := c.cfg.Validate()
 			require.Error(t, err)
-			assert.True(t, errors.Is(err, types.ErrInvalidParams))
+			assert.True(t, errors.Is(err, derive.ErrInvalidParams))
 			assert.Contains(t, err.Error(), c.want)
 		})
 	}

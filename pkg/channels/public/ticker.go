@@ -12,7 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/amiwrpremium/go-derive/pkg/types"
+	"github.com/amiwrpremium/go-derive"
 )
 
 // TickerSlim subscribes to ticker updates for one instrument.
@@ -27,7 +27,7 @@ import (
 // compact wire payload — single-letter field names like `b`/`B` for the
 // best-bid price/amount.)
 //
-// Pair this descriptor with T = [types.TickerSlim] when calling
+// Pair this descriptor with T = [derive.TickerSlim] when calling
 // [github.com/amiwrpremium/go-derive/pkg/ws.Subscribe].
 type TickerSlim struct {
 	// Instrument is the market name (e.g. "BTC-PERP").
@@ -46,9 +46,9 @@ func (t TickerSlim) Name() string {
 	return fmt.Sprintf("ticker_slim.%s.%s", t.Instrument, i)
 }
 
-// Decode parses an inbound notification payload into a [types.TickerSlim].
+// Decode parses an inbound notification payload into a [derive.TickerSlim].
 func (TickerSlim) Decode(raw json.RawMessage) (any, error) {
-	var t types.TickerSlim
+	var t derive.TickerSlim
 	if err := json.Unmarshal(raw, &t); err != nil {
 		return nil, err
 	}

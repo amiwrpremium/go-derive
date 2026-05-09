@@ -16,7 +16,6 @@ import (
 
 	"github.com/amiwrpremium/go-derive/internal/methods"
 	"github.com/amiwrpremium/go-derive/pkg/channels/private"
-	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -39,9 +38,9 @@ func requireLiveOrders(t *testing.T, env integrationEnv) {
 
 // farFromMarkBuy returns a limit price 5% below mark — far enough away that
 // the order should not fill in the test window.
-func farFromMarkBuy(mark types.Decimal) types.Decimal {
+func farFromMarkBuy(mark derive.Decimal) derive.Decimal {
 	priced := mark.Inner().Mul(decimal.RequireFromString("0.95"))
-	d, _ := types.NewDecimal(priced.String())
+	d, _ := derive.NewDecimal(priced.String())
 	return d
 }
 
@@ -63,9 +62,9 @@ func TestPrivate_PlaceAndCancelOrder_REST(t *testing.T) {
 		Direction:      derive.DirectionBuy,
 		OrderType:      derive.OrderTypeLimit,
 		TimeInForce:    derive.TimeInForceGTC,
-		Amount:         types.MustDecimal("0.001"),
+		Amount:         derive.MustDecimal("0.001"),
 		LimitPrice:     farFromMarkBuy(tk.MarkPrice),
-		MaxFee:         types.MustDecimal("10"),
+		MaxFee:         derive.MustDecimal("10"),
 		Label:          "go-derive-integration",
 	}
 	order, err := c.PlaceOrder(ctx, in)
@@ -93,9 +92,9 @@ func TestPrivate_PlaceAndCancelOrder_WS(t *testing.T) {
 		Direction:      derive.DirectionBuy,
 		OrderType:      derive.OrderTypeLimit,
 		TimeInForce:    derive.TimeInForceGTC,
-		Amount:         types.MustDecimal("0.001"),
+		Amount:         derive.MustDecimal("0.001"),
 		LimitPrice:     farFromMarkBuy(tk.MarkPrice),
-		MaxFee:         types.MustDecimal("10"),
+		MaxFee:         derive.MustDecimal("10"),
 		Label:          "go-derive-integration-ws",
 	}
 	order, err := c.PlaceOrder(ctx, in)
@@ -113,7 +112,7 @@ func TestPrivate_OrderEventsArrive(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	sub, err := ws.Subscribe[[]types.Order](ctx, c, private.Orders{SubaccountID: env.subaccount})
+	sub, err := ws.Subscribe[[]derive.Order](ctx, c, private.Orders{SubaccountID: env.subaccount})
 	require.NoError(t, err)
 	defer sub.Close()
 
@@ -126,9 +125,9 @@ func TestPrivate_OrderEventsArrive(t *testing.T) {
 		Direction:      derive.DirectionBuy,
 		OrderType:      derive.OrderTypeLimit,
 		TimeInForce:    derive.TimeInForceGTC,
-		Amount:         types.MustDecimal("0.001"),
+		Amount:         derive.MustDecimal("0.001"),
 		LimitPrice:     farFromMarkBuy(tk.MarkPrice),
-		MaxFee:         types.MustDecimal("10"),
+		MaxFee:         derive.MustDecimal("10"),
 		Label:          "go-derive-integration-events",
 	}
 	order, err := c.PlaceOrder(ctx, in)

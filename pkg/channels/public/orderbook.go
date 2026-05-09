@@ -12,7 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/amiwrpremium/go-derive/pkg/types"
+	"github.com/amiwrpremium/go-derive"
 )
 
 // OrderBook subscribes to incremental order-book updates for one instrument.
@@ -25,7 +25,7 @@ import (
 // for no grouping) and Depth is the number of levels returned per side.
 // Empty Group defaults to "1"; zero Depth defaults to 10.
 //
-// Pair this descriptor with T = [types.OrderBook] when calling
+// Pair this descriptor with T = [derive.OrderBook] when calling
 // [github.com/amiwrpremium/go-derive/pkg/ws.Subscribe].
 type OrderBook struct {
 	// Instrument is the market name (e.g. "BTC-PERP").
@@ -50,9 +50,9 @@ func (o OrderBook) Name() string {
 	return fmt.Sprintf("orderbook.%s.%s.%d", o.Instrument, g, d)
 }
 
-// Decode parses one inbound notification payload into a [types.OrderBook].
+// Decode parses one inbound notification payload into a [derive.OrderBook].
 func (OrderBook) Decode(raw json.RawMessage) (any, error) {
-	var ob types.OrderBook
+	var ob derive.OrderBook
 	if err := json.Unmarshal(raw, &ob); err != nil {
 		return nil, err
 	}

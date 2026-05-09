@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/pkg/channels/private"
-	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestBalances_Name(t *testing.T) {
@@ -19,7 +19,7 @@ func TestBalances_Decode_Happy(t *testing.T) {
 	raw := json.RawMessage(`{"subaccount_id":5,"subaccount_value":"100","initial_margin":"50","maintenance_margin":"30","collaterals":[]}`)
 	v, err := private.Balances{}.Decode(raw)
 	require.NoError(t, err)
-	bal, ok := v.(types.Balance)
+	bal, ok := v.(derive.Balance)
 	require.True(t, ok)
 	assert.Equal(t, int64(5), bal.SubaccountID)
 }

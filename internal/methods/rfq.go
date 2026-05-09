@@ -11,31 +11,31 @@ package methods
 import (
 	"context"
 
-	"github.com/amiwrpremium/go-derive/pkg/types"
+	"github.com/amiwrpremium/go-derive"
 )
 
 // SendRFQ broadcasts a request-for-quote to market makers. Private.
-func (a *API) SendRFQ(ctx context.Context, legs []types.RFQLeg, maxFee types.Decimal) (types.RFQ, error) {
+func (a *API) SendRFQ(ctx context.Context, legs []derive.RFQLeg, maxFee derive.Decimal) (derive.RFQ, error) {
 	if err := a.requireSubaccount(); err != nil {
-		return types.RFQ{}, err
+		return derive.RFQ{}, err
 	}
 	params := map[string]any{
 		"subaccount_id": a.Subaccount,
 		"legs":          legs,
 		"max_total_fee": maxFee,
 	}
-	var rfq types.RFQ
+	var rfq derive.RFQ
 	err := a.call(ctx, "private/send_rfq", params, &rfq)
 	return rfq, err
 }
 
 // PollRFQs returns the status of recent RFQs initiated by this subaccount. Private.
-func (a *API) PollRFQs(ctx context.Context) ([]types.RFQ, error) {
+func (a *API) PollRFQs(ctx context.Context) ([]derive.RFQ, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return nil, err
 	}
 	var resp struct {
-		RFQs []types.RFQ `json:"rfqs"`
+		RFQs []derive.RFQ `json:"rfqs"`
 	}
 	err := a.call(ctx, "private/poll_rfqs", map[string]any{
 		"subaccount_id": a.Subaccount,

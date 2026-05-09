@@ -12,7 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/amiwrpremium/go-derive/pkg/types"
+	"github.com/amiwrpremium/go-derive"
 )
 
 // Orders subscribes to order lifecycle events on one subaccount.
@@ -21,7 +21,7 @@ import (
 //
 //	subaccount.{id}.orders
 //
-// Pair this descriptor with T = [[]types.Order] when calling
+// Pair this descriptor with T = [[]derive.Order] when calling
 // [github.com/amiwrpremium/go-derive/pkg/ws.Subscribe].
 type Orders struct {
 	// SubaccountID scopes the stream to one subaccount.
@@ -31,9 +31,9 @@ type Orders struct {
 // Name returns the dotted server-side channel string.
 func (o Orders) Name() string { return fmt.Sprintf("subaccount.%d.orders", o.SubaccountID) }
 
-// Decode parses an inbound notification payload into a [[]types.Order].
+// Decode parses an inbound notification payload into a [[]derive.Order].
 func (Orders) Decode(raw json.RawMessage) (any, error) {
-	var orders []types.Order
+	var orders []derive.Order
 	if err := json.Unmarshal(raw, &orders); err != nil {
 		return nil, err
 	}

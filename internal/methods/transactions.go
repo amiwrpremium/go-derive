@@ -11,13 +11,13 @@ package methods
 import (
 	"context"
 
-	"github.com/amiwrpremium/go-derive/pkg/types"
+	"github.com/amiwrpremium/go-derive"
 )
 
 // GetTradeHistory paginates the user's fills. Private.
-func (a *API) GetTradeHistory(ctx context.Context, page types.PageRequest) ([]types.Trade, types.Page, error) {
+func (a *API) GetTradeHistory(ctx context.Context, page derive.PageRequest) ([]derive.Trade, derive.Page, error) {
 	if err := a.requireSubaccount(); err != nil {
-		return nil, types.Page{}, err
+		return nil, derive.Page{}, err
 	}
 	params := map[string]any{"subaccount_id": a.Subaccount}
 	if page.Page > 0 {
@@ -27,19 +27,19 @@ func (a *API) GetTradeHistory(ctx context.Context, page types.PageRequest) ([]ty
 		params["page_size"] = page.PageSize
 	}
 	var resp struct {
-		Trades     []types.Trade `json:"trades"`
-		Pagination types.Page    `json:"pagination"`
+		Trades     []derive.Trade `json:"trades"`
+		Pagination derive.Page    `json:"pagination"`
 	}
 	if err := a.call(ctx, "private/get_trade_history", params, &resp); err != nil {
-		return nil, types.Page{}, err
+		return nil, derive.Page{}, err
 	}
 	return resp.Trades, resp.Pagination, nil
 }
 
 // GetDepositHistory paginates deposit transactions. Private.
-func (a *API) GetDepositHistory(ctx context.Context, page types.PageRequest) ([]types.DepositTx, types.Page, error) {
+func (a *API) GetDepositHistory(ctx context.Context, page derive.PageRequest) ([]derive.DepositTx, derive.Page, error) {
 	if err := a.requireSubaccount(); err != nil {
-		return nil, types.Page{}, err
+		return nil, derive.Page{}, err
 	}
 	params := map[string]any{"subaccount_id": a.Subaccount}
 	if page.Page > 0 {
@@ -49,19 +49,19 @@ func (a *API) GetDepositHistory(ctx context.Context, page types.PageRequest) ([]
 		params["page_size"] = page.PageSize
 	}
 	var resp struct {
-		Events     []types.DepositTx `json:"events"`
-		Pagination types.Page        `json:"pagination"`
+		Events     []derive.DepositTx `json:"events"`
+		Pagination derive.Page        `json:"pagination"`
 	}
 	if err := a.call(ctx, "private/get_deposit_history", params, &resp); err != nil {
-		return nil, types.Page{}, err
+		return nil, derive.Page{}, err
 	}
 	return resp.Events, resp.Pagination, nil
 }
 
 // GetWithdrawalHistory paginates withdrawal transactions. Private.
-func (a *API) GetWithdrawalHistory(ctx context.Context, page types.PageRequest) ([]types.WithdrawTx, types.Page, error) {
+func (a *API) GetWithdrawalHistory(ctx context.Context, page derive.PageRequest) ([]derive.WithdrawTx, derive.Page, error) {
 	if err := a.requireSubaccount(); err != nil {
-		return nil, types.Page{}, err
+		return nil, derive.Page{}, err
 	}
 	params := map[string]any{"subaccount_id": a.Subaccount}
 	if page.Page > 0 {
@@ -71,11 +71,11 @@ func (a *API) GetWithdrawalHistory(ctx context.Context, page types.PageRequest) 
 		params["page_size"] = page.PageSize
 	}
 	var resp struct {
-		Events     []types.WithdrawTx `json:"events"`
-		Pagination types.Page         `json:"pagination"`
+		Events     []derive.WithdrawTx `json:"events"`
+		Pagination derive.Page         `json:"pagination"`
 	}
 	if err := a.call(ctx, "private/get_withdrawal_history", params, &resp); err != nil {
-		return nil, types.Page{}, err
+		return nil, derive.Page{}, err
 	}
 	return resp.Events, resp.Pagination, nil
 }

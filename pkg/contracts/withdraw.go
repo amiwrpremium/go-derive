@@ -19,7 +19,7 @@ import (
 
 	"github.com/shopspring/decimal"
 
-	"github.com/amiwrpremium/go-derive/pkg/types"
+	"github.com/amiwrpremium/go-derive"
 )
 
 // Withdrawer is the interface for withdrawing collateral from a subaccount.
@@ -29,5 +29,5 @@ type Withdrawer interface {
 	// transaction hash on success.
 	//
 	// Returns [ErrNotImplemented].
-	Withdraw(ctx context.Context, asset types.Address, amount decimal.Decimal, subaccount int64) (types.TxHash, error)
+	Withdraw(ctx context.Context, asset derive.Address, amount decimal.Decimal, subaccount int64) (derive.TxHash, error)
 }

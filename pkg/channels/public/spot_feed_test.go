@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/pkg/channels/public"
-	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestSpotFeed_Name(t *testing.T) {
@@ -20,7 +20,7 @@ func TestSpotFeed_Decode(t *testing.T) {
 	raw := json.RawMessage(`{"timestamp":1,"feeds":{"BTC":{"price":"100","confidence":"1","price_prev_daily":"99","confidence_prev_daily":"1","timestamp_prev_daily":0}}}`)
 	v, err := public.SpotFeed{}.Decode(raw)
 	require.NoError(t, err)
-	sf, ok := v.(types.SpotFeed)
+	sf, ok := v.(derive.SpotFeed)
 	require.True(t, ok)
 	assert.Equal(t, "100", sf.Feeds["BTC"].Price.String())
 }

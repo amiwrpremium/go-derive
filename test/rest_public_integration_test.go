@@ -10,8 +10,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestPublic_GetTime(t *testing.T) {
@@ -85,7 +83,7 @@ func TestPublic_GetTradeHistory(t *testing.T) {
 	ctx, cancel := withTimeout(t)
 	defer cancel()
 
-	trades, page, err := c.GetPublicTradeHistory(ctx, env.instrument, types.PageRequest{PageSize: 10})
+	trades, page, err := c.GetPublicTradeHistory(ctx, env.instrument, derive.PageRequest{PageSize: 10})
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, page.PageSize, 0)
 	for _, tr := range trades {

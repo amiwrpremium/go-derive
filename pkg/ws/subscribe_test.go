@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/testutil"
 	"github.com/amiwrpremium/go-derive/pkg/channels/public"
-	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -22,7 +22,7 @@ func TestSubscribe_TypedDelivery(t *testing.T) {
 	require.NoError(t, c.Connect(context.Background()))
 	defer func() { _ = c.Close() }()
 
-	sub, err := ws.Subscribe[types.OrderBook](context.Background(), c, public.OrderBook{Instrument: "BTC-PERP"})
+	sub, err := ws.Subscribe[derive.OrderBook](context.Background(), c, public.OrderBook{Instrument: "BTC-PERP"})
 	require.NoError(t, err)
 	defer func() { _ = sub.Close() }()
 
@@ -50,7 +50,7 @@ func TestSubscribe_Channel_Method(t *testing.T) {
 	require.NoError(t, c.Connect(context.Background()))
 	defer func() { _ = c.Close() }()
 
-	sub, err := ws.Subscribe[types.OrderBook](context.Background(), c, public.OrderBook{Instrument: "X"})
+	sub, err := ws.Subscribe[derive.OrderBook](context.Background(), c, public.OrderBook{Instrument: "X"})
 	require.NoError(t, err)
 	defer func() { _ = sub.Close() }()
 
@@ -64,7 +64,7 @@ func TestSubscribe_Close_StopsUpdates(t *testing.T) {
 	require.NoError(t, c.Connect(context.Background()))
 	defer func() { _ = c.Close() }()
 
-	sub, err := ws.Subscribe[types.OrderBook](context.Background(), c, public.OrderBook{Instrument: "X"})
+	sub, err := ws.Subscribe[derive.OrderBook](context.Background(), c, public.OrderBook{Instrument: "X"})
 	require.NoError(t, err)
 	require.NoError(t, sub.Close())
 	// Second Close is harmless.
@@ -105,12 +105,12 @@ func TestSubscribeFunc_DriverCallback(t *testing.T) {
 	require.NoError(t, c.Connect(context.Background()))
 	defer func() { _ = c.Close() }()
 
-	got := make(chan types.OrderBook, 1)
+	got := make(chan derive.OrderBook, 1)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	go func() {
-		_ = ws.SubscribeFunc(ctx, c, public.OrderBook{Instrument: "ETH-PERP"}, func(ob types.OrderBook) {
+		_ = ws.SubscribeFunc(ctx, c, public.OrderBook{Instrument: "ETH-PERP"}, func(ob derive.OrderBook) {
 			got <- ob
 		})
 	}()
@@ -140,7 +140,7 @@ func TestSubscribeFunc_ContextCancelReturnsErr(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan error, 1)
 	go func() {
-		done <- ws.SubscribeFunc(ctx, c, public.OrderBook{Instrument: "X"}, func(types.OrderBook) {})
+		done <- ws.SubscribeFunc(ctx, c, public.OrderBook{Instrument: "X"}, func(derive.OrderBook) {})
 	}()
 	require.True(t, srv.WaitSubscribed("orderbook.X.1.10", 1*time.Second))
 	cancel()
