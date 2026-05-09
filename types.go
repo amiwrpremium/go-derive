@@ -476,7 +476,7 @@ type OrderBook struct {
 //
 // Most fields map directly to the JSON-RPC schema. The four signing fields
 // (Signer, Signature, Nonce, SignatureExpiry) are populated automatically by
-// [github.com/amiwrpremium/go-derive/internal/methods.API.PlaceOrder] using
+// [github.com/amiwrpremium/go-derive.API.PlaceOrder] using
 // the configured signer; callers building this struct manually must populate
 // them themselves and produce a matching EIP-712 signature.
 type OrderParams struct {

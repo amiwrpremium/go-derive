@@ -14,12 +14,12 @@
 //
 // # Method surface
 //
-// [Client] embeds *methods.API (an internal type), exposing every documented
+// [Client] embeds *derive.API (an internal type), exposing every documented
 // JSON-RPC method as a regular Go method:
 //
 //	c, _ := rest.New(rest.WithMainnet(), rest.WithSigner(s), rest.WithSubaccount(123))
 //	instruments, _ := c.GetInstruments(ctx, "BTC", enums.InstrumentTypePerp)
-//	c.PlaceOrder(ctx, methods.PlaceOrderInput{...})
+//	c.PlaceOrder(ctx, derive.PlaceOrderInput{...})
 //
 // # Errors
 //
@@ -36,7 +36,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/amiwrpremium/go-derive"
-	"github.com/amiwrpremium/go-derive/internal/methods"
 	"github.com/amiwrpremium/go-derive/internal/transport"
 )
 
@@ -45,7 +44,7 @@ import (
 // Construct one with [New], plus the desired With* options. The zero value
 // is not usable.
 type Client struct {
-	*methods.API
+	*derive.API
 	http   *transport.HTTPTransport
 	signer derive.Signer
 	cfg    derive.NetworkConfig
@@ -92,7 +91,7 @@ func New(opts ...Option) (*Client, error) {
 		return nil, err
 	}
 
-	api := &methods.API{
+	api := &derive.API{
 		T:               httpT,
 		Signer:          c.signer,
 		Domain:          c.network.EIP712Domain(),

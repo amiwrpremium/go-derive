@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/amiwrpremium/go-derive/internal/methods"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -54,7 +53,7 @@ func TestPrivate_PlaceAndCancelOrder_REST(t *testing.T) {
 	tk, err := c.GetTicker(ctx, env.instrument)
 	require.NoError(t, err)
 
-	in := methods.PlaceOrderInput{
+	in := derive.PlaceOrderInput{
 		InstrumentName: env.instrument,
 		Asset:          env.baseAsset,
 		SubID:          0,
@@ -85,7 +84,7 @@ func TestPrivate_PlaceAndCancelOrder_WS(t *testing.T) {
 	tk, err := c.GetTicker(ctx, env.instrument)
 	require.NoError(t, err)
 
-	in := methods.PlaceOrderInput{
+	in := derive.PlaceOrderInput{
 		InstrumentName: env.instrument,
 		Asset:          env.baseAsset,
 		Direction:      derive.DirectionBuy,
@@ -118,7 +117,7 @@ func TestPrivate_OrderEventsArrive(t *testing.T) {
 	tk, err := c.GetTicker(ctx, env.instrument)
 	require.NoError(t, err)
 
-	in := methods.PlaceOrderInput{
+	in := derive.PlaceOrderInput{
 		InstrumentName: env.instrument,
 		Asset:          env.baseAsset,
 		Direction:      derive.DirectionBuy,

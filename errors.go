@@ -294,7 +294,7 @@ const (
 	CodeFOKNotFilled = 11014
 	// CodeMMPFrozen means market-maker protection has tripped for this
 	// currency and orders are temporarily blocked. See [MMPConfig] in
-	// internal/methods.
+	// (see methods.go).
 	CodeMMPFrozen = 11015
 	// CodeAlreadyConsumed means the engine has already processed this
 	// nonce / request id.

@@ -39,7 +39,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/amiwrpremium/go-derive"
-	"github.com/amiwrpremium/go-derive/internal/methods"
 	"github.com/amiwrpremium/go-derive/internal/transport"
 )
 
@@ -48,7 +47,7 @@ import (
 // Construct with [New], then [Client.Connect] and (for private endpoints)
 // [Client.Login]. The zero value is not usable.
 type Client struct {
-	*methods.API
+	*derive.API
 	wt     *transport.WSTransport
 	signer derive.Signer
 	cfg    derive.NetworkConfig
@@ -87,7 +86,7 @@ func New(opts ...Option) (*Client, error) {
 		return nil, err
 	}
 
-	api := &methods.API{
+	api := &derive.API{
 		T:               wt,
 		Signer:          c.signer,
 		Domain:          c.network.EIP712Domain(),

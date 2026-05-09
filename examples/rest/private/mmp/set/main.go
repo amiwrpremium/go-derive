@@ -2,8 +2,8 @@
 package main
 
 import (
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/examples/example"
-	"github.com/amiwrpremium/go-derive/internal/methods"
 )
 
 func main() {
@@ -12,7 +12,7 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	example.Fatal(c.SetMMPConfig(ctx, methods.MMPConfig{
+	example.Fatal(c.SetMMPConfig(ctx, derive.MMPConfig{
 		Currency:        "BTC",
 		MMPFrozenTimeMs: 5000,
 		MMPIntervalMs:   1000,

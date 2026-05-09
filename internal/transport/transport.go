@@ -5,8 +5,8 @@
 // # Layered design
 //
 // pkg/rest and pkg/ws both consume a [Transport] through the embedded
-// internal/methods.API struct. The same method definition (e.g.
-// [github.com/amiwrpremium/go-derive/internal/methods.API.GetInstruments])
+// API struct. The same method definition (e.g.
+// [github.com/amiwrpremium/go-derive.API.GetInstruments])
 // works against either transport because the only thing it needs is
 // [Transport.Call].
 //

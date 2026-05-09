@@ -12,7 +12,6 @@ import (
 	"github.com/shopspring/decimal"
 
 	"github.com/amiwrpremium/go-derive/examples/example"
-	"github.com/amiwrpremium/go-derive/internal/methods"
 )
 
 func main() {
@@ -29,7 +28,7 @@ func main() {
 	limit := tk.MarkPrice.Inner().Mul(decimal.RequireFromString("0.95"))
 	price, _ := derive.NewDecimal(limit.String())
 
-	o, err := c.PlaceOrder(ctx, methods.PlaceOrderInput{
+	o, err := c.PlaceOrder(ctx, derive.PlaceOrderInput{
 		InstrumentName: example.Instrument(),
 		Asset:          example.BaseAsset(),
 		Direction:      derive.DirectionBuy,
