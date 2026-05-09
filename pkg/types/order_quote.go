@@ -4,6 +4,8 @@
 // This file holds the response shape of `private/order_quote`.
 package types
 
+import "github.com/amiwrpremium/go-derive/pkg/enums"
+
 // OrderQuoteResult is the response of `private/order_quote`. The
 // endpoint runs a hypothetical order through the matching engine
 // without submitting and reports the engine's estimates for fill
@@ -16,9 +18,11 @@ type OrderQuoteResult struct {
 	// IsValid reports whether the order is expected to clear
 	// margin requirements.
 	IsValid bool `json:"is_valid"`
-	// InvalidReason carries a human-readable reason when IsValid
-	// is false. Empty when valid; the wire field is nullable.
-	InvalidReason string `json:"invalid_reason,omitempty"`
+	// InvalidReason carries the engine's reason when IsValid is
+	// false. Empty (zero-value) when the request is valid. The wire
+	// field is nullable; the documented value set is shared with
+	// [BestQuoteResult.InvalidReason] — see [enums.RFQInvalidReason].
+	InvalidReason enums.RFQInvalidReason `json:"invalid_reason,omitempty"`
 	// EstimatedFillAmount is the amount the engine projects will
 	// be crossed instantly on submission.
 	EstimatedFillAmount Decimal `json:"estimated_fill_amount"`

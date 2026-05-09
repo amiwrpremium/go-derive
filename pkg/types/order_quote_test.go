@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/amiwrpremium/go-derive/pkg/enums"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
@@ -27,7 +28,7 @@ func TestOrderQuoteResult_Valid(t *testing.T) {
 	var got types.OrderQuoteResult
 	require.NoError(t, json.Unmarshal(raw, &got))
 	assert.True(t, got.IsValid)
-	assert.Equal(t, "", got.InvalidReason)
+	assert.Equal(t, enums.RFQInvalidReason(""), got.InvalidReason, "valid request decodes to empty zero-value")
 	assert.Equal(t, "0.5", got.EstimatedFillAmount.String())
 	assert.Equal(t, "filled", got.EstimatedOrderStatus)
 	assert.Equal(t, "0", got.PostLiquidationPrice.String(), "null decimal decodes to zero-value")
@@ -50,7 +51,7 @@ func TestOrderQuoteResult_Invalid(t *testing.T) {
 	var got types.OrderQuoteResult
 	require.NoError(t, json.Unmarshal(raw, &got))
 	assert.False(t, got.IsValid)
-	assert.Equal(t, "Insufficient buying power.", got.InvalidReason)
+	assert.Equal(t, enums.RFQInvalidReasonInsufficientBuyingPower, got.InvalidReason)
 	assert.Equal(t, "rejected", got.EstimatedOrderStatus)
 	assert.Equal(t, "45000", got.PostLiquidationPrice.String())
 }

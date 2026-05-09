@@ -286,9 +286,11 @@ type BestQuoteResult struct {
 	Direction enums.Direction `json:"direction"`
 	// IsValid reports whether the RFQ is expected to clear margin.
 	IsValid bool `json:"is_valid"`
-	// InvalidReason carries a human-readable reason when IsValid
-	// is false. Empty otherwise. The wire field is nullable.
-	InvalidReason string `json:"invalid_reason,omitempty"`
+	// InvalidReason carries the engine's reason when IsValid is
+	// false. Empty (zero-value) when the request is valid. The wire
+	// field is nullable; the OAS documents seven possible values
+	// (see [enums.RFQInvalidReason]).
+	InvalidReason enums.RFQInvalidReason `json:"invalid_reason,omitempty"`
 	// EstimatedFee is the engine's estimate of the fee on the
 	// trade.
 	EstimatedFee Decimal `json:"estimated_fee"`
