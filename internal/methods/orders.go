@@ -399,6 +399,41 @@ func (a *API) CancelByNonce(ctx context.Context, instrument string, nonce uint64
 	return &resp, nil
 }
 
+// CancelTriggerOrder cancels one untriggered trigger order by id.
+// Private.
+//
+// Returns the cancelled order (in `untriggered` -> `cancelled`
+// state). Counterpart to [API.CancelOrder] for trigger orders that
+// have not yet fired.
+func (a *API) CancelTriggerOrder(ctx context.Context, orderID string) (*types.Order, error) {
+	if err := a.requireSubaccount(); err != nil {
+		return nil, err
+	}
+	params := map[string]any{
+		"subaccount_id": a.Subaccount,
+		"order_id":      orderID,
+	}
+	var resp types.Order
+	if err := a.call(ctx, "private/cancel_trigger_order", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// CancelAllTriggerOrders cancels every untriggered trigger order on
+// the configured subaccount. Private.
+//
+// Returns nil on success; the wire response is a fixed "ok" string
+// surfaced as a nil error.
+func (a *API) CancelAllTriggerOrders(ctx context.Context) error {
+	if err := a.requireSubaccount(); err != nil {
+		return err
+	}
+	return a.call(ctx, "private/cancel_all_trigger_orders", map[string]any{
+		"subaccount_id": a.Subaccount,
+	}, nil)
+}
+
 // SetCancelOnDisconnect arms or disarms the kill-switch that
 // cancels every open order on the wallet if the WebSocket
 // session disconnects. Private.

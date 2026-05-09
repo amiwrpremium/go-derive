@@ -257,6 +257,44 @@ func TestGetOrderHistoryByTime_RequiresSubaccountWhenWalletAbsent(t *testing.T) 
 	assert.True(t, errors.Is(err, derrors.ErrSubaccountRequired))
 }
 
+func TestCancelTriggerOrder_Decode(t *testing.T) {
+	api, ft := newAPI(t, true, 7)
+	ft.HandleResult("private/cancel_trigger_order", map[string]any{
+		"order_id": "T1", "subaccount_id": int64(7), "instrument_name": "BTC-PERP",
+		"direction": "buy", "order_type": "limit", "time_in_force": "gtc",
+		"order_status": "cancelled", "amount": "0.1", "filled_amount": "0",
+		"limit_price": "65000", "max_fee": "10", "nonce": int64(1),
+		"signer":             "0x0000000000000000000000000000000000000000",
+		"creation_timestamp": int64(1700000000000), "last_update_timestamp": int64(1700000060000),
+	})
+	got, err := api.CancelTriggerOrder(context.Background(), "T1")
+	require.NoError(t, err)
+	assert.Equal(t, "T1", got.OrderID)
+	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.Equal(t, "T1", params["order_id"])
+	assert.Equal(t, float64(7), params["subaccount_id"])
+}
+
+func TestCancelTriggerOrder_RequiresSubaccount(t *testing.T) {
+	api, _ := newAPI(t, true, 0)
+	_, err := api.CancelTriggerOrder(context.Background(), "T1")
+	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+}
+
+func TestCancelAllTriggerOrders(t *testing.T) {
+	api, ft := newAPI(t, true, 7)
+	ft.HandleResult("private/cancel_all_trigger_orders", "ok")
+	require.NoError(t, api.CancelAllTriggerOrders(context.Background()))
+	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.Equal(t, float64(7), params["subaccount_id"])
+}
+
+func TestCancelAllTriggerOrders_RequiresSubaccount(t *testing.T) {
+	api, _ := newAPI(t, true, 0)
+	err := api.CancelAllTriggerOrders(context.Background())
+	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+}
+
 func TestPrivateMethods_RequireSubaccount_Across(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
 	cases := map[string]func() error{
