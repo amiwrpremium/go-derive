@@ -17,6 +17,8 @@ func TestOrderStatus_Valid_AllArms(t *testing.T) {
 		enums.OrderStatusCancelled,
 		enums.OrderStatusExpired,
 		enums.OrderStatusRejected,
+		enums.OrderStatusUntriggered,
+		enums.OrderStatusAlgoActive,
 	}
 	for _, c := range cases {
 		t.Run(string(c), func(t *testing.T) {
@@ -28,8 +30,6 @@ func TestOrderStatus_Valid_AllArms(t *testing.T) {
 func TestOrderStatus_Valid_RejectsUnknown(t *testing.T) {
 	assert.False(t, enums.OrderStatus("").Valid())
 	assert.False(t, enums.OrderStatus("haunted").Valid())
-	// Previously hallucinated values that the canonical schema does not include:
-	assert.False(t, enums.OrderStatus("untriggered").Valid())
 	assert.False(t, enums.OrderStatus("insufficient_margin").Valid())
 }
 
@@ -49,6 +49,12 @@ func TestOrderStatus_Terminal_TerminalArms(t *testing.T) {
 
 func TestOrderStatus_Terminal_OpenArm(t *testing.T) {
 	assert.False(t, enums.OrderStatusOpen.Terminal())
+}
+
+func TestOrderStatus_Terminal_NonTerminalArms(t *testing.T) {
+	// Untriggered / AlgoActive remain alive — neither is terminal.
+	assert.False(t, enums.OrderStatusUntriggered.Terminal())
+	assert.False(t, enums.OrderStatusAlgoActive.Terminal())
 }
 
 func TestOrderStatus_Terminal_DefaultArm(t *testing.T) {

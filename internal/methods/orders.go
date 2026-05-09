@@ -263,8 +263,29 @@ func (a *API) GetOpenOrders(ctx context.Context) ([]types.Order, error) {
 	return resp.Orders, err
 }
 
-// GetOrderHistory paginates past orders. Private.
-func (a *API) GetOrderHistory(ctx context.Context, page types.PageRequest) ([]types.Order, types.Page, error) {
+// GetOrdersFilter narrows what [API.GetOrders] returns. Each field
+// is optional; the zero value asks the engine for unfiltered results.
+type GetOrdersFilter struct {
+	// InstrumentName filters to one instrument.
+	InstrumentName string
+	// Label filters to orders carrying the user-defined label.
+	Label string
+	// Status filters by order status. The wire enum is
+	// open / filled / cancelled / expired / untriggered / algo_active
+	// (see [enums.OrderStatus]).
+	Status enums.OrderStatus
+}
+
+// GetOrders paginates orders on the configured subaccount, narrowed
+// by the supplied filter. Private.
+//
+// Wraps `/private/get_orders`. Pass `filter == nil` to omit all
+// filters and page through every order on the subaccount.
+//
+// To page through orders by time window, use [API.GetOrderHistory]
+// instead — `/private/get_orders` only filters by status /
+// instrument / label, not by time.
+func (a *API) GetOrders(ctx context.Context, page types.PageRequest, filter *GetOrdersFilter) ([]types.Order, types.Page, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return nil, types.Page{}, err
 	}
@@ -274,6 +295,17 @@ func (a *API) GetOrderHistory(ctx context.Context, page types.PageRequest) ([]ty
 	}
 	if page.PageSize > 0 {
 		params["page_size"] = page.PageSize
+	}
+	if filter != nil {
+		if filter.InstrumentName != "" {
+			params["instrument_name"] = filter.InstrumentName
+		}
+		if filter.Label != "" {
+			params["label"] = filter.Label
+		}
+		if filter.Status != "" {
+			params["status"] = filter.Status
+		}
 	}
 	var resp struct {
 		Orders     []types.Order `json:"orders"`
@@ -285,38 +317,49 @@ func (a *API) GetOrderHistory(ctx context.Context, page types.PageRequest) ([]ty
 	return resp.Orders, resp.Pagination, nil
 }
 
-// GetOrderHistoryByTime returns orders for the configured
-// subaccount filtered by a time window. Private.
+// OrderHistoryQuery narrows what [API.GetOrderHistory] returns.
+// FromTimestamp / ToTimestamp form a closed window in milliseconds
+// since the Unix epoch; either side can be zero to defer to the
+// server-side default (0 / current time). Wallet, when non-empty,
+// queries across every subaccount under that wallet — when empty,
+// the configured subaccount is used.
+type OrderHistoryQuery struct {
+	FromTimestamp types.MillisTime
+	ToTimestamp   types.MillisTime
+	Wallet        string
+}
+
+// GetOrderHistory paginates past orders for the configured
+// subaccount or wallet, filtered by a time window. Private.
 //
-// This wraps `/private/get_order_history` — distinct from the
-// existing [API.GetOrderHistory] method, which calls
-// `/private/get_orders` despite its name. The two endpoints share a
-// response schema but differ on inputs: `get_orders` filters by
-// status / instrument / label, while `get_order_history` filters by
-// `from_timestamp` / `to_timestamp` / wallet.
-//
-// The temporary name avoids colliding with the existing misnamed
-// method; a future breaking change will rename the misnamed one to
-// `GetOrders` and let this method take the canonical
-// `GetOrderHistory` name.
-//
-// Optional `params`: `from_timestamp`, `to_timestamp`, `wallet`,
-// `page`, `page_size`. The configured subaccount is threaded through
-// when neither `subaccount_id` nor `wallet` is set.
-func (a *API) GetOrderHistoryByTime(ctx context.Context, params map[string]any) ([]types.Order, types.Page, error) {
+// Wraps `/private/get_order_history`. The configured subaccount is
+// threaded through when both Wallet is empty and the subaccount is
+// non-zero — supply a Wallet to query across every subaccount the
+// wallet owns.
+func (a *API) GetOrderHistory(ctx context.Context, page types.PageRequest, q OrderHistoryQuery) ([]types.Order, types.Page, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, types.Page{}, err
 	}
-	if params == nil {
-		params = map[string]any{}
-	}
-	if _, hasSub := params["subaccount_id"]; !hasSub {
-		if _, hasWallet := params["wallet"]; !hasWallet {
-			if err := a.requireSubaccount(); err != nil {
-				return nil, types.Page{}, err
-			}
-			params["subaccount_id"] = a.Subaccount
+	params := map[string]any{}
+	if q.Wallet != "" {
+		params["wallet"] = q.Wallet
+	} else {
+		if err := a.requireSubaccount(); err != nil {
+			return nil, types.Page{}, err
 		}
+		params["subaccount_id"] = a.Subaccount
+	}
+	if !q.FromTimestamp.Time().IsZero() {
+		params["from_timestamp"] = q.FromTimestamp.Millis()
+	}
+	if !q.ToTimestamp.Time().IsZero() {
+		params["to_timestamp"] = q.ToTimestamp.Millis()
+	}
+	if page.Page > 0 {
+		params["page"] = page.Page
+	}
+	if page.PageSize > 0 {
+		params["page_size"] = page.PageSize
 	}
 	var resp struct {
 		Orders     []types.Order `json:"orders"`
