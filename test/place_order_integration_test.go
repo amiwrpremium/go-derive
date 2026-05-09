@@ -2,6 +2,8 @@
 
 package integration_test
 
+import "github.com/amiwrpremium/go-derive"
+
 import (
 	"context"
 	"testing"
@@ -14,7 +16,6 @@ import (
 
 	"github.com/amiwrpremium/go-derive/internal/methods"
 	"github.com/amiwrpremium/go-derive/pkg/channels/private"
-	"github.com/amiwrpremium/go-derive/pkg/enums"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
@@ -59,9 +60,9 @@ func TestPrivate_PlaceAndCancelOrder_REST(t *testing.T) {
 		InstrumentName: env.instrument,
 		Asset:          env.baseAsset,
 		SubID:          0,
-		Direction:      enums.DirectionBuy,
-		OrderType:      enums.OrderTypeLimit,
-		TimeInForce:    enums.TimeInForceGTC,
+		Direction:      derive.DirectionBuy,
+		OrderType:      derive.OrderTypeLimit,
+		TimeInForce:    derive.TimeInForceGTC,
 		Amount:         types.MustDecimal("0.001"),
 		LimitPrice:     farFromMarkBuy(tk.MarkPrice),
 		MaxFee:         types.MustDecimal("10"),
@@ -70,7 +71,7 @@ func TestPrivate_PlaceAndCancelOrder_REST(t *testing.T) {
 	order, err := c.PlaceOrder(ctx, in)
 	require.NoError(t, err, "PlaceOrder")
 	require.NotEmpty(t, order.OrderID)
-	assert.Equal(t, enums.DirectionBuy, order.Direction)
+	assert.Equal(t, derive.DirectionBuy, order.Direction)
 
 	require.NoError(t, c.CancelOrder(ctx, env.instrument, order.OrderID))
 }
@@ -89,9 +90,9 @@ func TestPrivate_PlaceAndCancelOrder_WS(t *testing.T) {
 	in := methods.PlaceOrderInput{
 		InstrumentName: env.instrument,
 		Asset:          env.baseAsset,
-		Direction:      enums.DirectionBuy,
-		OrderType:      enums.OrderTypeLimit,
-		TimeInForce:    enums.TimeInForceGTC,
+		Direction:      derive.DirectionBuy,
+		OrderType:      derive.OrderTypeLimit,
+		TimeInForce:    derive.TimeInForceGTC,
 		Amount:         types.MustDecimal("0.001"),
 		LimitPrice:     farFromMarkBuy(tk.MarkPrice),
 		MaxFee:         types.MustDecimal("10"),
@@ -122,9 +123,9 @@ func TestPrivate_OrderEventsArrive(t *testing.T) {
 	in := methods.PlaceOrderInput{
 		InstrumentName: env.instrument,
 		Asset:          env.baseAsset,
-		Direction:      enums.DirectionBuy,
-		OrderType:      enums.OrderTypeLimit,
-		TimeInForce:    enums.TimeInForceGTC,
+		Direction:      derive.DirectionBuy,
+		OrderType:      derive.OrderTypeLimit,
+		TimeInForce:    derive.TimeInForceGTC,
 		Amount:         types.MustDecimal("0.001"),
 		LimitPrice:     farFromMarkBuy(tk.MarkPrice),
 		MaxFee:         types.MustDecimal("10"),

@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/amiwrpremium/go-derive/pkg/enums"
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
@@ -26,13 +26,13 @@ func TestCollateral_Decode(t *testing.T) {
 	var c types.Collateral
 	require.NoError(t, json.Unmarshal([]byte(payload), &c))
 	assert.Equal(t, "USDC", c.AssetName)
-	assert.Equal(t, enums.AssetTypeERC20, c.AssetType)
+	assert.Equal(t, derive.AssetTypeERC20, c.AssetType)
 	assert.Equal(t, "10000", c.Amount.String())
 }
 
 func TestCollateral_RoundTrip(t *testing.T) {
 	in := types.Collateral{
-		AssetName: "USDC", AssetType: enums.AssetTypeERC20,
+		AssetName: "USDC", AssetType: derive.AssetTypeERC20,
 		Amount:    types.MustDecimal("100"),
 		MarkValue: types.MustDecimal("100"),
 	}

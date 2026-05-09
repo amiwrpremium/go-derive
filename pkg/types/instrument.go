@@ -18,13 +18,13 @@
 // values are amounts vs prices vs subaccount ids.
 package types
 
-import "github.com/amiwrpremium/go-derive/pkg/enums"
+import "github.com/amiwrpremium/go-derive"
 
 // Instrument describes one tradable contract.
 //
 // Common fields (Name through IndexPrice) are populated for every instrument
 // kind. The kind-specific embedded structs (Perp / Option / ERC20) are
-// non-nil only for the matching [enums.InstrumentType]: a perp instrument
+// non-nil only for the matching [derive.InstrumentType]: a perp instrument
 // has a non-nil Perp and nil Option/ERC20, and so on. Test the [Type] field
 // to know which detail block is populated.
 type Instrument struct {
@@ -37,7 +37,7 @@ type Instrument struct {
 	// QuoteCurrency is the asset prices are quoted in — almost always "USDC".
 	QuoteCurrency string `json:"quote_currency"`
 	// Type identifies which of Perp / Option / ERC20 below is populated.
-	Type enums.InstrumentType `json:"instrument_type"`
+	Type derive.InstrumentType `json:"instrument_type"`
 	// IsActive reports whether the instrument is currently live and tradable.
 	IsActive bool `json:"is_active"`
 	// TickSize is the minimum price increment.
@@ -63,13 +63,13 @@ type Instrument struct {
 	BaseAssetSubID string `json:"base_asset_sub_id,omitempty"`
 
 	// Perp carries perp-specific fields when [Type] is
-	// [enums.InstrumentTypePerp]; nil otherwise.
+	// [derive.InstrumentTypePerp]; nil otherwise.
 	Perp *PerpDetails `json:"perp_details,omitempty"`
 	// Option carries option-specific fields when [Type] is
-	// [enums.InstrumentTypeOption]; nil otherwise.
+	// [derive.InstrumentTypeOption]; nil otherwise.
 	Option *OptionDetails `json:"option_details,omitempty"`
 	// ERC20 carries ERC-20 spot fields when [Type] is
-	// [enums.InstrumentTypeERC20]; nil otherwise.
+	// [derive.InstrumentTypeERC20]; nil otherwise.
 	ERC20 *ERC20Details `json:"erc20_details,omitempty"`
 }
 
@@ -89,7 +89,7 @@ type PerpDetails struct {
 // OptionDetails carries fields specific to options contracts.
 type OptionDetails struct {
 	// OptionType is call or put.
-	OptionType enums.OptionType `json:"option_type"`
+	OptionType derive.OptionType `json:"option_type"`
 	// Strike is the option strike price.
 	Strike Decimal `json:"strike"`
 	// Expiry is the option expiry timestamp.

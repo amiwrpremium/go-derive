@@ -1,5 +1,7 @@
 package public_test
 
+import "github.com/amiwrpremium/go-derive"
+
 import (
 	"encoding/json"
 	"testing"
@@ -8,15 +10,14 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/amiwrpremium/go-derive/pkg/channels/public"
-	"github.com/amiwrpremium/go-derive/pkg/enums"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestTradesByType_Name(t *testing.T) {
 	assert.Equal(t, "trades.perp.BTC",
-		public.TradesByType{InstrumentType: enums.InstrumentTypePerp, Currency: "BTC"}.Name())
+		public.TradesByType{InstrumentType: derive.InstrumentTypePerp, Currency: "BTC"}.Name())
 	assert.Equal(t, "trades.option.ETH",
-		public.TradesByType{InstrumentType: enums.InstrumentTypeOption, Currency: "ETH"}.Name())
+		public.TradesByType{InstrumentType: derive.InstrumentTypeOption, Currency: "ETH"}.Name())
 }
 
 func TestTradesByType_Decode_Happy(t *testing.T) {

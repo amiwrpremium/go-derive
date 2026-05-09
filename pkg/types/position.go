@@ -18,7 +18,7 @@
 // values are amounts vs prices vs subaccount ids.
 package types
 
-import "github.com/amiwrpremium/go-derive/pkg/enums"
+import "github.com/amiwrpremium/go-derive"
 
 // Position is a held position in one instrument on a subaccount.
 //
@@ -32,7 +32,7 @@ type Position struct {
 	// InstrumentName identifies the market.
 	InstrumentName string `json:"instrument_name"`
 	// InstrumentType identifies whether this is a perp, option or ERC20.
-	InstrumentType enums.InstrumentType `json:"instrument_type"`
+	InstrumentType derive.InstrumentType `json:"instrument_type"`
 	// CreationTimestamp is when the position first appeared on the engine.
 	CreationTimestamp MillisTime `json:"creation_timestamp,omitempty"`
 	// Amount is the signed position size (positive=long, negative=short).

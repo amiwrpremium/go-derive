@@ -2,6 +2,8 @@
 
 package integration_test
 
+import "github.com/amiwrpremium/go-derive"
+
 import (
 	"testing"
 	"time"
@@ -9,7 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/amiwrpremium/go-derive/pkg/enums"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
@@ -46,11 +47,11 @@ func TestPublic_GetInstruments_BTCPerps(t *testing.T) {
 	ctx, cancel := withTimeout(t)
 	defer cancel()
 
-	insts, err := c.GetInstruments(ctx, "BTC", enums.InstrumentTypePerp)
+	insts, err := c.GetInstruments(ctx, "BTC", derive.InstrumentTypePerp)
 	require.NoError(t, err)
 	require.NotEmpty(t, insts, "Derive testnet should have at least one BTC perp")
 	for _, in := range insts {
-		assert.Equal(t, enums.InstrumentTypePerp, in.Type)
+		assert.Equal(t, derive.InstrumentTypePerp, in.Type)
 	}
 }
 

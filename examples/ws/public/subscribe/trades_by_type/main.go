@@ -5,10 +5,11 @@
 // subscribing per-instrument would be both noisier and more expensive.
 package main
 
+import "github.com/amiwrpremium/go-derive"
+
 import (
 	"github.com/amiwrpremium/go-derive/examples/example"
 	"github.com/amiwrpremium/go-derive/pkg/channels/public"
-	"github.com/amiwrpremium/go-derive/pkg/enums"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
@@ -20,7 +21,7 @@ func main() {
 	defer c.Close()
 
 	sub, err := ws.Subscribe[[]types.Trade](ctx, c, public.TradesByType{
-		InstrumentType: enums.InstrumentTypePerp,
+		InstrumentType: derive.InstrumentTypePerp,
 		Currency:       "BTC",
 	})
 	example.Fatal(err)

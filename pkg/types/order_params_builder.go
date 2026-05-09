@@ -22,7 +22,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/amiwrpremium/go-derive/pkg/enums"
+	"github.com/amiwrpremium/go-derive"
 )
 
 // ErrInvalidParams is the sentinel returned by every param-DTO Validate
@@ -45,7 +45,7 @@ func invalidParam(field, reason string) error {
 //
 // The returned struct is unsigned and unvalidated — call [OrderParams.Validate]
 // before serialising.
-func NewOrderParams(instrument string, side enums.Direction, kind enums.OrderType, amount, limitPrice Decimal) OrderParams {
+func NewOrderParams(instrument string, side derive.Direction, kind derive.OrderType, amount, limitPrice Decimal) OrderParams {
 	return OrderParams{
 		InstrumentName: instrument,
 		Direction:      side,
@@ -58,14 +58,14 @@ func NewOrderParams(instrument string, side enums.Direction, kind enums.OrderTyp
 // WithInstrument returns a copy with the instrument name set.
 func (p OrderParams) WithInstrument(name string) OrderParams { p.InstrumentName = name; return p }
 
-// WithDirection returns a copy with [enums.Direction] set.
-func (p OrderParams) WithDirection(d enums.Direction) OrderParams { p.Direction = d; return p }
+// WithDirection returns a copy with [derive.Direction] set.
+func (p OrderParams) WithDirection(d derive.Direction) OrderParams { p.Direction = d; return p }
 
-// WithOrderType returns a copy with [enums.OrderType] set.
-func (p OrderParams) WithOrderType(o enums.OrderType) OrderParams { p.OrderType = o; return p }
+// WithOrderType returns a copy with [derive.OrderType] set.
+func (p OrderParams) WithOrderType(o derive.OrderType) OrderParams { p.OrderType = o; return p }
 
-// WithTimeInForce returns a copy with [enums.TimeInForce] set.
-func (p OrderParams) WithTimeInForce(tif enums.TimeInForce) OrderParams {
+// WithTimeInForce returns a copy with [derive.TimeInForce] set.
+func (p OrderParams) WithTimeInForce(tif derive.TimeInForce) OrderParams {
 	p.TimeInForce = tif
 	return p
 }

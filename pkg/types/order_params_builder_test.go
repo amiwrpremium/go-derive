@@ -7,48 +7,48 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/amiwrpremium/go-derive/pkg/enums"
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestOrderParams_Builder_Chains(t *testing.T) {
-	got := types.NewOrderParams("BTC-PERP", enums.DirectionBuy, enums.OrderTypeLimit,
+	got := types.NewOrderParams("BTC-PERP", derive.DirectionBuy, derive.OrderTypeLimit,
 		types.MustDecimal("0.5"), types.MustDecimal("65000")).
 		WithMaxFee(types.MustDecimal("10")).
 		WithLabel("scalp-1").
 		WithSubaccount(123).
-		WithTimeInForce(enums.TimeInForcePostOnly).
+		WithTimeInForce(derive.TimeInForcePostOnly).
 		WithMMP().
 		WithReduceOnly()
 
 	assert.Equal(t, "BTC-PERP", got.InstrumentName)
-	assert.Equal(t, enums.DirectionBuy, got.Direction)
-	assert.Equal(t, enums.OrderTypeLimit, got.OrderType)
+	assert.Equal(t, derive.DirectionBuy, got.Direction)
+	assert.Equal(t, derive.OrderTypeLimit, got.OrderType)
 	assert.Equal(t, "0.5", got.Amount.String())
 	assert.Equal(t, "65000", got.LimitPrice.String())
 	assert.Equal(t, "10", got.MaxFee.String())
 	assert.Equal(t, "scalp-1", got.Label)
 	assert.Equal(t, int64(123), got.SubaccountID)
-	assert.Equal(t, enums.TimeInForcePostOnly, got.TimeInForce)
+	assert.Equal(t, derive.TimeInForcePostOnly, got.TimeInForce)
 	assert.True(t, got.MMP)
 	assert.True(t, got.ReduceOnly)
 }
 
 func TestOrderParams_Builder_DoesNotMutateOriginal(t *testing.T) {
-	base := types.NewOrderParams("BTC-PERP", enums.DirectionBuy, enums.OrderTypeLimit,
+	base := types.NewOrderParams("BTC-PERP", derive.DirectionBuy, derive.OrderTypeLimit,
 		types.MustDecimal("1"), types.MustDecimal("100"))
 	_ = base.WithLabel("a")
 	assert.Empty(t, base.Label, "WithLabel must return a copy, not mutate base")
 }
 
 func TestOrderParams_Validate_OK(t *testing.T) {
-	p := types.NewOrderParams("BTC-PERP", enums.DirectionBuy, enums.OrderTypeLimit,
+	p := types.NewOrderParams("BTC-PERP", derive.DirectionBuy, derive.OrderTypeLimit,
 		types.MustDecimal("1"), types.MustDecimal("100"))
 	require.NoError(t, p.Validate())
 }
 
 func TestOrderParams_Validate_RejectsBlankInstrument(t *testing.T) {
-	p := types.NewOrderParams("", enums.DirectionBuy, enums.OrderTypeLimit,
+	p := types.NewOrderParams("", derive.DirectionBuy, derive.OrderTypeLimit,
 		types.MustDecimal("1"), types.MustDecimal("100"))
 	err := p.Validate()
 	assert.ErrorIs(t, err, types.ErrInvalidParams)
@@ -56,7 +56,7 @@ func TestOrderParams_Validate_RejectsBlankInstrument(t *testing.T) {
 }
 
 func TestOrderParams_Validate_RejectsBadEnum(t *testing.T) {
-	p := types.NewOrderParams("BTC-PERP", enums.Direction("up"), enums.OrderTypeLimit,
+	p := types.NewOrderParams("BTC-PERP", derive.Direction("up"), derive.OrderTypeLimit,
 		types.MustDecimal("1"), types.MustDecimal("100"))
 	err := p.Validate()
 	assert.ErrorIs(t, err, types.ErrInvalidParams)
@@ -64,7 +64,7 @@ func TestOrderParams_Validate_RejectsBadEnum(t *testing.T) {
 }
 
 func TestOrderParams_Validate_RejectsZeroAmount(t *testing.T) {
-	p := types.NewOrderParams("BTC-PERP", enums.DirectionBuy, enums.OrderTypeLimit,
+	p := types.NewOrderParams("BTC-PERP", derive.DirectionBuy, derive.OrderTypeLimit,
 		types.MustDecimal("0"), types.MustDecimal("100"))
 	err := p.Validate()
 	assert.ErrorIs(t, err, types.ErrInvalidParams)
@@ -72,7 +72,7 @@ func TestOrderParams_Validate_RejectsZeroAmount(t *testing.T) {
 }
 
 func TestOrderParams_Validate_RejectsNegativePrice(t *testing.T) {
-	p := types.NewOrderParams("BTC-PERP", enums.DirectionBuy, enums.OrderTypeLimit,
+	p := types.NewOrderParams("BTC-PERP", derive.DirectionBuy, derive.OrderTypeLimit,
 		types.MustDecimal("1"), types.MustDecimal("-1"))
 	err := p.Validate()
 	assert.ErrorIs(t, err, types.ErrInvalidParams)
@@ -80,7 +80,7 @@ func TestOrderParams_Validate_RejectsNegativePrice(t *testing.T) {
 }
 
 func TestOrderParams_Validate_RejectsNegativeMaxFee(t *testing.T) {
-	p := types.NewOrderParams("BTC-PERP", enums.DirectionBuy, enums.OrderTypeLimit,
+	p := types.NewOrderParams("BTC-PERP", derive.DirectionBuy, derive.OrderTypeLimit,
 		types.MustDecimal("1"), types.MustDecimal("100")).
 		WithMaxFee(types.MustDecimal("-0.1"))
 	err := p.Validate()
@@ -106,7 +106,7 @@ func TestCancelOrderParams_Builder_AndValidate(t *testing.T) {
 }
 
 func TestReplaceOrderParams_Builder_AndValidate(t *testing.T) {
-	o := types.NewOrderParams("BTC-PERP", enums.DirectionBuy, enums.OrderTypeLimit,
+	o := types.NewOrderParams("BTC-PERP", derive.DirectionBuy, derive.OrderTypeLimit,
 		types.MustDecimal("1"), types.MustDecimal("100"))
 	r := types.NewReplaceOrderParams("OLD", o)
 	require.NoError(t, r.Validate())
@@ -116,7 +116,7 @@ func TestReplaceOrderParams_Builder_AndValidate(t *testing.T) {
 	assert.ErrorIs(t, bad.Validate(), types.ErrInvalidParams)
 
 	badInner := types.NewReplaceOrderParams("OLD",
-		types.NewOrderParams("", enums.DirectionBuy, enums.OrderTypeLimit,
+		types.NewOrderParams("", derive.DirectionBuy, derive.OrderTypeLimit,
 			types.MustDecimal("1"), types.MustDecimal("100")))
 	err := badInner.Validate()
 	assert.True(t, errors.Is(err, types.ErrInvalidParams))
@@ -136,17 +136,17 @@ func TestPageRequest_Builder_AndValidate(t *testing.T) {
 // TestOrderParams_Builder_AllSetters exercises every With* setter at least
 // once, verifying the value is applied and the original is not mutated.
 func TestOrderParams_Builder_AllSetters(t *testing.T) {
-	base := types.NewOrderParams("X", enums.DirectionBuy, enums.OrderTypeLimit,
+	base := types.NewOrderParams("X", derive.DirectionBuy, derive.OrderTypeLimit,
 		types.MustDecimal("1"), types.MustDecimal("100"))
 
 	a := base.WithInstrument("BTC-PERP")
 	assert.Equal(t, "BTC-PERP", a.InstrumentName)
 
-	b := base.WithDirection(enums.DirectionSell)
-	assert.Equal(t, enums.DirectionSell, b.Direction)
+	b := base.WithDirection(derive.DirectionSell)
+	assert.Equal(t, derive.DirectionSell, b.Direction)
 
-	c := base.WithOrderType(enums.OrderTypeMarket)
-	assert.Equal(t, enums.OrderTypeMarket, c.OrderType)
+	c := base.WithOrderType(derive.OrderTypeMarket)
+	assert.Equal(t, derive.OrderTypeMarket, c.OrderType)
 
 	d := base.WithAmount(types.MustDecimal("2"))
 	assert.Equal(t, "2", d.Amount.String())
@@ -175,7 +175,7 @@ func TestCancelOrderParams_WithSignature(t *testing.T) {
 }
 
 func TestReplaceOrderParams_AllSetters(t *testing.T) {
-	o := types.NewOrderParams("BTC-PERP", enums.DirectionBuy, enums.OrderTypeLimit,
+	o := types.NewOrderParams("BTC-PERP", derive.DirectionBuy, derive.OrderTypeLimit,
 		types.MustDecimal("1"), types.MustDecimal("100"))
 	r := types.NewReplaceOrderParams("X", o)
 
@@ -183,7 +183,7 @@ func TestReplaceOrderParams_AllSetters(t *testing.T) {
 	assert.Equal(t, "OLD", r2.OrderIDToCancel)
 	assert.Equal(t, "X", r.OrderIDToCancel)
 
-	o2 := types.NewOrderParams("ETH-PERP", enums.DirectionSell, enums.OrderTypeMarket,
+	o2 := types.NewOrderParams("ETH-PERP", derive.DirectionSell, derive.OrderTypeMarket,
 		types.MustDecimal("2"), types.MustDecimal("3500"))
 	r3 := r.WithNewOrder(o2)
 	assert.Equal(t, "ETH-PERP", r3.NewOrder.InstrumentName)
@@ -198,14 +198,14 @@ func TestOrderParams_Validate_RejectsRemainingBranches(t *testing.T) {
 		mut  func(*types.OrderParams)
 		want string
 	}{
-		{"bad order_type", func(p *types.OrderParams) { p.OrderType = enums.OrderType("nope") }, "order_type"},
-		{"bad tif", func(p *types.OrderParams) { p.TimeInForce = enums.TimeInForce("forever") }, "time_in_force"},
+		{"bad order_type", func(p *types.OrderParams) { p.OrderType = derive.OrderType("nope") }, "order_type"},
+		{"bad tif", func(p *types.OrderParams) { p.TimeInForce = derive.TimeInForce("forever") }, "time_in_force"},
 		{"negative subaccount", func(p *types.OrderParams) { p.SubaccountID = -1 }, "subaccount_id"},
 		{"negative expiry", func(p *types.OrderParams) { p.SignatureExpiry = -1 }, "signature_expiry"},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			p := types.NewOrderParams("BTC-PERP", enums.DirectionBuy, enums.OrderTypeLimit,
+			p := types.NewOrderParams("BTC-PERP", derive.DirectionBuy, derive.OrderTypeLimit,
 				types.MustDecimal("1"), types.MustDecimal("100"))
 			c.mut(&p)
 			err := p.Validate()

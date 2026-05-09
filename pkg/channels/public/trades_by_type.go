@@ -12,7 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/amiwrpremium/go-derive/pkg/enums"
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
@@ -23,7 +23,7 @@ import (
 //
 //	trades.{instrument_type}.{currency}
 //
-// Where InstrumentType is one of [enums.InstrumentType] (perp, option, erc20)
+// Where InstrumentType is one of [derive.InstrumentType] (perp, option, erc20)
 // and Currency is the underlying symbol (BTC, ETH, …).
 //
 // Pair this descriptor with T = [[]types.Trade]. Each notification carries
@@ -32,7 +32,7 @@ import (
 // without subscribing per-instrument.
 type TradesByType struct {
 	// InstrumentType narrows the stream to one product class.
-	InstrumentType enums.InstrumentType
+	InstrumentType derive.InstrumentType
 	// Currency is the underlying asset symbol (e.g. "BTC").
 	Currency string
 }

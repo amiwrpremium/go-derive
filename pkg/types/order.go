@@ -18,7 +18,7 @@
 // values are amounts vs prices vs subaccount ids.
 package types
 
-import "github.com/amiwrpremium/go-derive/pkg/enums"
+import "github.com/amiwrpremium/go-derive"
 
 // OrderParams is the request shape for `private/order`.
 //
@@ -31,11 +31,11 @@ type OrderParams struct {
 	// InstrumentName identifies the market.
 	InstrumentName string `json:"instrument_name"`
 	// Direction is buy or sell.
-	Direction enums.Direction `json:"direction"`
+	Direction derive.Direction `json:"direction"`
 	// OrderType is limit or market.
-	OrderType enums.OrderType `json:"order_type"`
+	OrderType derive.OrderType `json:"order_type"`
 	// TimeInForce is the order's expiry policy.
-	TimeInForce enums.TimeInForce `json:"time_in_force,omitempty"`
+	TimeInForce derive.TimeInForce `json:"time_in_force,omitempty"`
 	// Amount is the order size in base-currency units.
 	Amount Decimal `json:"amount"`
 	// LimitPrice is the price; for market orders this is the slippage cap.
@@ -73,14 +73,14 @@ type Order struct {
 	// InstrumentName identifies the market.
 	InstrumentName string `json:"instrument_name"`
 	// Direction is buy or sell.
-	Direction enums.Direction `json:"direction"`
+	Direction derive.Direction `json:"direction"`
 	// OrderType is limit or market.
-	OrderType enums.OrderType `json:"order_type"`
+	OrderType derive.OrderType `json:"order_type"`
 	// TimeInForce is the order's expiry policy.
-	TimeInForce enums.TimeInForce `json:"time_in_force"`
+	TimeInForce derive.TimeInForce `json:"time_in_force"`
 	// OrderStatus is the current lifecycle state. Once it transitions to
-	// a [enums.OrderStatus.Terminal] value, no further updates arrive.
-	OrderStatus enums.OrderStatus `json:"order_status"`
+	// a [derive.OrderStatus.Terminal] value, no further updates arrive.
+	OrderStatus derive.OrderStatus `json:"order_status"`
 	// Amount is the original order size.
 	Amount Decimal `json:"amount"`
 	// FilledAmount is the cumulative filled size so far.
@@ -98,8 +98,8 @@ type Order struct {
 	// Label is the user-supplied label (empty if none).
 	Label string `json:"label,omitempty"`
 	// CancelReason is populated when [OrderStatus] is
-	// [enums.OrderStatusCancelled]; empty otherwise.
-	CancelReason enums.CancelReason `json:"cancel_reason,omitempty"`
+	// [derive.OrderStatusCancelled]; empty otherwise.
+	CancelReason derive.CancelReason `json:"cancel_reason,omitempty"`
 	// MMP indicates the order participated in market-maker-protection
 	// accounting.
 	MMP bool `json:"mmp,omitempty"`

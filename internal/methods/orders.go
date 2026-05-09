@@ -15,8 +15,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/pkg/auth"
-	"github.com/amiwrpremium/go-derive/pkg/enums"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
@@ -35,9 +35,9 @@ type PlaceOrderInput struct {
 	InstrumentName string
 	Asset          common.Address
 	SubID          uint64
-	Direction      enums.Direction
-	OrderType      enums.OrderType
-	TimeInForce    enums.TimeInForce
+	Direction      derive.Direction
+	OrderType      derive.OrderType
+	TimeInForce    derive.TimeInForce
 	Amount         types.Decimal
 	LimitPrice     types.Decimal
 	MaxFee         types.Decimal
@@ -113,7 +113,7 @@ func (a *API) PlaceOrder(ctx context.Context, in PlaceOrderInput) (types.Order, 
 		Amount:      in.Amount.Inner(),
 		MaxFee:      in.MaxFee.Inner(),
 		RecipientID: a.Subaccount,
-		IsBid:       in.Direction == enums.DirectionBuy,
+		IsBid:       in.Direction == derive.DirectionBuy,
 	}
 	dataHash, err := tmd.Hash()
 	if err != nil {

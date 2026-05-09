@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/amiwrpremium/go-derive/pkg/enums"
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
@@ -20,7 +20,7 @@ func TestGetInstruments(t *testing.T) {
 			"tick_size": "0.5", "minimum_amount": "0.001", "maximum_amount": "100", "amount_step": "0.001"},
 	})
 
-	insts, err := api.GetInstruments(context.Background(), "BTC", enums.InstrumentTypePerp)
+	insts, err := api.GetInstruments(context.Background(), "BTC", derive.InstrumentTypePerp)
 	require.NoError(t, err)
 	require.Len(t, insts, 1)
 	assert.Equal(t, "BTC-PERP", insts[0].Name)

@@ -2,6 +2,8 @@
 // DERIVE_RUN_LIVE_ORDERS=1.
 package main
 
+import "github.com/amiwrpremium/go-derive"
+
 import (
 	"log"
 	"os"
@@ -10,7 +12,6 @@ import (
 
 	"github.com/amiwrpremium/go-derive/examples/example"
 	"github.com/amiwrpremium/go-derive/internal/methods"
-	"github.com/amiwrpremium/go-derive/pkg/enums"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
@@ -31,9 +32,9 @@ func main() {
 	o, err := c.PlaceOrder(ctx, methods.PlaceOrderInput{
 		InstrumentName: example.Instrument(),
 		Asset:          example.BaseAsset(),
-		Direction:      enums.DirectionBuy,
-		OrderType:      enums.OrderTypeLimit,
-		TimeInForce:    enums.TimeInForceGTC,
+		Direction:      derive.DirectionBuy,
+		OrderType:      derive.OrderTypeLimit,
+		TimeInForce:    derive.TimeInForceGTC,
 		Amount:         types.MustDecimal("0.001"),
 		LimitPrice:     price,
 		MaxFee:         types.MustDecimal("10"),

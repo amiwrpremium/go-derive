@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/amiwrpremium/go-derive/pkg/enums"
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
@@ -31,7 +31,7 @@ func TestPosition_DecodeFull(t *testing.T) {
 	var p types.Position
 	require.NoError(t, json.Unmarshal([]byte(payload), &p))
 	assert.Equal(t, "BTC-PERP", p.InstrumentName)
-	assert.Equal(t, enums.InstrumentTypePerp, p.InstrumentType)
+	assert.Equal(t, derive.InstrumentTypePerp, p.InstrumentType)
 	assert.Equal(t, "0.5", p.Amount.String())
 	assert.Equal(t, "250", p.UnrealizedPNL.String())
 	assert.Equal(t, "5", p.Leverage.String())
@@ -56,7 +56,7 @@ func TestPosition_DecodeMinimal(t *testing.T) {
 func TestPosition_RoundTrip(t *testing.T) {
 	in := types.Position{
 		InstrumentName: "BTC-PERP",
-		InstrumentType: enums.InstrumentTypePerp,
+		InstrumentType: derive.InstrumentTypePerp,
 		Amount:         types.MustDecimal("1"),
 		AveragePrice:   types.MustDecimal("65000"),
 		MarkPrice:      types.MustDecimal("65500"),

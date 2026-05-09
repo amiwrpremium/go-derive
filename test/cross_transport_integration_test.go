@@ -2,6 +2,8 @@
 
 package integration_test
 
+import "github.com/amiwrpremium/go-derive"
+
 import (
 	"sort"
 	"testing"
@@ -9,8 +11,6 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/amiwrpremium/go-derive/pkg/enums"
 )
 
 // TestCross_GetInstruments verifies REST and WS return the same instrument
@@ -24,9 +24,9 @@ func TestCross_GetInstruments(t *testing.T) {
 	ctx, cancel := withTimeout(t)
 	defer cancel()
 
-	restIns, err := rest.GetInstruments(ctx, "BTC", enums.InstrumentTypePerp)
+	restIns, err := rest.GetInstruments(ctx, "BTC", derive.InstrumentTypePerp)
 	require.NoError(t, err)
-	wsIns, err := ws.GetInstruments(ctx, "BTC", enums.InstrumentTypePerp)
+	wsIns, err := ws.GetInstruments(ctx, "BTC", derive.InstrumentTypePerp)
 	require.NoError(t, err)
 
 	require.Equal(t, len(restIns), len(wsIns), "REST and WS should return the same number of instruments")
@@ -81,7 +81,7 @@ func TestCross_FacadeWiring(t *testing.T) {
 	ctx, cancel := withTimeout(t)
 	defer cancel()
 
-	insts, err := c.REST.GetInstruments(ctx, "BTC", enums.InstrumentTypePerp)
+	insts, err := c.REST.GetInstruments(ctx, "BTC", derive.InstrumentTypePerp)
 	require.NoError(t, err)
 	assert.NotEmpty(t, insts)
 }

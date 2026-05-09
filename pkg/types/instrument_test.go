@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/amiwrpremium/go-derive/pkg/enums"
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
@@ -28,7 +28,7 @@ func TestInstrument_DecodePerp(t *testing.T) {
 	}`
 	var inst types.Instrument
 	require.NoError(t, json.Unmarshal([]byte(payload), &inst))
-	assert.Equal(t, enums.InstrumentTypePerp, inst.Type)
+	assert.Equal(t, derive.InstrumentTypePerp, inst.Type)
 	require.NotNil(t, inst.Perp)
 	assert.Equal(t, "BTC", inst.Perp.IndexName)
 	assert.Equal(t, "50", inst.Perp.MaxLeverage.String())
@@ -50,7 +50,7 @@ func TestInstrument_DecodeOption(t *testing.T) {
 	var inst types.Instrument
 	require.NoError(t, json.Unmarshal([]byte(payload), &inst))
 	require.NotNil(t, inst.Option)
-	assert.Equal(t, enums.OptionTypeCall, inst.Option.OptionType)
+	assert.Equal(t, derive.OptionTypeCall, inst.Option.OptionType)
 	assert.Equal(t, "65000", inst.Option.Strike.String())
 }
 
@@ -81,7 +81,7 @@ func TestInstrument_RoundTrip(t *testing.T) {
 		Name:          "BTC-PERP",
 		BaseCurrency:  "BTC",
 		QuoteCurrency: "USDC",
-		Type:          enums.InstrumentTypePerp,
+		Type:          derive.InstrumentTypePerp,
 		IsActive:      true,
 		TickSize:      types.MustDecimal("0.5"),
 	}

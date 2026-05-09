@@ -8,14 +8,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/amiwrpremium/go-derive/pkg/enums"
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func validLeg() types.RFQLeg {
 	return types.RFQLeg{
 		InstrumentName: "BTC-PERP",
-		Direction:      enums.DirectionBuy,
+		Direction:      derive.DirectionBuy,
 		Amount:         types.MustDecimal("1"),
 	}
 }
@@ -31,7 +31,7 @@ func TestRFQLeg_Validate_Rejects(t *testing.T) {
 		want string
 	}{
 		{"empty instrument", func(l *types.RFQLeg) { l.InstrumentName = "" }, "instrument_name"},
-		{"bad direction", func(l *types.RFQLeg) { l.Direction = enums.Direction("sideways") }, "direction"},
+		{"bad direction", func(l *types.RFQLeg) { l.Direction = derive.Direction("sideways") }, "direction"},
 		{"zero amount", func(l *types.RFQLeg) { l.Amount = types.MustDecimal("0") }, "amount"},
 		{"negative amount", func(l *types.RFQLeg) { l.Amount = types.MustDecimal("-1") }, "amount"},
 	}
@@ -51,7 +51,7 @@ func TestRFQLeg_RoundTrip(t *testing.T) {
 	// RFQ legs do not carry per-leg prices — that's the QuoteLeg shape.
 	in := types.RFQLeg{
 		InstrumentName: "BTC-PERP",
-		Direction:      enums.DirectionBuy,
+		Direction:      derive.DirectionBuy,
 		Amount:         types.MustDecimal("1"),
 	}
 	b, err := json.Marshal(in)
@@ -65,7 +65,7 @@ func TestRFQLeg_RoundTrip(t *testing.T) {
 func TestQuoteLeg_RoundTrip(t *testing.T) {
 	in := types.QuoteLeg{
 		InstrumentName: "BTC-PERP",
-		Direction:      enums.DirectionBuy,
+		Direction:      derive.DirectionBuy,
 		Amount:         types.MustDecimal("1"),
 		Price:          types.MustDecimal("65000"),
 	}
@@ -91,7 +91,7 @@ func TestRFQ_Decode(t *testing.T) {
 	var rfq types.RFQ
 	require.NoError(t, json.Unmarshal([]byte(payload), &rfq))
 	assert.Equal(t, "R1", rfq.RFQID)
-	assert.Equal(t, enums.QuoteStatusOpen, rfq.Status)
+	assert.Equal(t, derive.QuoteStatusOpen, rfq.Status)
 	require.Len(t, rfq.Legs, 1)
 }
 
@@ -109,8 +109,8 @@ func TestQuote_Decode(t *testing.T) {
 	var q types.Quote
 	require.NoError(t, json.Unmarshal([]byte(payload), &q))
 	assert.Equal(t, "Q1", q.QuoteID)
-	assert.Equal(t, enums.DirectionSell, q.Direction)
-	assert.Equal(t, enums.QuoteStatusOpen, q.Status)
+	assert.Equal(t, derive.DirectionSell, q.Direction)
+	assert.Equal(t, derive.QuoteStatusOpen, q.Status)
 	require.Len(t, q.Legs, 1)
 	assert.Equal(t, "65000", q.Legs[0].Price.String())
 }

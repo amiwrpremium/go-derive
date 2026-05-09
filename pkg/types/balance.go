@@ -18,7 +18,7 @@
 // values are amounts vs prices vs subaccount ids.
 package types
 
-import "github.com/amiwrpremium/go-derive/pkg/enums"
+import "github.com/amiwrpremium/go-derive"
 
 // Collateral is one collateral asset balance for a subaccount.
 //
@@ -27,8 +27,8 @@ import "github.com/amiwrpremium/go-derive/pkg/enums"
 type Collateral struct {
 	// AssetName is the human-readable symbol (e.g. "USDC", "weETH").
 	AssetName string `json:"asset_name"`
-	// AssetType identifies the asset class — see [enums.AssetType].
-	AssetType enums.AssetType `json:"asset_type"`
+	// AssetType identifies the asset class — see [derive.AssetType].
+	AssetType derive.AssetType `json:"asset_type"`
 	// Currency is the underlying currency (e.g. "USDC", "ETH").
 	Currency string `json:"currency,omitempty"`
 	// Amount is the balance in the asset's native units.
@@ -71,7 +71,7 @@ type Balance struct {
 
 // BalanceUpdate is one entry on the `subaccount.{id}.balances` subscription
 // channel. Where Balance is a snapshot, BalanceUpdate is a delta event:
-// it carries the [enums.BalanceUpdateType] explaining what caused the
+// it carries the [derive.BalanceUpdateType] explaining what caused the
 // change (a fill, a deposit, an interest accrual, etc.).
 type BalanceUpdate struct {
 	// SubaccountID identifies the subaccount this update belongs to.
@@ -79,7 +79,7 @@ type BalanceUpdate struct {
 	// AssetName is the affected asset.
 	AssetName string `json:"asset_name,omitempty"`
 	// AssetType identifies the asset class.
-	AssetType enums.AssetType `json:"asset_type,omitempty"`
+	AssetType derive.AssetType `json:"asset_type,omitempty"`
 	// Amount is the new balance after the update.
 	Amount Decimal `json:"amount,omitempty"`
 	// PreviousAmount is the balance before the update.
@@ -87,13 +87,13 @@ type BalanceUpdate struct {
 	// Delta is the signed change.
 	Delta Decimal `json:"delta,omitempty"`
 	// UpdateType classifies the cause of the update — see
-	// [enums.BalanceUpdateType].
-	UpdateType enums.BalanceUpdateType `json:"update_type,omitempty"`
+	// [derive.BalanceUpdateType].
+	UpdateType derive.BalanceUpdateType `json:"update_type,omitempty"`
 	// TxHash is the on-chain transaction hash that generated the update,
 	// for update types that involve on-chain settlement.
 	TxHash TxHash `json:"tx_hash,omitempty"`
 	// TxStatus is the on-chain settlement state.
-	TxStatus enums.TxStatus `json:"tx_status,omitempty"`
+	TxStatus derive.TxStatus `json:"tx_status,omitempty"`
 	// Timestamp is when the update was recorded.
 	Timestamp MillisTime `json:"timestamp,omitempty"`
 }

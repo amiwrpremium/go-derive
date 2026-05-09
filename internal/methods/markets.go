@@ -11,14 +11,14 @@ package methods
 import (
 	"context"
 
-	"github.com/amiwrpremium/go-derive/pkg/enums"
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 // GetInstruments lists active instruments matching the filter. Public.
 //
 // Derive returns the result as a bare JSON array of instrument objects.
-func (a *API) GetInstruments(ctx context.Context, currency string, kind enums.InstrumentType) ([]types.Instrument, error) {
+func (a *API) GetInstruments(ctx context.Context, currency string, kind derive.InstrumentType) ([]types.Instrument, error) {
 	params := map[string]any{}
 	if currency != "" {
 		params["currency"] = currency

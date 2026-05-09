@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/amiwrpremium/go-derive/pkg/enums"
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
@@ -30,15 +30,15 @@ func TestTrade_Decode(t *testing.T) {
 	var tr types.Trade
 	require.NoError(t, json.Unmarshal([]byte(payload), &tr))
 	assert.Equal(t, "T1", tr.TradeID)
-	assert.Equal(t, enums.DirectionBuy, tr.Direction)
-	assert.Equal(t, enums.LiquidityRoleTaker, tr.LiquidityRole)
+	assert.Equal(t, derive.DirectionBuy, tr.Direction)
+	assert.Equal(t, derive.LiquidityRoleTaker, tr.LiquidityRole)
 }
 
 func TestTrade_OmitsEmpty(t *testing.T) {
 	in := types.Trade{
 		TradeID:        "T1",
 		InstrumentName: "BTC-PERP",
-		Direction:      enums.DirectionBuy,
+		Direction:      derive.DirectionBuy,
 		TradePrice:     types.MustDecimal("100"),
 		TradeAmount:    types.MustDecimal("1"),
 		MarkPrice:      types.MustDecimal("100"),

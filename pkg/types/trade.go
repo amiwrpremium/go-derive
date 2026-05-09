@@ -18,7 +18,7 @@
 // values are amounts vs prices vs subaccount ids.
 package types
 
-import "github.com/amiwrpremium/go-derive/pkg/enums"
+import "github.com/amiwrpremium/go-derive"
 
 // Trade is one filled execution.
 //
@@ -43,7 +43,7 @@ type Trade struct {
 	InstrumentName string `json:"instrument_name"`
 	// Direction is the user's side: buy means the user took the ask;
 	// sell means the user hit the bid.
-	Direction enums.Direction `json:"direction"`
+	Direction derive.Direction `json:"direction"`
 	// TradePrice is the printed fill price.
 	TradePrice Decimal `json:"trade_price"`
 	// TradeAmount is the filled size in base-currency units.
@@ -60,7 +60,7 @@ type Trade struct {
 	// ExtraFee is any additional fee applied (e.g. settlement).
 	ExtraFee Decimal `json:"extra_fee,omitempty"`
 	// LiquidityRole identifies whether the user was maker or taker (private only).
-	LiquidityRole enums.LiquidityRole `json:"liquidity_role,omitempty"`
+	LiquidityRole derive.LiquidityRole `json:"liquidity_role,omitempty"`
 	// RealizedPnL is the realized PnL from this fill (private only).
 	RealizedPnL Decimal `json:"realized_pnl,omitempty"`
 	// RealizedPnLExclFees is realized PnL with fees excluded (private only).
@@ -74,8 +74,8 @@ type Trade struct {
 	// settlement (populated once the engine submits the tx).
 	TxHash TxHash `json:"tx_hash,omitempty"`
 	// TxStatus reports the on-chain settlement state — see
-	// [enums.TxStatus] for the allowed values.
-	TxStatus enums.TxStatus `json:"tx_status,omitempty"`
+	// [derive.TxStatus] for the allowed values.
+	TxStatus derive.TxStatus `json:"tx_status,omitempty"`
 	// Timestamp is the engine-side execution time.
 	Timestamp MillisTime `json:"timestamp"`
 }

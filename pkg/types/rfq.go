@@ -18,7 +18,7 @@
 // values are amounts vs prices vs subaccount ids.
 package types
 
-import "github.com/amiwrpremium/go-derive/pkg/enums"
+import "github.com/amiwrpremium/go-derive"
 
 // RFQLeg is one leg of a multi-leg RFQ.
 //
@@ -29,7 +29,7 @@ type RFQLeg struct {
 	// InstrumentName identifies the leg's market.
 	InstrumentName string `json:"instrument_name"`
 	// Direction is buy or sell on this leg.
-	Direction enums.Direction `json:"direction"`
+	Direction derive.Direction `json:"direction"`
 	// Amount is the leg's size in base-currency units.
 	Amount Decimal `json:"amount"`
 }
@@ -58,7 +58,7 @@ type QuoteLeg struct {
 	// InstrumentName identifies the leg's market.
 	InstrumentName string `json:"instrument_name"`
 	// Direction is the maker's side on this leg.
-	Direction enums.Direction `json:"direction"`
+	Direction derive.Direction `json:"direction"`
 	// Amount is the leg's size in base-currency units.
 	Amount Decimal `json:"amount"`
 	// Price is the per-leg price the maker is committing to.
@@ -76,9 +76,9 @@ type RFQ struct {
 	// SubaccountID is the taker's subaccount.
 	SubaccountID int64 `json:"subaccount_id"`
 	// Status is the current lifecycle state.
-	Status enums.QuoteStatus `json:"status"`
+	Status derive.QuoteStatus `json:"status"`
 	// CancelReason is set when Status is QuoteStatusCancelled.
-	CancelReason enums.CancelReason `json:"cancel_reason,omitempty"`
+	CancelReason derive.CancelReason `json:"cancel_reason,omitempty"`
 	// Legs is the per-instrument breakdown (no per-leg prices on RFQs).
 	Legs []RFQLeg `json:"legs"`
 	// MaxFee is the cap on total fee the taker is willing to pay.
@@ -104,7 +104,7 @@ type Quote struct {
 	// SubaccountID is the maker's subaccount.
 	SubaccountID int64 `json:"subaccount_id"`
 	// Direction is the maker's side; the taker's fill is the opposite.
-	Direction enums.Direction `json:"direction"`
+	Direction derive.Direction `json:"direction"`
 	// Legs is the per-instrument breakdown (must match the RFQ legs).
 	Legs []QuoteLeg `json:"legs"`
 	// LegsHash is a server-side hash that ties the quote to a specific
@@ -117,11 +117,11 @@ type Quote struct {
 	// MaxFee is the maker's cap on the per-fill fee.
 	MaxFee Decimal `json:"max_fee,omitempty"`
 	// LiquidityRole identifies the quote as maker-side (always "maker").
-	LiquidityRole enums.LiquidityRole `json:"liquidity_role,omitempty"`
+	LiquidityRole derive.LiquidityRole `json:"liquidity_role,omitempty"`
 	// Status is the current lifecycle state.
-	Status enums.QuoteStatus `json:"status"`
+	Status derive.QuoteStatus `json:"status"`
 	// CancelReason is set when Status is QuoteStatusCancelled.
-	CancelReason enums.CancelReason `json:"cancel_reason,omitempty"`
+	CancelReason derive.CancelReason `json:"cancel_reason,omitempty"`
 	// MMP indicates the quote participated in market-maker-protection
 	// accounting on the maker's subaccount.
 	MMP bool `json:"mmp,omitempty"`
@@ -140,7 +140,7 @@ type Quote struct {
 	// quote is executed.
 	TxHash TxHash `json:"tx_hash,omitempty"`
 	// TxStatus is the on-chain settlement state.
-	TxStatus enums.TxStatus `json:"tx_status,omitempty"`
+	TxStatus derive.TxStatus `json:"tx_status,omitempty"`
 	// CreationTimestamp is when the quote was received.
 	CreationTimestamp MillisTime `json:"creation_timestamp"`
 	// LastUpdateTimestamp is the most recent state change.

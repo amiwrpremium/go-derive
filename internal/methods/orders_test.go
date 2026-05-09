@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/methods"
-	"github.com/amiwrpremium/go-derive/pkg/enums"
 	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
@@ -21,8 +21,8 @@ func validPlaceOrderInput() methods.PlaceOrderInput {
 	return methods.PlaceOrderInput{
 		InstrumentName: "BTC-PERP",
 		Asset:          common.HexToAddress("0x1111111111111111111111111111111111111111"),
-		Direction:      enums.DirectionBuy,
-		OrderType:      enums.OrderTypeLimit,
+		Direction:      derive.DirectionBuy,
+		OrderType:      derive.OrderTypeLimit,
 		Amount:         types.MustDecimal("1"),
 		LimitPrice:     types.MustDecimal("100"),
 		MaxFee:         types.MustDecimal("1"),
@@ -41,9 +41,9 @@ func TestPlaceOrderInput_Validate_Rejects(t *testing.T) {
 	}{
 		{"empty instrument", func(in *methods.PlaceOrderInput) { in.InstrumentName = "" }, "instrument_name"},
 		{"zero asset", func(in *methods.PlaceOrderInput) { in.Asset = common.Address{} }, "asset"},
-		{"bad direction", func(in *methods.PlaceOrderInput) { in.Direction = enums.Direction("x") }, "direction"},
-		{"bad order type", func(in *methods.PlaceOrderInput) { in.OrderType = enums.OrderType("x") }, "order_type"},
-		{"bad time-in-force", func(in *methods.PlaceOrderInput) { in.TimeInForce = enums.TimeInForce("x") }, "time_in_force"},
+		{"bad direction", func(in *methods.PlaceOrderInput) { in.Direction = derive.Direction("x") }, "direction"},
+		{"bad order type", func(in *methods.PlaceOrderInput) { in.OrderType = derive.OrderType("x") }, "order_type"},
+		{"bad time-in-force", func(in *methods.PlaceOrderInput) { in.TimeInForce = derive.TimeInForce("x") }, "time_in_force"},
 		{"zero amount", func(in *methods.PlaceOrderInput) { in.Amount = types.MustDecimal("0") }, "amount"},
 		{"zero price", func(in *methods.PlaceOrderInput) { in.LimitPrice = types.MustDecimal("0") }, "limit_price"},
 		{"negative fee", func(in *methods.PlaceOrderInput) { in.MaxFee = types.MustDecimal("-1") }, "max_fee"},
@@ -100,9 +100,9 @@ func TestPlaceOrder_Success_PopulatesSignatureFields(t *testing.T) {
 		InstrumentName: "BTC-PERP",
 		Asset:          common.HexToAddress("0x1111111111111111111111111111111111111111"),
 		SubID:          0,
-		Direction:      enums.DirectionBuy,
-		OrderType:      enums.OrderTypeLimit,
-		TimeInForce:    enums.TimeInForceGTC,
+		Direction:      derive.DirectionBuy,
+		OrderType:      derive.OrderTypeLimit,
+		TimeInForce:    derive.TimeInForceGTC,
 		Amount:         types.MustDecimal("0.1"),
 		LimitPrice:     types.MustDecimal("65000"),
 		MaxFee:         types.MustDecimal("10"),

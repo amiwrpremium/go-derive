@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/amiwrpremium/go-derive/pkg/enums"
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
@@ -37,8 +37,8 @@ func TestOrder_DecodeFull(t *testing.T) {
 	var o types.Order
 	require.NoError(t, json.Unmarshal([]byte(payload), &o))
 	assert.Equal(t, "O1", o.OrderID)
-	assert.Equal(t, enums.DirectionBuy, o.Direction)
-	assert.Equal(t, enums.OrderStatusOpen, o.OrderStatus)
+	assert.Equal(t, derive.DirectionBuy, o.Direction)
+	assert.Equal(t, derive.OrderStatusOpen, o.OrderStatus)
 	assert.True(t, o.ReduceOnly)
 	assert.Equal(t, "alpha", o.Label)
 }
@@ -46,8 +46,8 @@ func TestOrder_DecodeFull(t *testing.T) {
 func TestOrderParams_OmitsEmptyOptionalFields(t *testing.T) {
 	in := types.OrderParams{
 		InstrumentName:  "BTC-PERP",
-		Direction:       enums.DirectionBuy,
-		OrderType:       enums.OrderTypeLimit,
+		Direction:       derive.DirectionBuy,
+		OrderType:       derive.OrderTypeLimit,
 		Amount:          types.MustDecimal("1"),
 		LimitPrice:      types.MustDecimal("100"),
 		MaxFee:          types.MustDecimal("10"),
@@ -68,8 +68,8 @@ func TestOrderParams_OmitsEmptyOptionalFields(t *testing.T) {
 func TestOrderParams_IncludesPopulatedOptionals(t *testing.T) {
 	in := types.OrderParams{
 		InstrumentName: "BTC-PERP",
-		Direction:      enums.DirectionSell,
-		OrderType:      enums.OrderTypeLimit,
+		Direction:      derive.DirectionSell,
+		OrderType:      derive.OrderTypeLimit,
 		Label:          "lbl",
 		ReduceOnly:     true,
 		MMP:            true,
@@ -100,7 +100,7 @@ func TestReplaceOrderParams_Embedded(t *testing.T) {
 		OrderIDToCancel: "O1",
 		NewOrder: types.OrderParams{
 			InstrumentName: "BTC-PERP",
-			Direction:      enums.DirectionBuy,
+			Direction:      derive.DirectionBuy,
 		},
 	}
 	b, err := json.Marshal(in)

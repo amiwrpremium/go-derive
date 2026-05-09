@@ -18,7 +18,7 @@
 // values are amounts vs prices vs subaccount ids.
 package types
 
-import "github.com/amiwrpremium/go-derive/pkg/enums"
+import "github.com/amiwrpremium/go-derive"
 
 // AuctionBid is one bid placed against a liquidation auction.
 type AuctionBid struct {
@@ -40,8 +40,8 @@ type AuctionBid struct {
 type Liquidation struct {
 	// AuctionID is the unique server-side auction id.
 	AuctionID string `json:"auction_id,omitempty"`
-	// AuctionType is "solvent" or "insolvent" — see [enums.AuctionType].
-	AuctionType enums.AuctionType `json:"auction_type,omitempty"`
+	// AuctionType is "solvent" or "insolvent" — see [derive.AuctionType].
+	AuctionType derive.AuctionType `json:"auction_type,omitempty"`
 	// SubaccountID is the subaccount being liquidated.
 	SubaccountID int64 `json:"subaccount_id,omitempty"`
 	// StartTimestamp is when the auction opened.

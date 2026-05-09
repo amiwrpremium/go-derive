@@ -1,9 +1,10 @@
 // Uses only the c.REST client from the facade.
 package main
 
+import "github.com/amiwrpremium/go-derive"
+
 import (
 	"github.com/amiwrpremium/go-derive/examples/example"
-	"github.com/amiwrpremium/go-derive/pkg/enums"
 )
 
 func main() {
@@ -12,7 +13,7 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	insts, err := c.REST.GetInstruments(ctx, "BTC", enums.InstrumentTypePerp)
+	insts, err := c.REST.GetInstruments(ctx, "BTC", derive.InstrumentTypePerp)
 	example.Fatal(err)
 	example.Print("BTC perps", len(insts))
 }
