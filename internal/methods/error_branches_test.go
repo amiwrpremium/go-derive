@@ -30,18 +30,10 @@ func TestRPCWrappers_PropagateError(t *testing.T) {
 		needs  int64
 		fn     func(*methods.API) rawWrapper
 	}{
-		// rfq_extras.go
-		{"GetRFQs", "private/get_rfqs", 1, func(a *methods.API) rawWrapper { return a.GetRFQs }},
-		{"GetQuotes", "private/get_quotes", 1, func(a *methods.API) rawWrapper { return a.GetQuotes }},
-		{"PollQuotes", "private/poll_quotes", 1, func(a *methods.API) rawWrapper { return a.PollQuotes }},
-		{"SendQuote", "private/send_quote", 1, func(a *methods.API) rawWrapper { return a.SendQuote }},
-		{"ExecuteQuote", "private/execute_quote", 1, func(a *methods.API) rawWrapper { return a.ExecuteQuote }},
-		{"CancelQuote", "private/cancel_quote", 1, func(a *methods.API) rawWrapper { return a.CancelQuote }},
-		{"CancelBatchQuotes", "private/cancel_batch_quotes", 1, func(a *methods.API) rawWrapper { return a.CancelBatchQuotes }},
-		{"CancelBatchRFQs", "private/cancel_batch_rfqs", 1, func(a *methods.API) rawWrapper { return a.CancelBatchRFQs }},
-		{"RFQGetBestQuote", "private/rfq_get_best_quote", 1, func(a *methods.API) rawWrapper { return a.RFQGetBestQuote }},
+		// One private and one public method still surface as
+		// `json.RawMessage` because they aren't documented in
+		// Derive's published v2.2 OpenAPI spec.
 		{"OrderQuote", "private/order_quote", 1, func(a *methods.API) rawWrapper { return a.OrderQuote }},
-		// public — the only remaining map-of-any wrapper
 		{"GetPerpImpactTWAP", "public/get_perp_impact_twap", 0, func(a *methods.API) rawWrapper { return a.GetPerpImpactTWAP }},
 	}
 	for _, c := range cases {
