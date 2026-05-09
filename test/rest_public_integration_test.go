@@ -86,7 +86,7 @@ func TestPublic_GetTradeHistory(t *testing.T) {
 
 	trades, page, err := c.GetPublicTradeHistory(ctx, env.instrument, types.PageRequest{PageSize: 10})
 	require.NoError(t, err)
-	assert.GreaterOrEqual(t, page.PageSize, 0)
+	assert.GreaterOrEqual(t, page.Count, 0)
 	for _, tr := range trades {
 		assert.Equal(t, env.instrument, tr.InstrumentName)
 	}

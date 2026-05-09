@@ -74,7 +74,7 @@ func TestPrivate_GetTradeHistory(t *testing.T) {
 
 	_, page, err := c.GetTradeHistory(ctx, types.PageRequest{PageSize: 10})
 	require.NoError(t, err)
-	assert.GreaterOrEqual(t, page.PageSize, 0)
+	assert.GreaterOrEqual(t, page.Count, 0)
 }
 
 func TestPrivate_GetDepositHistory(t *testing.T) {
