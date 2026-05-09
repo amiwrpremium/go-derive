@@ -7,6 +7,17 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.3.0](https://github.com/amiwrpremium/go-derive/compare/v0.2.17...v0.3.0) (2026-05-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* **methods:** type every json.RawMessage return value, reorganise extras.go, fix doc-audit drift ([#59](https://github.com/amiwrpremium/go-derive/issues/59))
+
+### Features
+
+* **methods:** type every json.RawMessage return value, reorganise extras.go, fix doc-audit drift ([#59](https://github.com/amiwrpremium/go-derive/issues/59)) ([a97e4af](https://github.com/amiwrpremium/go-derive/commit/a97e4af083d985124334f4bfc68bcafba4d8f76a))
+
 ## [0.2.17](https://github.com/amiwrpremium/go-derive/compare/v0.2.16...v0.2.17) (2026-05-08)
 
 
