@@ -18,7 +18,7 @@ The threat model focuses on those three responsibilities.
 
 - **Mainnet smart-contract bugs.** The SDK signs structured data; it
   doesn't audit the contracts that consume those signatures. Any use
-  of `pkg/contracts` should be preceded by independent contract review.
+  of `contracts.go` should be preceded by independent contract review.
 - **The user's wallet OS / hardware.** If the host is compromised, the
   session key is compromised — the SDK can't help.
 - **Derive's API itself.** Server-side bugs are reported to the Derive
@@ -30,9 +30,9 @@ The threat model focuses on those three responsibilities.
 
 | Asset | Where it lives | Compromise impact |
 |---|---|---|
-| Session-key private key | `auth.LocalSigner.key` | attacker can sign on the user's behalf for the session-key's lifetime |
-| Owner address | `auth.SessionKeySigner.owner` | not secret — public on-chain |
-| Subaccount id | `methods.API.Subaccount` | not secret |
+| Session-key private key | `derive.LocalSigner.key` | attacker can sign on the user's behalf for the session-key's lifetime |
+| Owner address | `derive.SessionKeySigner.owner` | not secret — public on-chain |
+| Subaccount id | `derive.API.Subaccount` | not secret |
 | Open WS connection | inside `transport.WSTransport` | hijack lets an attacker observe stream contents |
 
 ## Attackers and their capabilities
@@ -100,7 +100,7 @@ The threat model focuses on those three responsibilities.
 - Attacker captures a signed action and replays it.
 - Mitigations:
   - Every signed action carries a `nonce` (strictly-increasing, sourced
-    from `auth.NonceGen`) and an `expiry` Unix timestamp. The matching
+    from `derive.NonceGen`) and an `expiry` Unix timestamp. The matching
     engine rejects duplicates and expired actions:
     - code 11017 `NonUniqueNonce`
     - code 11018 `InvalidNonceDate`
@@ -112,7 +112,7 @@ The threat model focuses on those three responsibilities.
   network's domain.
 - Mitigations:
   - The SDK pins `chainId` and `verifyingContract` per network in
-    `internal/netconf`, not from user input.
+    `netconf.go`, not from user input.
   - The matching engine rejects with code 14024 `ChainIDMismatch`.
 
 ## What the user must do

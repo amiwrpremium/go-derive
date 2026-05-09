@@ -4,10 +4,10 @@ Three error layers, all `errors.Is` / `errors.As` friendly.
 
 ## Layer 1: sentinels
 
-Defined in `pkg/errors/errors.go`. Use `errors.Is` to compare:
+Defined in `errors.go/errors.go`. Use `errors.Is` to compare:
 
 ```go
-if errors.Is(err, derrors.ErrRateLimited) {
+if errors.Is(err, derive.ErrRateLimited) {
     backoff()
     return
 }
@@ -40,7 +40,7 @@ type APIError struct {
 Use `errors.As` to inspect:
 
 ```go
-var apiErr *derrors.APIError
+var apiErr *derive.APIError
 if errors.As(err, &apiErr) {
     log.Printf("derive code %d: %s", apiErr.Code, apiErr.CanonicalMessage())
 }
@@ -56,7 +56,7 @@ raw `*APIError` or a sentinel.
 `Unwrap` so the original `net.Error` (or context error) is reachable.
 
 ```go
-var connErr *derrors.ConnectionError
+var connErr *derive.ConnectionError
 if errors.As(err, &connErr) {
     log.Printf("transport: %s: %v", connErr.Op, connErr.Err)
 }
@@ -64,7 +64,7 @@ if errors.As(err, &connErr) {
 
 ## The 136 server codes
 
-The full catalogue is in `pkg/errors/codes.go`, grouped by topic:
+The full catalogue is in `errors.go/codes.go`, grouped by topic:
 
 | Range | Topic |
 |---|---|
@@ -86,7 +86,7 @@ The full catalogue is in `pkg/errors/codes.go`, grouped by topic:
 ## Sentinel → code map
 
 ```go
-var apiErr *derrors.APIError
+var apiErr *derive.APIError
 errors.As(err, &apiErr)
 // apiErr.Code lookup ↓
 ```
@@ -113,12 +113,12 @@ Codes outside this map don't match any sentinel — drill in via
 
 ## Canonical messages
 
-Each code has a human-readable description in `pkg/errors/messages.go`.
+Each code has a human-readable description in `errors.go/messages.go`.
 When the server returns a sparse `Message`, `APIError.Error()` falls back
 to the canonical text:
 
 ```go
-e := &derrors.APIError{Code: derrors.CodeMMPFrozen}
+e := &derive.APIError{Code: derive.CodeMMPFrozen}
 fmt.Println(e.Error())
 // derive: api error 11015: market-maker protection has frozen this currency
 ```
@@ -126,7 +126,7 @@ fmt.Println(e.Error())
 You can also look it up explicitly:
 
 ```go
-desc := derrors.Description(derrors.CodeSessionKeyExpired)
+desc := derive.Description(derive.CodeSessionKeyExpired)
 // "session key has expired"
 ```
 
@@ -141,13 +141,13 @@ for i := 0; i < maxRetries; i++ {
     switch {
     case err == nil:
         return nil
-    case errors.Is(err, derrors.ErrRateLimited):
+    case errors.Is(err, derive.ErrRateLimited):
         time.Sleep(backoff)
         backoff *= 2
-    case errors.Is(err, derrors.ErrSessionKeyExpired):
+    case errors.Is(err, derive.ErrSessionKeyExpired):
         // re-register session key (operator action) and abort
         return err
-    case errors.Is(err, derrors.ErrInsufficientFunds):
+    case errors.Is(err, derive.ErrInsufficientFunds):
         return err // not retriable
     default:
         // unknown — bubble up

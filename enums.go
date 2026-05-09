@@ -349,7 +349,7 @@ const (
 	// funding payments and no fixed expiry.
 	InstrumentTypePerp InstrumentType = "perp"
 	// InstrumentTypeOption is a European-style option with a strike and
-	// expiry; see [github.com/amiwrpremium/go-derive/pkg/types.OptionDetails].
+	// expiry; see [OptionDetails].
 	InstrumentTypeOption InstrumentType = "option"
 	// InstrumentTypeERC20 is a spot ERC-20 token (typically used as collateral).
 	InstrumentTypeERC20 InstrumentType = "erc20"

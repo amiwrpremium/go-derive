@@ -1,7 +1,7 @@
 # Authentication and signing
 
 Two distinct cryptographic flows, both routed through one `Signer`
-interface in `pkg/auth`.
+interface in `auth.go`.
 
 ## Flow 1 — per-request authentication
 
@@ -16,7 +16,7 @@ The signature is **EIP-191 personal-sign** over the millisecond timestamp:
 keccak256( "\x19Ethereum Signed Message:\n" || len(msg) || msg )
 ```
 
-where `msg` is the timestamp string. `pkg/auth.HTTPHeaders(...)` builds
+where `msg` is the timestamp string. `derive.HTTPHeaders(...)` builds
 the full header bundle in one call.
 
 ## Flow 2 — per-action signing
@@ -35,7 +35,7 @@ keccak256( "\x19\x01" || domainSeparator || hashStruct(Action) )
 
 `domainSeparator` is per-network (mainnet chain id 957, testnet 901) and
 pinned to Derive's matching-engine contract. See
-`internal/netconf.EIP712Domain`.
+`internal/derive.EIP712Domain`.
 
 ### `Action` struct
 
@@ -59,7 +59,7 @@ placement that's `TradeModuleData`; for transfers, `TransferModuleData`.
 ### `LocalSigner`
 
 ```go
-s, err := auth.NewLocalSigner("0x4c08...")
+s, err := derive.NewLocalSigner("0x4c08...")
 ```
 
 - Owner == Address — the same key signs and is recorded as the owner.
@@ -69,7 +69,7 @@ s, err := auth.NewLocalSigner("0x4c08...")
 ### `SessionKeySigner`
 
 ```go
-s, err := auth.NewSessionKeySigner("0xSESSIONKEY", common.HexToAddress("0xOWNERADDR"))
+s, err := derive.NewSessionKeySigner("0xSESSIONKEY", common.HexToAddress("0xOWNERADDR"))
 ```
 
 - Address (session key) ≠ Owner (smart account).
@@ -80,13 +80,13 @@ s, err := auth.NewSessionKeySigner("0xSESSIONKEY", common.HexToAddress("0xOWNERA
 
 ## Nonces
 
-Every signed action needs a strictly-increasing nonce. `auth.NewNonceGen()`
+Every signed action needs a strictly-increasing nonce. `derive.NewNonceGen()`
 returns a generator whose `.Next()` is millisecond-timestamp-based with a
 16-bit suffix — readable, monotonic, and collision-resistant under
 concurrency.
 
 ```go
-g := auth.NewNonceGen()
+g := derive.NewNonceGen()
 n := g.Next() // strictly increasing, safe across goroutines
 ```
 
@@ -110,11 +110,11 @@ recovered := crypto.PubkeyToAddress(*pub)
 ```
 
 `normaliseV` flips Derive's 27/28 convention back to go-ethereum's 0/1.
-Helper in `pkg/auth/internal_helpers_test.go`.
+Helper in `auth.go/internal_helpers_test.go`.
 
 ## Custom signers
 
-Anything that implements `auth.Signer` works:
+Anything that implements `derive.Signer` works:
 
 ```go
 type Signer interface {
@@ -136,7 +136,7 @@ domain on a mainnet request), the engine returns code `14024`
 that easy to detect:
 
 ```go
-if errors.Is(err, derrors.ErrChainIDMismatch) {
+if errors.Is(err, derive.ErrChainIDMismatch) {
     log.Fatal("signed against the wrong network")
 }
 ```

@@ -18,16 +18,16 @@ shortcut for opting out.
 ## Tuning
 
 ```go
-c, _ := rest.New(
-    rest.WithTestnet(),
-    rest.WithRateLimit(50, 2), // 50 TPS, 100-token bucket
+c, _ := derive.NewRestClient(
+    derive.WithTestnet(),
+    derive.WithRateLimit(50, 2), // 50 TPS, 100-token bucket
 )
 ```
 
-The same option exists on `pkg/ws.Client`:
+The same option exists for `derive.WsClient`:
 
 ```go
-c, _ := ws.New(ws.WithTestnet(), ws.WithRateLimit(50, 2))
+c, _ := derive.NewWsClient(derive.WithTestnet(), derive.WithRateLimit(50, 2))
 ```
 
 ## Behaviour under saturation
@@ -44,7 +44,7 @@ To distinguish in your retry logic:
 switch {
 case errors.Is(err, context.DeadlineExceeded):
     // local rate limit hit, ctx expired before token refilled
-case errors.Is(err, derrors.ErrRateLimited):
+case errors.Is(err, derive.ErrRateLimited):
     // server told us to back off (we lost a race with another caller)
 }
 ```

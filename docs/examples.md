@@ -12,9 +12,9 @@ shows up in CI immediately.
 86 example test files, 234 functions. One example file per source file:
 
 ```text
-pkg/types/decimal_example_test.go         ↔  pkg/types/decimal.go
-pkg/types/address_example_test.go         ↔  pkg/types/address.go
-pkg/auth/local_signer_example_test.go     ↔  pkg/auth/local_signer.go
+types.go/decimal_example_test.go         ↔  types.go/decimal.go
+types.go/address_example_test.go         ↔  types.go/address.go
+auth.go/local_signer_example_test.go     ↔  auth.go/local_signer.go
 ...
 ```
 

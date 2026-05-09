@@ -9,40 +9,49 @@ surface (`http.GetInstruments`, `ws.GetInstruments`); we don't.
 Instead the SDK is layered like this:
 
 ```text
-pkg/derive            top-level facade (REST + WS)
+client.go             top-level facade (REST + WS)
    │
-   ├──► pkg/rest    ────► transport.HTTPTransport ─┐
-   │     │                                          │
-   │     └─ embeds ─► internal/methods.API          │
-   │                                                ├─► internal/jsonrpc
-   ├──► pkg/ws     ────► transport.WSTransport ────┤      (envelope + IDs)
-   │     │                                          │
-   │     └─ embeds ─► internal/methods.API          │
-   │                                                │
-   └──► pkg/channels  (typed sub descriptors)       │
-                                                    │
-        pkg/auth   pkg/types  pkg/enums  pkg/errors │
-        ─────────────────────────────────────────── │
-                                                    │
-        internal/codec  internal/netconf            │
-        internal/retry  internal/testutil           ┘
+   ├──► rest.go    ────► transport.HTTPTransport ─┐
+   │     │                                        │
+   │     └─ embeds ─► apiCalls (methods.go)       │
+   │                                              ├─► internal/jsonrpc
+   ├──► ws.go     ────► transport.WSTransport ────┤      (envelope + IDs)
+   │     │                                        │
+   │     └─ embeds ─► apiCalls (methods.go)       │
+   │                                              │
+   └──► channels.go  (typed channel descriptors)  │
+                                                  │
+        auth.go    types.go    enums.go           │
+        errors.go  contracts.go                   │
+        netconf.go netconf_domain.go              │
+        ──────────────────────────────────────────│
+                                                  │
+        internal/transport  internal/codec        │
+        internal/retry      internal/testutil    ─┘
 ```
 
-`internal/methods.API` defines each RPC method exactly once, parameterised
-by `transport.Transport`. Both `pkg/rest.Client` and `pkg/ws.Client` embed
-`*methods.API`, so calling `c.GetInstruments(ctx, ...)` works on either
-client without code duplication.
+`apiCalls` (in `methods.go`) defines each RPC method exactly once,
+parameterised by `transport.Transport`. Both `RestClient` and
+`WsClient` embed `*apiCalls`, so calling `c.GetInstruments(ctx, ...)`
+works on either client without code duplication.
 
-## Why pkg/ + internal/
+## Why a single root package + internal/
 
-`pkg/` is the public API — anything users may import. Inside `internal/`
-lives the plumbing (transport pumps, codec helpers, JSON-RPC framing).
-Go's `internal/` rule prevents downstream users from importing it, which
-lets us refactor freely.
+`github.com/amiwrpremium/go-derive` ships as one Go package — one
+import covers the whole SDK. Closest peers (`sonirico/go-hyperliquid`,
+`adshao/go-binance`, `hirokisan/bybit`, `gateio/gateapi-go`) all use
+the same flat shape. The on-the-wire concerns split per-domain across
+files at root: one `types.go`, one `enums.go`, one `errors.go`,
+`auth.go`, `channels.go`, `methods.go`, etc. — never per-type fan-out.
+
+Inside `internal/` lives the plumbing (transport pumps, codec helpers,
+JSON-RPC framing, retry backoff, test fakes). Go's `internal/` rule
+prevents downstream users from importing it, which lets us refactor
+freely.
 
 ## WebSocket lifecycle
 
-`pkg/ws.Client` runs three goroutines under one parent context:
+`WsClient` runs three goroutines under one parent context:
 
 | Goroutine | Job |
 |---|---|
@@ -80,7 +89,7 @@ See [auth.md](./auth.md).
 
 ## Numbers
 
-All prices, sizes, and fees use `pkg/types.Decimal` (a thin wrapper over
+All prices, sizes, and fees use `derive.Decimal` (a thin wrapper over
 `shopspring/decimal`). On the wire they are JSON strings — Derive's
 convention so that `1e-18` precision survives round-trips. For ABI-encoded
 action signing, `internal/codec.DecimalToU256` and `DecimalToI256` scale to
@@ -103,12 +112,11 @@ The full catalogue of 136 server-side codes lives in
 
 | Surface | Status |
 |---|---|
-| Public packages | 10 (`pkg/derive`, `rest`, `ws`, `auth`, `types`, `enums`, `errors`, `channels`, `channels/public`, `channels/private`, `contracts`) |
-| Internal packages | 7 (`jsonrpc`, `transport`, `methods`, `netconf`, `codec`, `retry`, `testutil`) |
-| Source files (`pkg/` + `internal/`) | 101 |
-| Unit-test files | 109 |
+| Public packages | 1 (`github.com/amiwrpremium/go-derive`) |
+| Internal packages | 5 (`codec`, `jsonrpc`, `retry`, `testutil`, `transport`) |
+| Source files at root | ~14 (paired with ~14 test files) |
 | `Example_*` functions in package tests | 0 — examples live under `examples/` |
-| Fuzz test files | 8 (`Fuzz*` functions: 10) |
+| Fuzz test files | 4 root + 2 in internal/jsonrpc (`Fuzz*` functions: 10) |
 | Runnable example programs | 91, one per directory under `examples/` |
 | Integration test files | 7 under `test/`, gated by `-tags=integration` |
 | CI workflows | 24 (ci, lint, extra-lint, codeql, gosec, semgrep, codacy, scorecard, osv-scanner, trivy, gitleaks, trufflehog, dependency-review, license-check, pin-check, release, release-please, verify-release, integration, pr-title, labeler, auto-merge, auto-assign, stale) |

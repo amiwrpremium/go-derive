@@ -29,9 +29,9 @@ type Transport interface {
 	// out. Pass nil for out to discard the result body. params may be nil.
 	//
 	// Server-side errors arrive as
-	// *[github.com/amiwrpremium/go-derive/pkg/errors.APIError]. Transport
+	// *[APIError]. Transport
 	// failures arrive as
-	// *[github.com/amiwrpremium/go-derive/pkg/errors.ConnectionError].
+	// *[ConnectionError].
 	Call(ctx context.Context, method string, params, out any) error
 
 	// Close releases any resources held by the transport. After Close the

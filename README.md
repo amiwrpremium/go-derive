@@ -100,16 +100,14 @@ import (
     "log"
     "os"
 
-    "github.com/amiwrpremium/go-derive/pkg/auth"
-    "github.com/amiwrpremium/go-derive/pkg/derive"
-    "github.com/amiwrpremium/go-derive/pkg/enums"
+    "github.com/amiwrpremium/go-derive"
 )
 
 func main() {
     // NewLocalSigner takes a raw hex private key. For production setups,
-    // see pkg/auth.NewSessionKeySigner — registers a hot session key
+    // see derive.NewSessionKeySigner — registers a hot session key
     // delegating from a long-lived owner address.
-    signer, err := auth.NewLocalSigner(os.Getenv("DERIVE_PRIVATE_KEY"))
+    signer, err := derive.NewLocalSigner(os.Getenv("DERIVE_PRIVATE_KEY"))
     if err != nil {
         log.Fatal(err)
     }
@@ -126,7 +124,7 @@ func main() {
 
     ctx := context.Background()
 
-    instruments, err := c.REST.GetInstruments(ctx, "BTC", enums.InstrumentTypePerp)
+    instruments, err := c.REST.GetInstruments(ctx, "BTC", derive.InstrumentTypePerp)
     if err != nil {
         log.Fatal(err)
     }
@@ -139,24 +137,28 @@ See [`examples/`](./examples/) for more — and
 
 ## Architecture
 
-```text
-pkg/derive               top-level facade (REST + WS)
-pkg/rest, pkg/ws         dedicated clients
-pkg/channels             typed WebSocket subscriptions
-pkg/auth                 EIP-712 signing, session keys
-pkg/types, pkg/enums     domain types, named-string enums
-pkg/errors               sentinel errors + APIError
-pkg/contracts            on-chain helpers (deposit/withdraw/session keys) — stubs returning ErrNotImplemented
+The whole SDK is a single Go package — one import covers everything.
+Files at root are organised per-domain:
 
-internal/jsonrpc         JSON-RPC 2.0 framing
-internal/transport       HTTP + WS transports (shared interface)
-internal/methods         RPC method definitions (shared by REST + WS)
-internal/netconf         endpoints + EIP-712 domains per network
-internal/codec           decimal/u256/address encoding
-internal/retry           exponential backoff
+```text
+client.go                    top-level facade (REST + WS)
+rest.go, ws.go               dedicated REST and WS clients
+methods.go                   RPC methods (shared by REST + WS via embedding)
+channels.go                  typed WebSocket subscription descriptors
+auth.go                      EIP-712 signing, session keys
+types.go, enums.go           DTOs and named-string enums
+errors.go                    sentinel errors + APIError + ConnectionError
+contracts.go                 on-chain helper interfaces (stubs returning ErrNotImplemented)
+netconf.go, netconf_domain.go  endpoints + EIP-712 domains per network
+
+internal/transport           HTTP + WS transports (shared interface)
+internal/jsonrpc             JSON-RPC 2.0 framing
+internal/codec               decimal/u256/address encoding
+internal/retry               exponential backoff
+internal/testutil            test fakes (FakeTransport, MockServer, MockWSServer)
 ```
 
-The Derive API is JSON-RPC 2.0 over both HTTP and WebSocket — same method names, same params. The SDK reflects that: a single `Transport` interface backs both `pkg/rest` and `pkg/ws`, so each method is defined once.
+The Derive API is JSON-RPC 2.0 over both HTTP and WebSocket — same method names, same params. The SDK reflects that: a single `Transport` interface backs both `RestClient` and `WsClient`, so each method is defined once in `methods.go` and reached through embedding.
 
 See [`docs/architecture.md`](./docs/architecture.md) for the full design.
 
@@ -238,7 +240,7 @@ publishes a public Scorecard at
 | Action pinning enforcement | `pin-check` workflow rejects unpinned `uses:` lines |
 | Release integrity | SLSA Level 3 provenance + CycloneDX & SPDX SBOMs + license inventory, all cosign-signed — [release.yml](.github/workflows/release.yml) |
 | Post-release verification | cosign signatures + SLSA provenance re-checked weekly + on every release — [verify-release.yml](.github/workflows/verify-release.yml) |
-| Fuzzing | Go-native `Fuzz*` tests in `pkg/types`, `pkg/auth`, `pkg/errors`, `internal/jsonrpc` |
+| Fuzzing | Go-native `Fuzz*` tests in `types.go`, `auth.go`, `errors.go`, `internal/jsonrpc` |
 | Pinned actions | every action pinned by SHA with the version as a comment |
 
 To report a vulnerability or code-of-conduct violation, use [GitHub's

@@ -1,14 +1,15 @@
-// Package derive is the root of the go-derive SDK for the Derive exchange
-// (formerly Lyra). The user-facing API lives under pkg/. Most users want
-// pkg/derive for the top-level facade, or pkg/rest and pkg/ws directly for
-// fine-grained control.
+// Package derive is the SDK for the Derive exchange (formerly Lyra). The
+// whole user-facing API lives in this package — one import covers REST,
+// WebSocket, signing, types, enums, channels and errors.
+//
+// Most users want [NewClient] for the top-level facade, or [NewRestClient]
+// / [NewWsClient] directly for fine-grained control.
 //
 // Quick start:
 //
 //	import (
 //	    "context"
-//	    "github.com/amiwrpremium/go-derive/pkg/auth"
-//	    "github.com/amiwrpremium/go-derive/pkg/derive"
+//	    "github.com/amiwrpremium/go-derive"
 //	)
 //
 //	signer, _ := derive.NewLocalSigner("0xPRIVATEKEY")

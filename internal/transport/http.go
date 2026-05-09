@@ -98,9 +98,9 @@ func NewHTTP(cfg HTTPConfig) (*HTTPTransport, error) {
 //   - build the HTTP POST and inject auth headers via [HTTPHeaderProvider]
 //   - send the request and parse the response
 //   - on success decode the result; on JSON-RPC error return a
-//     [github.com/amiwrpremium/go-derive/pkg/errors.APIError]
+//     [APIError]
 //   - on transport failure return a
-//     [github.com/amiwrpremium/go-derive/pkg/errors.ConnectionError]
+//     [ConnectionError]
 func (t *HTTPTransport) Call(ctx context.Context, method string, params, out any) error {
 	if err := t.limiter.Wait(ctx); err != nil {
 		return err

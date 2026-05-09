@@ -1,8 +1,8 @@
 # Transports: REST vs WebSocket
 
 Derive's API is JSON-RPC 2.0 over **both HTTP and WebSocket**. The SDK
-exposes both as `pkg/rest.Client` and `pkg/ws.Client`. They share the
-underlying method definitions (`internal/methods.API`), so identical Go
+exposes both as `derive.RestClient` and `derive.WsClient`. They share the
+underlying method definitions (`internal/derive.API`), so identical Go
 code compiles against either.
 
 ## When to pick which
@@ -30,28 +30,28 @@ depending on what you need:
   previously hit the REST orderbook.
 - **Full L2 (any depth, streaming or one-shot)**: subscribe to the
   WebSocket `orderbook.<instrument>.<group>.<depth>` channel via
-  `pkg/channels/public.OrderBook`. See
+  `channels.go/derive.PublicOrderBook`. See
   [`examples/ws/public/subscribe/orderbook/`](../examples/ws/public/subscribe/orderbook/).
   Cancel after the first message if you only want a snapshot.
 
-## Both at once: `pkg/derive.Client`
+## Both at once: `derive.Client`
 
 ```go
 c, _ := derive.NewClient(derive.WithTestnet(), derive.WithSigner(s), derive.WithSubaccount(1))
 defer c.Close()
 
 // REST for setup
-insts, _ := c.REST.GetInstruments(ctx, "BTC", enums.InstrumentTypePerp)
+insts, _ := c.REST.GetInstruments(ctx, "BTC", derive.InstrumentTypePerp)
 
 // WS for streaming
 c.WS.Connect(ctx)
 c.WS.Login(ctx)
-sub, _ := ws.Subscribe[types.OrderBook](ctx, c.WS, public.OrderBook{Instrument: "BTC-PERP"})
+sub, _ := derive.Subscribe[derive.OrderBook](ctx, c.WS, derive.PublicOrderBook{Instrument: "BTC-PERP"})
 ```
 
 ## Cross-transport equivalence
 
-Because both clients call into the same `internal/methods.API`, identical
+Because both clients call into the same `internal/derive.API`, identical
 parameters produce identical wire calls. The integration suite has
 explicit cross-transport tests:
 
@@ -70,7 +70,7 @@ subscriptions resume automatically.
 
 ## Method coverage
 
-Every method in `internal/methods.API` is reachable from both clients.
+Every method in `internal/derive.API` is reachable from both clients.
 Subscription channels are WebSocket-only — REST has no streaming primitive.
 
 ## Rate limiting

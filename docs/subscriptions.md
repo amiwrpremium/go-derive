@@ -2,12 +2,12 @@
 
 The WebSocket transport supports pub/sub channels. The SDK gives you
 typed access to every documented channel via the descriptors in
-`pkg/channels/public` and `pkg/channels/private`.
+`channels.go` and `channels.go`.
 
 ## The pattern
 
 ```go
-sub, err := ws.Subscribe[T](ctx, c, descriptor)
+sub, err := derive.Subscribe[T](ctx, c, descriptor)
 if err != nil { return err }
 defer sub.Close()
 
@@ -47,11 +47,11 @@ Public:
 
 | Descriptor | Channel name | T |
 |---|---|---|
-| `public.OrderBook{Instrument, Group, Depth}` | `orderbook.{i}.{g}.{d}` | `types.OrderBook` |
-| `public.Trades{Instrument}` | `trades.{i}` | `[]types.Trade` |
-| `public.TradesByType{InstrumentType, Currency}` | `trades.{type}.{currency}` | `[]types.Trade` |
-| `public.TickerSlim{Instrument, Interval}` | `ticker_slim.{i}.{interval}` | `types.TickerSlim` |
-| `public.SpotFeed{Currency}` | `spot_feed.{currency}` | `types.SpotFeed` |
+| `derive.PublicOrderBook{Instrument, Group, Depth}` | `orderbook.{i}.{g}.{d}` | `derive.OrderBook` |
+| `derive.PublicTrades{Instrument}` | `trades.{i}` | `[]derive.Trade` |
+| `derive.PublicTradesByType{InstrumentType, Currency}` | `trades.{type}.{currency}` | `[]derive.Trade` |
+| `derive.PublicTickerSlim{Instrument, Interval}` | `ticker_slim.{i}.{interval}` | `derive.TickerSlim` |
+| `derive.PublicSpotFeed{Currency}` | `spot_feed.{currency}` | `derive.SpotFeed` |
 
 `OrderBook` accepts `Group ∈ {1, 10, 100}` (price-bucket size) and
 `Depth ∈ {1, 10}` (levels per side). `TickerSlim` accepts
@@ -64,11 +64,11 @@ Private:
 
 | Descriptor | Channel name | T |
 |---|---|---|
-| `private.Orders{SubaccountID}` | `subaccount.{id}.orders` | `[]types.Order` |
-| `private.Balances{SubaccountID}` | `subaccount.{id}.balances` | `types.Balance` |
-| `private.Trades{SubaccountID}` | `subaccount.{id}.trades` | `[]types.Trade` |
-| `private.RFQs{Wallet}` | `wallet.{address}.rfqs` | `[]types.RFQ` |
-| `private.Quotes{SubaccountID}` | `subaccount.{id}.quotes` | `[]types.Quote` |
+| `derive.PrivateOrders{SubaccountID}` | `subaccount.{id}.orders` | `[]derive.Order` |
+| `derive.PrivateBalances{SubaccountID}` | `subaccount.{id}.balances` | `derive.Balance` |
+| `derive.PrivateTrades{SubaccountID}` | `subaccount.{id}.trades` | `[]derive.Trade` |
+| `derive.PrivateRFQs{Wallet}` | `wallet.{address}.rfqs` | `[]derive.RFQ` |
+| `derive.PrivateQuotes{SubaccountID}` | `subaccount.{id}.quotes` | `[]derive.Quote` |
 
 Note: there is **no** `subaccount.{id}.positions` channel. Poll
 `private/get_positions` or derive position state from the trades feed.
@@ -84,8 +84,8 @@ loop), `SubscribeFunc` drives a callback synchronously and returns when
 the context cancels:
 
 ```go
-err := ws.SubscribeFunc(ctx, c, public.OrderBook{Instrument: "BTC-PERP"},
-    func(ob types.OrderBook) {
+err := derive.SubscribeFunc(ctx, c, derive.PublicOrderBook{Instrument: "BTC-PERP"},
+    func(ob derive.OrderBook) {
         process(ob)
     })
 // err is ctx.Err() or the terminal subscription error
@@ -110,7 +110,7 @@ See [reconnection.md](./reconnection.md).
 Each `Subscription[T]` has a 256-event buffer. If you process events
 slower than they arrive, newer events are dropped (drop-oldest is *not*
 the policy — current implementation drops new on a full buffer; this is
-documented and asserted in `pkg/ws/subscribe.go`). For a reliable queue,
+documented and asserted in `ws.go/subscribe.go`). For a reliable queue,
 use `SubscribeFunc` and apply your own bounded queueing inside the
 callback.
 

@@ -62,7 +62,7 @@ func reconnectLoop():
     }
 ```
 
-`pkg/ws.Client.installReconnectLogin` wires `OnReconnect` to `c.Login`
+`derive.WsClient.installReconnectLogin` wires `OnReconnect` to `c.Login`
 when a signer is configured, so private subscriptions resume cleanly.
 
 ## What stays open
@@ -82,13 +82,13 @@ server doesn't respond within 5s, `conn.Ping` returns an error,
 `failConnection` runs, and reconnect kicks in. The interval is tunable:
 
 ```go
-ws.New(ws.WithTestnet(), ws.WithPingInterval(10*time.Second))
+derive.NewWsClient(derive.WithTestnet(), derive.WithPingInterval(10*time.Second))
 ```
 
 ## Disabling reconnect
 
 ```go
-ws.New(ws.WithTestnet(), ws.WithReconnect(false))
+derive.NewWsClient(derive.WithTestnet(), derive.WithReconnect(false))
 ```
 
 With reconnect off, a connection drop returns `*ConnectionError` to every

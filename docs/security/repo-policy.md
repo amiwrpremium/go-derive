@@ -129,7 +129,7 @@ Third-party actions allowed (all pinned by SHA in
 | `Dangerous-Workflow` | The workflows that use `pull_request_target` (`labeler`, `auto-merge`, `auto-assign`, `pr-title`) only ever check out and execute the base branch — they never run untrusted PR-head code. Scorecard's heuristic is satisfied. |
 | `Dependency-Update-Tool` | Renovate (primary) + Dependabot |
 | `Security-Policy` | `SECURITY.md` + `SECURITY-INSIGHTS.yml` |
-| `Fuzzing` | Native Go `Fuzz*` tests in `pkg/types`, `pkg/auth`, `pkg/errors`, `internal/jsonrpc` |
+| `Fuzzing` | Native Go `Fuzz*` tests in `types.go`, `auth.go`, `errors.go`, `internal/jsonrpc` |
 | `License` | `LICENSE` (MIT) |
 
 ## Verifying

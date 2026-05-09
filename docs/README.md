@@ -8,7 +8,7 @@ if you've used a derivatives SDK before, jump straight to
 
 | Doc | Covers |
 |---|---|
-| [architecture.md](./architecture.md) | how the packages compose; layering; why pkg/ + internal/ |
+| [architecture.md](./architecture.md) | how the package is organised; layering; why a single root package + internal/ |
 | [getting-started.md](./getting-started.md) | first runnable example; env setup; testnet vs mainnet |
 | [transports.md](./transports.md) | REST vs WebSocket; when to pick each; cross-transport guarantees |
 | [auth.md](./auth.md) | EIP-191 + EIP-712 deep dive; LocalSigner vs SessionKeySigner; `Action` struct |

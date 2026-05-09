@@ -17,7 +17,7 @@ in a follow-up PR.
 
 ## Alerts that stay open
 
-### Codacy Deadcode — `pkg/ws/subscribe.go:34`
+### Codacy Deadcode — `ws.go/subscribe.go:34`
 
 **Symptom.** Codacy reports a `deadcode_deadcode` finding with the
 message `expected '(', found '['` against `Subscribe[T any](...)`.

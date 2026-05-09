@@ -5,8 +5,8 @@
 // implements [Channel]: it knows the dotted server-side name to subscribe
 // to and how to decode an inbound notification payload into a typed Go
 // value. The descriptors are passed into
-// [github.com/amiwrpremium/go-derive/pkg/ws.Subscribe] and
-// [github.com/amiwrpremium/go-derive/pkg/ws.SubscribeFunc].
+// [Subscribe] and
+// [SubscribeFunc].
 //
 // # Public vs private
 //
@@ -48,7 +48,7 @@ type Channel interface {
 // Empty Group defaults to "1"; zero Depth defaults to 10.
 //
 // Pair this descriptor with T = [OrderBook] when calling
-// [github.com/amiwrpremium/go-derive/pkg/ws.Subscribe].
+// [Subscribe].
 type PublicOrderBook struct {
 	// Instrument is the market name (e.g. "BTC-PERP").
 	Instrument string
@@ -122,7 +122,7 @@ func (PublicSpotFeed) Decode(raw json.RawMessage) (any, error) {
 // best-bid price/amount.)
 //
 // Pair this descriptor with T = [TickerSlim] when calling
-// [github.com/amiwrpremium/go-derive/pkg/ws.Subscribe].
+// [Subscribe].
 type PublicTickerSlim struct {
 	// Instrument is the market name (e.g. "BTC-PERP").
 	Instrument string
@@ -191,7 +191,7 @@ func (PublicTradesByType) Decode(raw json.RawMessage) (any, error) {
 //	trades.{instrument}
 //
 // Pair this descriptor with T = []Trade when calling
-// [github.com/amiwrpremium/go-derive/pkg/ws.Subscribe]. Each notification
+// [Subscribe]. Each notification
 // carries a batch of [Trade] events that printed in the same window.
 type PublicTrades struct {
 	// Instrument is the market name (e.g. "BTC-PERP").
@@ -218,7 +218,7 @@ func (PublicTrades) Decode(raw json.RawMessage) (any, error) {
 //	subaccount.{id}.balances
 //
 // Pair this descriptor with T = [Balance] (a single struct, not a
-// slice) when calling [github.com/amiwrpremium/go-derive/pkg/ws.Subscribe].
+// slice) when calling [Subscribe].
 type PrivateBalances struct {
 	// SubaccountID scopes the stream to one subaccount.
 	SubaccountID int64
@@ -243,7 +243,7 @@ func (PrivateBalances) Decode(raw json.RawMessage) (any, error) {
 //	subaccount.{id}.orders
 //
 // Pair this descriptor with T = [[]Order] when calling
-// [github.com/amiwrpremium/go-derive/pkg/ws.Subscribe].
+// [Subscribe].
 type PrivateOrders struct {
 	// SubaccountID scopes the stream to one subaccount.
 	SubaccountID int64
@@ -321,7 +321,7 @@ func (PrivateQuotes) Decode(raw json.RawMessage) (any, error) {
 //	subaccount.{id}.trades
 //
 // Pair this descriptor with T = [[]Trade] when calling
-// [github.com/amiwrpremium/go-derive/pkg/ws.Subscribe]. Each notification
+// [Subscribe]. Each notification
 // is a batch of fills since the last update.
 type PrivateTrades struct {
 	// SubaccountID scopes the stream to one subaccount.

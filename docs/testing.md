@@ -16,9 +16,9 @@ Coverage gates:
 
 | Package | Floor |
 |---|---|
-| `pkg/auth` | ≥ 95% |
-| `pkg/errors` | 100% |
-| `pkg/types` | ≥ 98% |
+| `auth.go` | ≥ 95% |
+| `errors.go` | 100% |
+| `types.go` | ≥ 98% |
 | `internal/jsonrpc` | 100% |
 | `internal/codec` | 100% |
 | Total | ≥ 88% |
@@ -26,7 +26,7 @@ Coverage gates:
 Coverage report:
 
 ```bash
-go test -coverprofile=coverage.txt -covermode=atomic -coverpkg=./pkg/...,./internal/... ./...
+go test -coverprofile=coverage.txt -covermode=atomic -coverpkg=./...,./internal/... ./...
 go tool cover -func=coverage.txt | tail -1
 ```
 
@@ -49,9 +49,9 @@ adversarial input:
 
 | Package | Targets |
 |---|---|
-| `pkg/types` | `FuzzNewDecimal`, `FuzzDecimal_UnmarshalJSON`, `FuzzNewAddress`, `FuzzNewTxHash`, `FuzzMillisTime_UnmarshalJSON`, `FuzzOrderBookLevel_UnmarshalJSON` |
-| `pkg/auth` | `FuzzNewLocalSigner` |
-| `pkg/errors` | `FuzzAPIError_UnmarshalJSON` |
+| `types.go` | `FuzzNewDecimal`, `FuzzDecimal_UnmarshalJSON`, `FuzzNewAddress`, `FuzzNewTxHash`, `FuzzMillisTime_UnmarshalJSON`, `FuzzOrderBookLevel_UnmarshalJSON` |
+| `auth.go` | `FuzzNewLocalSigner` |
+| `errors.go` | `FuzzAPIError_UnmarshalJSON` |
 | `internal/jsonrpc` | `FuzzIsNotification`, `FuzzDecodeResult` |
 
 The seed corpus runs as part of every `go test`. To fuzz indefinitely
@@ -94,9 +94,9 @@ See [`test/README.md`](../test/README.md).
 
 | Fake | Used by | What it does |
 |---|---|---|
-| `internal/testutil.FakeTransport` | every `internal/methods/*_test.go` | implements `transport.Transport`; programmable per-method handlers |
-| `internal/testutil.MockServer` | `pkg/rest` | httptest-based JSON-RPC HTTP mock |
-| `internal/testutil.MockWSServer` | `pkg/ws`, `internal/transport/ws_test.go` | `gorilla/websocket.Upgrader`-based JSON-RPC mock with notification injection |
+| `internal/testutil.FakeTransport` | every `methods.go/*_test.go` | implements `transport.Transport`; programmable per-method handlers |
+| `internal/testutil.MockServer` | `rest.go` | httptest-based JSON-RPC HTTP mock |
+| `internal/testutil.MockWSServer` | `ws.go`, `internal/transport/ws_test.go` | `gorilla/websocket.Upgrader`-based JSON-RPC mock with notification injection |
 
 ## Verifying every source has a test
 

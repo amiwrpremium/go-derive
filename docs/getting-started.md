@@ -18,8 +18,8 @@ import (
     "fmt"
     "log"
 
-    "github.com/amiwrpremium/go-derive/pkg/derive"
-    "github.com/amiwrpremium/go-derive/pkg/enums"
+    "github.com/amiwrpremium/go-derive"
+    "github.com/amiwrpremium/go-derive"
 )
 
 func main() {
@@ -27,7 +27,7 @@ func main() {
     if err != nil { log.Fatal(err) }
     defer c.Close()
 
-    insts, err := c.REST.GetInstruments(context.Background(), "BTC", enums.InstrumentTypePerp)
+    insts, err := c.REST.GetInstruments(context.Background(), "BTC", derive.InstrumentTypePerp)
     if err != nil { log.Fatal(err) }
     fmt.Println(len(insts), "BTC perps")
 }
@@ -43,9 +43,9 @@ smart-account owner. For development you can use the same key for both
 the long-lived owner key never lives in the trading process.
 
 ```go
-import "github.com/amiwrpremium/go-derive/pkg/auth"
+import "github.com/amiwrpremium/go-derive"
 
-signer, _ := auth.NewLocalSigner(os.Getenv("DERIVE_SESSION_KEY"))
+signer, _ := derive.NewLocalSigner(os.Getenv("DERIVE_SESSION_KEY"))
 c, _ := derive.NewClient(
     derive.WithTestnet(),
     derive.WithSigner(signer),
@@ -57,17 +57,17 @@ c, _ := derive.NewClient(
 
 ```go
 import (
-    "github.com/amiwrpremium/go-derive/pkg/channels/public"
-    "github.com/amiwrpremium/go-derive/pkg/types"
-    "github.com/amiwrpremium/go-derive/pkg/ws"
+    "github.com/amiwrpremium/go-derive"
+    "github.com/amiwrpremium/go-derive"
+    "github.com/amiwrpremium/go-derive"
 )
 
 c, _ := derive.NewClient(derive.WithTestnet())
 defer c.Close()
 c.WS.Connect(ctx)
 
-sub, err := ws.Subscribe[types.OrderBook](ctx, c.WS,
-    public.OrderBook{Instrument: "BTC-PERP", Depth: 5})
+sub, err := derive.Subscribe[derive.OrderBook](ctx, c.WS,
+    derive.PublicOrderBook{Instrument: "BTC-PERP", Depth: 5})
 defer sub.Close()
 
 for ob := range sub.Updates() {

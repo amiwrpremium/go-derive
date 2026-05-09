@@ -41,8 +41,8 @@ with the reporter.
 
 In scope:
 
-- Code in `pkg/` and `internal/` published as part of `go-derive`.
-- The signing path (`pkg/auth`, `internal/codec`).
+- Code in this module (root package + `internal/` plumbing) published as `go-derive`.
+- The signing path (`auth.go`, `internal/codec`).
 - The transports (`internal/transport`).
 
 Out of scope:

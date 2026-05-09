@@ -917,7 +917,7 @@ type Position struct {
 //
 // Multi-leg RFQs are how Derive supports option spreads, calendars, etc.
 // Each leg references its own instrument, direction and amount; legs must
-// be unique by instrument (see [github.com/amiwrpremium/go-derive/pkg/errors.CodeLegInstrumentsNotUnique]).
+// be unique by instrument (see [CodeLegInstrumentsNotUnique]).
 type RFQLeg struct {
 	// InstrumentName identifies the leg's market.
 	InstrumentName string `json:"instrument_name"`

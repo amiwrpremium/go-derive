@@ -1,6 +1,6 @@
 # Numerics
 
-Every numeric field in the SDK is `pkg/types.Decimal` — never `float64`.
+Every numeric field in the SDK is `derive.Decimal` — never `float64`.
 
 ## Why not float64
 
@@ -70,12 +70,12 @@ d := types.MustDecimal("0.000000000000000001") // 1e-18
 b, _ := json.Marshal(d)
 // b == `"0.000000000000000001"`
 
-var back types.Decimal
+var back derive.Decimal
 _ = json.Unmarshal(b, &back)
 // back.String() == "0.000000000000000001"  // identical
 ```
 
-The fuzz test in `pkg/types/decimal_fuzz_test.go` runs this round-trip on
+The fuzz test in `types.go/decimal_fuzz_test.go` runs this round-trip on
 random input continuously.
 
 ## Common gotchas
