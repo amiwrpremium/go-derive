@@ -10,7 +10,6 @@ package methods
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
@@ -63,19 +62,18 @@ func (a *API) GetLatestSignedFeeds(ctx context.Context, params map[string]any) (
 	return &resp, nil
 }
 
-// GetPerpImpactTWAP returns the time-weighted average impact price for
+// GetPerpImpactTWAP returns the time-weighted-average difference of
+// mid price, ask-impact price, and bid-impact price versus spot for
 // one currency's perpetual book over the requested window. Public.
 //
 // Required `params`: `currency`, `start_time`, `end_time`.
 //
-// Returns [json.RawMessage] because this endpoint is not documented in
-// Derive's published v2.2 OpenAPI spec — decode at the call site
-// against docs.derive.xyz. This is the only public-feed method that
-// stays raw; the others ([GetLatestSignedFeeds],
-// [GetSpotFeedHistory], [GetFundingRateHistory]) all have OAS-typed
-// returns.
-func (a *API) GetPerpImpactTWAP(ctx context.Context, params map[string]any) (json.RawMessage, error) {
-	var raw json.RawMessage
-	err := a.call(ctx, "public/get_perp_impact_twap", params, &raw)
-	return raw, err
+// The shape mirrors `PublicGetPerpImpactTwapResultSchema` in
+// `derivexyz/cockpit/orderbook-types`.
+func (a *API) GetPerpImpactTWAP(ctx context.Context, params map[string]any) (*types.PerpImpactTWAP, error) {
+	var resp types.PerpImpactTWAP
+	if err := a.call(ctx, "public/get_perp_impact_twap", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
 }

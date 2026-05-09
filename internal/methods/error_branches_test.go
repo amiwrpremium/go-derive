@@ -2,55 +2,23 @@ package methods_test
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/amiwrpremium/go-derive/internal/methods"
 	"github.com/amiwrpremium/go-derive/internal/testutil"
 	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
-// boom is the error injected by the fake transport on every wrapper under
-// test below. Using a single sentinel keeps the table compact.
+// boom is the error injected by the fake transport on every wrapper
+// under test below. Using a single sentinel keeps the table compact.
 var boom = &derrors.APIError{Code: 9999, Message: "boom"}
 
-// rawWrapper is a generic adapter for the family of wrappers that take
-// (ctx, map[string]any) and return (json.RawMessage, error). It lets us
-// table-drive every such wrapper through one test.
-type rawWrapper func(ctx context.Context, params map[string]any) (json.RawMessage, error)
-
-func TestRPCWrappers_PropagateError(t *testing.T) {
-	cases := []struct {
-		name   string
-		method string
-		needs  int64
-		fn     func(*methods.API) rawWrapper
-	}{
-		// One private and one public method still surface as
-		// `json.RawMessage` because they aren't documented in
-		// Derive's published v2.2 OpenAPI spec.
-		{"OrderQuote", "private/order_quote", 1, func(a *methods.API) rawWrapper { return a.OrderQuote }},
-		{"GetPerpImpactTWAP", "public/get_perp_impact_twap", 0, func(a *methods.API) rawWrapper { return a.GetPerpImpactTWAP }},
-	}
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			api, ft := newAPI(t, true, c.needs)
-			ft.HandleError(c.method, boom)
-			_, err := c.fn(api)(context.Background(), map[string]any{})
-			assert.Error(t, err)
-			var apiErr *derrors.APIError
-			assert.True(t, errors.As(err, &apiErr))
-			assert.Equal(t, 9999, apiErr.Code)
-		})
-	}
-}
-
-// TestNoArgWrappers_PropagateError covers wrappers that don't take a
-// params map and so don't fit rawWrapper.
+// TestNoArgWrappers_PropagateError exercises the APIError-pass-
+// through path on every method, including the formerly-raw
+// `OrderQuote` and `GetPerpImpactTWAP` (now both fully typed
+// against `derivexyz/cockpit/orderbook-types`).
 func TestNoArgWrappers_PropagateError(t *testing.T) {
 	t.Run("CancelByNonce", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
@@ -140,6 +108,18 @@ func TestNoArgWrappers_PropagateError(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/get_trade_history", boom)
 		_, _, err := api.GetTradeHistory(context.Background(), types.PageRequest{})
+		assert.ErrorAs(t, err, new(*derrors.APIError))
+	})
+	t.Run("OrderQuote", func(t *testing.T) {
+		api, ft := newAPI(t, true, 1)
+		ft.HandleError("private/order_quote", boom)
+		_, err := api.OrderQuote(context.Background(), nil)
+		assert.ErrorAs(t, err, new(*derrors.APIError))
+	})
+	t.Run("GetPerpImpactTWAP", func(t *testing.T) {
+		api, ft := newAPI(t, true, 0)
+		ft.HandleError("public/get_perp_impact_twap", boom)
+		_, err := api.GetPerpImpactTWAP(context.Background(), nil)
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 }

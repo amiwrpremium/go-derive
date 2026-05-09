@@ -10,7 +10,6 @@ package methods
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
@@ -303,15 +302,17 @@ func (a *API) RFQGetBestQuote(ctx context.Context, params map[string]any) (*type
 	return &resp, nil
 }
 
-// OrderQuote routes an order through the RFQ matching path instead
-// of the central order book. Useful for instruments with thin books
-// where makers respond on demand. Private.
+// OrderQuote runs a hypothetical order through the matching engine
+// without submitting and reports the engine's estimates for fill
+// price, fee, and post-trade margin balance. Useful for
+// pre-flighting orders against thin books where the user wants to
+// know whether they'll clear margin before signing. Private.
 //
-// Returns [json.RawMessage] because this endpoint is not documented
-// in Derive's published v2.2 OpenAPI spec — decode at the call site
-// against docs.derive.xyz. The closest typed peer is
-// [private/order]; the two may merge in a future API version.
-func (a *API) OrderQuote(ctx context.Context, params map[string]any) (json.RawMessage, error) {
+// `params` mirror the shape `private/order` accepts.
+//
+// The shape mirrors `PrivateOrderQuoteResultSchema` in
+// `derivexyz/cockpit/orderbook-types`.
+func (a *API) OrderQuote(ctx context.Context, params map[string]any) (*types.OrderQuoteResult, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
@@ -324,7 +325,9 @@ func (a *API) OrderQuote(ctx context.Context, params map[string]any) (json.RawMe
 	if _, ok := params["subaccount_id"]; !ok {
 		params["subaccount_id"] = a.Subaccount
 	}
-	var raw json.RawMessage
-	err := a.call(ctx, "private/order_quote", params, &raw)
-	return raw, err
+	var resp types.OrderQuoteResult
+	if err := a.call(ctx, "private/order_quote", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
 }

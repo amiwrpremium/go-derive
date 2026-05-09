@@ -63,15 +63,20 @@ func TestGetLatestSignedFeeds_Decode(t *testing.T) {
 	assert.Equal(t, "50000", feeds.SpotData["BTC"].Price.String())
 }
 
-func TestGetPerpImpactTWAP_Raw_Reachable(t *testing.T) {
-	// `public/get_perp_impact_twap` is the one feed method that stays
-	// raw because it isn't published in the v2.2 OAS. The wrapper still
-	// works — verify it forwards params and returns the bytes.
+func TestGetPerpImpactTWAP_Decode(t *testing.T) {
 	api, ft := newAPI(t, false, 0)
-	ft.HandleResult("public/get_perp_impact_twap", map[string]any{"impact_price": "100"})
-	raw, err := api.GetPerpImpactTWAP(context.Background(), map[string]any{
+	ft.HandleResult("public/get_perp_impact_twap", map[string]any{
+		"currency":             "BTC",
+		"mid_price_diff_twap":  "0.5",
+		"ask_impact_diff_twap": "1.2",
+		"bid_impact_diff_twap": "-0.8",
+	})
+	twap, err := api.GetPerpImpactTWAP(context.Background(), map[string]any{
 		"currency": "BTC", "start_time": 0, "end_time": 1,
 	})
 	require.NoError(t, err)
-	assert.JSONEq(t, `{"impact_price":"100"}`, string(raw))
+	assert.Equal(t, "BTC", twap.Currency)
+	assert.Equal(t, "0.5", twap.MidPriceDiffTWAP.String())
+	assert.Equal(t, "1.2", twap.AskImpactDiffTWAP.String())
+	assert.Equal(t, "-0.8", twap.BidImpactDiffTWAP.String())
 }

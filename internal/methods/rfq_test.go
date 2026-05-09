@@ -220,12 +220,49 @@ func TestRFQGetBestQuote_Decode_NoQuote(t *testing.T) {
 	assert.Equal(t, "1000", res.EstimatedTotalCost.String())
 }
 
-func TestOrderQuote_Raw(t *testing.T) {
-	// `private/order_quote` stays raw because it isn't published in
-	// the v2.2 OAS.
+func TestOrderQuote_Decode(t *testing.T) {
 	api, ft := newAPI(t, true, 7)
-	ft.HandleResult("private/order_quote", map[string]any{"some": "shape"})
-	raw, err := api.OrderQuote(context.Background(), map[string]any{})
+	ft.HandleResult("private/order_quote", map[string]any{
+		"is_valid":               true,
+		"invalid_reason":         nil,
+		"estimated_fill_amount":  "1",
+		"estimated_fill_price":   "50000",
+		"estimated_fee":          "5",
+		"estimated_realized_pnl": "0",
+		"estimated_order_status": "filled",
+		"suggested_max_fee":      "10",
+		"pre_initial_margin":     "100",
+		"post_initial_margin":    "120",
+		"post_liquidation_price": nil,
+	})
+	got, err := api.OrderQuote(context.Background(), map[string]any{})
 	require.NoError(t, err)
-	assert.JSONEq(t, `{"some":"shape"}`, string(raw))
+	require.NotNil(t, got)
+	assert.True(t, got.IsValid)
+	assert.Equal(t, "filled", got.EstimatedOrderStatus)
+	assert.Equal(t, "5", got.EstimatedFee.String())
+	assert.Equal(t, "0", got.PostLiquidationPrice.String(), "null decimal decodes to zero-value")
+}
+
+func TestOrderQuote_Invalid(t *testing.T) {
+	api, ft := newAPI(t, true, 7)
+	ft.HandleResult("private/order_quote", map[string]any{
+		"is_valid":               false,
+		"invalid_reason":         "Insufficient buying power.",
+		"estimated_fill_amount":  "0",
+		"estimated_fill_price":   "0",
+		"estimated_fee":          "0",
+		"estimated_realized_pnl": "0",
+		"estimated_order_status": "rejected",
+		"suggested_max_fee":      "0",
+		"pre_initial_margin":     "100",
+		"post_initial_margin":    "100",
+		"post_liquidation_price": "45000",
+	})
+	got, err := api.OrderQuote(context.Background(), map[string]any{})
+	require.NoError(t, err)
+	assert.False(t, got.IsValid)
+	assert.Equal(t, "Insufficient buying power.", got.InvalidReason)
+	assert.Equal(t, "rejected", got.EstimatedOrderStatus)
+	assert.Equal(t, "45000", got.PostLiquidationPrice.String())
 }
