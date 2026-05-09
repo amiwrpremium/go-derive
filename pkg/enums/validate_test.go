@@ -57,7 +57,7 @@ func TestEnums_Validate_RejectsUnknown(t *testing.T) {
 		{"LiquidityRole", enums.LiquidityRole("middleman")},
 		{"MarginType", enums.MarginType("pm3")},
 		{"OptionType", enums.OptionType("call")}, // legacy wire value
-		{"OrderStatus", enums.OrderStatus("untriggered")},
+		{"OrderStatus", enums.OrderStatus("haunted")},
 		{"OrderType", enums.OrderType("stop")},
 		{"QuoteStatus", enums.QuoteStatus("pending")},
 		{"TimeInForce", enums.TimeInForce("immediate")},

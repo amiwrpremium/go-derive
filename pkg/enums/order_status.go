@@ -27,8 +27,11 @@ package enums
 // matching engine. Use [OrderStatus.Terminal] to test for "no further
 // updates expected".
 //
-// The set mirrors the canonical `derivexyz/cockpit` enum exactly:
-// open, filled, cancelled, expired, rejected.
+// The set mirrors the OAS `order_status` enum on
+// `OrderResponseSchema` (and the request-side `status` filter on
+// `PrivateGetOrdersParamsSchema`), plus [OrderStatusRejected] —
+// the engine emits "rejected" on synchronous submission failures
+// even though the OAS `order_status` enum currently omits it.
 type OrderStatus string
 
 const (
@@ -46,13 +49,20 @@ const (
 	// OrderStatusRejected means the engine rejected the order at submission
 	// time (e.g. invalid price, post-only would cross).
 	OrderStatusRejected OrderStatus = "rejected"
+	// OrderStatusUntriggered means the order is a trigger order whose
+	// trigger condition has not yet fired.
+	OrderStatusUntriggered OrderStatus = "untriggered"
+	// OrderStatusAlgoActive means the order is an algo (e.g. TWAP) order
+	// currently slicing into the market.
+	OrderStatusAlgoActive OrderStatus = "algo_active"
 )
 
 // Valid reports whether the receiver is one of the defined statuses.
 func (s OrderStatus) Valid() bool {
 	switch s {
 	case OrderStatusOpen, OrderStatusFilled, OrderStatusCancelled,
-		OrderStatusExpired, OrderStatusRejected:
+		OrderStatusExpired, OrderStatusRejected,
+		OrderStatusUntriggered, OrderStatusAlgoActive:
 		return true
 	default:
 		return false
@@ -62,7 +72,8 @@ func (s OrderStatus) Valid() bool {
 // Terminal reports whether the status is final — i.e. the order will not
 // receive further updates and can be cleaned out of any in-memory cache.
 //
-// Only Open is non-terminal; everything else is.
+// Open / Untriggered / AlgoActive are non-terminal (the order is still
+// alive and may transition); everything else is final.
 func (s OrderStatus) Terminal() bool {
 	switch s {
 	case OrderStatusFilled, OrderStatusCancelled, OrderStatusExpired,
