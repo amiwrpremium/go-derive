@@ -13,7 +13,6 @@ import (
 	"github.com/amiwrpremium/go-derive/internal/jsonrpc"
 	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/testutil"
-	"github.com/amiwrpremium/go-derive/pkg/channels/public"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -97,7 +96,7 @@ func TestWSClient_SubscribeTyped(t *testing.T) {
 	require.NoError(t, c.Connect(context.Background()))
 	defer func() { _ = c.Close() }()
 
-	sub, err := ws.Subscribe[derive.OrderBook](context.Background(), c, public.OrderBook{
+	sub, err := ws.Subscribe[derive.OrderBook](context.Background(), c, derive.PublicOrderBook{
 		Instrument: "BTC-PERP", Group: "1", Depth: 5,
 	})
 	require.NoError(t, err)
@@ -134,7 +133,7 @@ func TestWSClient_SubscribeFunc(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {
-		_ = ws.SubscribeFunc(ctx, c, public.OrderBook{Instrument: "ETH-PERP"}, func(ob derive.OrderBook) {
+		_ = ws.SubscribeFunc(ctx, c, derive.PublicOrderBook{Instrument: "ETH-PERP"}, func(ob derive.OrderBook) {
 			got <- ob
 		})
 	}()
@@ -164,7 +163,7 @@ func TestWSClient_SubscribeMethodTypeMismatch(t *testing.T) {
 	require.NoError(t, c.Connect(context.Background()))
 	defer func() { _ = c.Close() }()
 
-	sub, err := ws.Subscribe[string](context.Background(), c, public.OrderBook{Instrument: "BTC-PERP"})
+	sub, err := ws.Subscribe[string](context.Background(), c, derive.PublicOrderBook{Instrument: "BTC-PERP"})
 	require.NoError(t, err)
 	defer func() { _ = sub.Close() }()
 	require.True(t, srv.WaitSubscribed("orderbook.BTC-PERP.1.10", 1*time.Second))

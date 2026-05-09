@@ -21,7 +21,7 @@
 //	if err := c.Connect(ctx); err != nil { ... }
 //	if err := c.Login(ctx); err != nil { ... }
 //
-//	sub, err := ws.Subscribe[types.OrderBook](ctx, c, public.OrderBook{Instrument: "BTC-PERP"})
+//	sub, err := ws.Subscribe[types.OrderBook](ctx, c, derive.PublicOrderBook{Instrument: "BTC-PERP"})
 //	defer sub.Close()
 //	for ob := range sub.Updates() { ... }
 //
@@ -36,8 +36,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/transport"
-	"github.com/amiwrpremium/go-derive/pkg/channels"
 )
 
 // Subscribe registers a typed subscription on a [Client] and returns a
@@ -47,12 +47,12 @@ import (
 // mismatch is dropped silently rather than crashing the read pump (the
 // underlying decoder error is surfaced if a debugger is attached). Pass
 // the right T for the descriptor — e.g. types.OrderBook for
-// public.OrderBook, []types.Trade for public.Trades.
+// derive.PublicOrderBook, []types.Trade for derive.PublicTrades.
 //
 // Generics let callers avoid type assertions at the use site:
 //
 //	sub, _ := ws.Subscribe[types.OrderBook](ctx, c,
-//	    public.OrderBook{Instrument: "BTC-PERP"})
+//	    derive.PublicOrderBook{Instrument: "BTC-PERP"})
 //	defer sub.Close()
 //	for ob := range sub.Updates() {
 //	    fmt.Println(ob.Bids[0])
@@ -62,7 +62,7 @@ import (
 // caller is slow, newer events are dropped (best-effort fan-out, not a
 // reliable queue). Use [SubscribeFunc] when you want to be sure every event
 // is processed.
-func Subscribe[T any](ctx context.Context, c *Client, ch channels.Channel) (*Subscription[T], error) {
+func Subscribe[T any](ctx context.Context, c *Client, ch derive.Channel) (*Subscription[T], error) {
 	dec := func(raw json.RawMessage) (any, error) {
 		v, err := ch.Decode(raw)
 		if err != nil {
@@ -96,7 +96,7 @@ func Subscribe[T any](ctx context.Context, c *Client, ch channels.Channel) (*Sub
 // channel-receive loop, or when you want to guarantee every event is
 // processed (the callback runs synchronously, so back-pressure on the
 // caller is back-pressure on the subscription).
-func SubscribeFunc[T any](ctx context.Context, c *Client, ch channels.Channel, fn func(T)) error {
+func SubscribeFunc[T any](ctx context.Context, c *Client, ch derive.Channel, fn func(T)) error {
 	sub, err := Subscribe[T](ctx, c, ch)
 	if err != nil {
 		return err

@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/amiwrpremium/go-derive"
-	"github.com/amiwrpremium/go-derive/pkg/channels/private"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -28,7 +27,7 @@ func TestWS_OrdersSubscribe(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	sub, err := ws.Subscribe[[]derive.Order](ctx, c, private.Orders{SubaccountID: env.subaccount})
+	sub, err := ws.Subscribe[[]derive.Order](ctx, c, derive.PrivateOrders{SubaccountID: env.subaccount})
 	require.NoError(t, err)
 	defer sub.Close()
 
@@ -44,7 +43,7 @@ func TestWS_BalancesSubscribe(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	sub, err := ws.Subscribe[derive.Balance](ctx, c, private.Balances{SubaccountID: env.subaccount})
+	sub, err := ws.Subscribe[derive.Balance](ctx, c, derive.PrivateBalances{SubaccountID: env.subaccount})
 	require.NoError(t, err)
 	defer sub.Close()
 

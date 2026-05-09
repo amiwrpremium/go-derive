@@ -11,7 +11,6 @@ import (
 
 	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/testutil"
-	"github.com/amiwrpremium/go-derive/pkg/channels/public"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -22,7 +21,7 @@ func TestSubscribe_TypedDelivery(t *testing.T) {
 	require.NoError(t, c.Connect(context.Background()))
 	defer func() { _ = c.Close() }()
 
-	sub, err := ws.Subscribe[derive.OrderBook](context.Background(), c, public.OrderBook{Instrument: "BTC-PERP"})
+	sub, err := ws.Subscribe[derive.OrderBook](context.Background(), c, derive.PublicOrderBook{Instrument: "BTC-PERP"})
 	require.NoError(t, err)
 	defer func() { _ = sub.Close() }()
 
@@ -50,7 +49,7 @@ func TestSubscribe_Channel_Method(t *testing.T) {
 	require.NoError(t, c.Connect(context.Background()))
 	defer func() { _ = c.Close() }()
 
-	sub, err := ws.Subscribe[derive.OrderBook](context.Background(), c, public.OrderBook{Instrument: "X"})
+	sub, err := ws.Subscribe[derive.OrderBook](context.Background(), c, derive.PublicOrderBook{Instrument: "X"})
 	require.NoError(t, err)
 	defer func() { _ = sub.Close() }()
 
@@ -64,7 +63,7 @@ func TestSubscribe_Close_StopsUpdates(t *testing.T) {
 	require.NoError(t, c.Connect(context.Background()))
 	defer func() { _ = c.Close() }()
 
-	sub, err := ws.Subscribe[derive.OrderBook](context.Background(), c, public.OrderBook{Instrument: "X"})
+	sub, err := ws.Subscribe[derive.OrderBook](context.Background(), c, derive.PublicOrderBook{Instrument: "X"})
 	require.NoError(t, err)
 	require.NoError(t, sub.Close())
 	// Second Close is harmless.
@@ -79,7 +78,7 @@ func TestSubscribe_TypeMismatch_Drops(t *testing.T) {
 	defer func() { _ = c.Close() }()
 
 	// Subscribe with the wrong T (string) for an OrderBook channel.
-	sub, err := ws.Subscribe[string](context.Background(), c, public.OrderBook{Instrument: "BTC-PERP"})
+	sub, err := ws.Subscribe[string](context.Background(), c, derive.PublicOrderBook{Instrument: "BTC-PERP"})
 	require.NoError(t, err)
 	defer func() { _ = sub.Close() }()
 	require.True(t, srv.WaitSubscribed("orderbook.BTC-PERP.1.10", 1*time.Second))
@@ -110,7 +109,7 @@ func TestSubscribeFunc_DriverCallback(t *testing.T) {
 	defer cancel()
 
 	go func() {
-		_ = ws.SubscribeFunc(ctx, c, public.OrderBook{Instrument: "ETH-PERP"}, func(ob derive.OrderBook) {
+		_ = ws.SubscribeFunc(ctx, c, derive.PublicOrderBook{Instrument: "ETH-PERP"}, func(ob derive.OrderBook) {
 			got <- ob
 		})
 	}()
@@ -140,7 +139,7 @@ func TestSubscribeFunc_ContextCancelReturnsErr(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan error, 1)
 	go func() {
-		done <- ws.SubscribeFunc(ctx, c, public.OrderBook{Instrument: "X"}, func(derive.OrderBook) {})
+		done <- ws.SubscribeFunc(ctx, c, derive.PublicOrderBook{Instrument: "X"}, func(derive.OrderBook) {})
 	}()
 	require.True(t, srv.WaitSubscribed("orderbook.X.1.10", 1*time.Second))
 	cancel()
