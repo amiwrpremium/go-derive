@@ -62,6 +62,23 @@ func (a *API) GetLatestSignedFeeds(ctx context.Context, params map[string]any) (
 	return &resp, nil
 }
 
+// GetInterestRateHistory returns historical USDC borrow / supply
+// APY prints over the requested window. Public.
+//
+// Required `params`: `from_timestamp_sec`, `to_timestamp_sec`.
+// Optional: `page`, `page_size`. Paginated; the second return value
+// carries the totals.
+func (a *API) GetInterestRateHistory(ctx context.Context, params map[string]any) ([]types.InterestRateHistoryItem, types.Page, error) {
+	var resp struct {
+		InterestRates []types.InterestRateHistoryItem `json:"interest_rates"`
+		Pagination    types.Page                      `json:"pagination"`
+	}
+	if err := a.call(ctx, "public/get_interest_rate_history", params, &resp); err != nil {
+		return nil, types.Page{}, err
+	}
+	return resp.InterestRates, resp.Pagination, nil
+}
+
 // GetPerpImpactTWAP returns the time-weighted-average difference of
 // mid price, ask-impact price, and bid-impact price versus spot for
 // one currency's perpetual book over the requested window. Public.
