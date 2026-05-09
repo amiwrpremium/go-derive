@@ -7,16 +7,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/testutil"
 	"github.com/amiwrpremium/go-derive/pkg/auth"
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 func TestWS_RequiresNetwork(t *testing.T) {
 	_, err := ws.New()
-	assert.ErrorIs(t, err, derrors.ErrInvalidConfig)
+	assert.ErrorIs(t, err, derive.ErrInvalidConfig)
 }
 
 func TestWS_WithMainnet(t *testing.T) {

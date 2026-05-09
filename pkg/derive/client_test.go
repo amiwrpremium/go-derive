@@ -6,17 +6,17 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	goderive "github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/pkg/auth"
 	"github.com/amiwrpremium/go-derive/pkg/derive"
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 )
 
 const testKey = "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318"
 
 func TestNewClient_RequiresNetwork(t *testing.T) {
 	_, err := derive.NewClient()
-	assert.ErrorIs(t, err, derrors.ErrInvalidConfig)
+	assert.ErrorIs(t, err, goderive.ErrInvalidConfig)
 }
 
 func TestNewClient_Mainnet(t *testing.T) {

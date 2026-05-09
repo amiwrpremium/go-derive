@@ -10,7 +10,6 @@ import (
 
 	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/methods"
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 )
 
 func TestMMPConfig_Validate_Happy(t *testing.T) {
@@ -92,7 +91,7 @@ func TestSetMMPConfig_OmitsBothLimits(t *testing.T) {
 func TestSetMMPConfig_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
 	err := api.SetMMPConfig(context.Background(), methods.MMPConfig{Currency: "BTC"})
-	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
 }
 
 func TestResetMMP_Happy(t *testing.T) {
@@ -107,5 +106,5 @@ func TestResetMMP_Happy(t *testing.T) {
 func TestResetMMP_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
 	err := api.ResetMMP(context.Background(), "BTC")
-	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
 }

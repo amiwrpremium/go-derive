@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
+	"github.com/amiwrpremium/go-derive"
 )
 
 func TestGetCollateral_Happy(t *testing.T) {
@@ -35,5 +35,5 @@ func TestGetCollateral_Empty(t *testing.T) {
 func TestGetCollateral_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
 	_, err := api.GetCollateral(context.Background())
-	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
 }

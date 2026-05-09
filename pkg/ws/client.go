@@ -43,7 +43,6 @@ import (
 	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/transport"
 	"github.com/amiwrpremium/go-derive/pkg/auth"
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 )
 
 // Client is a JSON-RPC plus subscription client over a single WebSocket.
@@ -76,7 +75,7 @@ func New(opts ...Option) (*Client, error) {
 		opt(c)
 	}
 	if c.network.Network == netconf.NetworkUnknown {
-		return nil, derrors.ErrInvalidConfig
+		return nil, derive.ErrInvalidConfig
 	}
 
 	wt, err := transport.NewWS(transport.WSConfig{
@@ -126,7 +125,7 @@ func New(opts ...Option) (*Client, error) {
 // via signed headers, not via this RPC.
 func (c *Client) Login(ctx context.Context) error {
 	if c.signer == nil {
-		return derrors.ErrUnauthorized
+		return derive.ErrUnauthorized
 	}
 	now := time.Now()
 	sig, err := c.signer.SignAuthHeader(ctx, now)
@@ -140,10 +139,10 @@ func (c *Client) Login(ctx context.Context) error {
 	}
 	if err := c.wt.Call(ctx, "public/login", params, nil); err != nil {
 		// Transport returns *transport.JSONRPCError; lift to the
-		// public *derrors.APIError at the boundary so callers can
-		// match `errors.As(err, &derrors.APIError{...})`.
+		// public *derive.APIError at the boundary so callers can
+		// match `errors.As(err, &derive.APIError{...})`.
 		if rpcErr, ok := err.(*transport.JSONRPCError); ok {
-			return &derrors.APIError{Code: rpcErr.Code, Message: rpcErr.Message, Data: rpcErr.Data}
+			return &derive.APIError{Code: rpcErr.Code, Message: rpcErr.Message, Data: rpcErr.Data}
 		}
 		return err
 	}

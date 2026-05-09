@@ -40,7 +40,6 @@ import (
 	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/transport"
 	"github.com/amiwrpremium/go-derive/pkg/auth"
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 )
 
 // Client is the HTTP JSON-RPC client.
@@ -74,7 +73,7 @@ func New(opts ...Option) (*Client, error) {
 		opt(c)
 	}
 	if c.network.Network == netconf.NetworkUnknown {
-		return nil, derrors.ErrInvalidConfig
+		return nil, derive.ErrInvalidConfig
 	}
 
 	hdrProv := func(ctx context.Context, _ string, _ []byte) (http.Header, error) {

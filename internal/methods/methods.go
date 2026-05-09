@@ -13,10 +13,10 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/transport"
 	"github.com/amiwrpremium/go-derive/pkg/auth"
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 )
 
 // API is a transport-agnostic facade that holds the ambient configuration
@@ -43,7 +43,7 @@ type API struct {
 // requireSigner returns ErrUnauthorized if no signer is configured.
 func (a *API) requireSigner() error {
 	if a.Signer == nil {
-		return derrors.ErrUnauthorized
+		return derive.ErrUnauthorized
 	}
 	return nil
 }
@@ -51,28 +51,28 @@ func (a *API) requireSigner() error {
 // requireSubaccount returns ErrSubaccountRequired when the action needs one.
 func (a *API) requireSubaccount() error {
 	if a.Subaccount == 0 {
-		return derrors.ErrSubaccountRequired
+		return derive.ErrSubaccountRequired
 	}
 	return nil
 }
 
 // call is a shortcut for the common case of one method, one params, one out.
 // It also re-wraps a transport-level [transport.JSONRPCError] into a
-// public [derrors.APIError] so callers receive the rich-typed sentinel-aware
+// public [derive.APIError] so callers receive the rich-typed sentinel-aware
 // error.
 func (a *API) call(ctx context.Context, method string, params, out any) error {
 	return wrapTransportError(a.T.Call(ctx, method, params, out))
 }
 
 // wrapTransportError converts a transport-layer `*transport.JSONRPCError`
-// into a public `*derrors.APIError`. Errors of any other type pass through
+// into a public `*derive.APIError`. Errors of any other type pass through
 // unchanged. This sits at the methods/transport boundary and is the reason
 // transport can stay free of an import on `pkg/errors` — closing the
 // otherwise-inevitable `pkg/errors → transport → pkg/errors` cycle once
 // pkg/errors lifts to root.
 func wrapTransportError(err error) error {
 	if rpcErr, ok := err.(*transport.JSONRPCError); ok {
-		return &derrors.APIError{
+		return &derive.APIError{
 			Code:    rpcErr.Code,
 			Message: rpcErr.Message,
 			Data:    rpcErr.Data,

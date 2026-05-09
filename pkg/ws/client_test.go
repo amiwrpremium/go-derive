@@ -15,7 +15,6 @@ import (
 	"github.com/amiwrpremium/go-derive/internal/testutil"
 	"github.com/amiwrpremium/go-derive/pkg/auth"
 	"github.com/amiwrpremium/go-derive/pkg/channels/public"
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -38,7 +37,7 @@ func newWSClient(t *testing.T, srv *testutil.MockWSServer, signed bool) *ws.Clie
 
 func TestWSClient_RequiresNetwork(t *testing.T) {
 	_, err := ws.New()
-	assert.ErrorIs(t, err, derrors.ErrInvalidConfig)
+	assert.ErrorIs(t, err, derive.ErrInvalidConfig)
 }
 
 func TestWSClient_ConnectAndCall(t *testing.T) {
@@ -75,21 +74,21 @@ func TestWSClient_Login_RequiresSigner(t *testing.T) {
 	require.NoError(t, c.Connect(context.Background()))
 	defer func() { _ = c.Close() }()
 	err := c.Login(context.Background())
-	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
+	assert.ErrorIs(t, err, derive.ErrUnauthorized)
 }
 
 func TestWSClient_Login_PropagatesAPIError(t *testing.T) {
 	srv := testutil.NewMockWSServer()
 	defer srv.Close()
 	srv.Handle("public/login", func(json.RawMessage) (any, *jsonrpc.Error) {
-		return nil, &jsonrpc.Error{Code: derrors.CodeInvalidSignature, Message: "no"}
+		return nil, &jsonrpc.Error{Code: derive.CodeInvalidSignature, Message: "no"}
 	})
 
 	c := newWSClient(t, srv, true)
 	require.NoError(t, c.Connect(context.Background()))
 	defer func() { _ = c.Close() }()
 	err := c.Login(context.Background())
-	assert.True(t, derrors.Is(err, derrors.ErrUnauthorized))
+	assert.True(t, derive.Is(err, derive.ErrUnauthorized))
 }
 
 func TestWSClient_SubscribeTyped(t *testing.T) {

@@ -9,11 +9,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/jsonrpc"
 	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/testutil"
 	"github.com/amiwrpremium/go-derive/pkg/auth"
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
 )
 
@@ -35,7 +35,7 @@ func TestRest_WithTestnet(t *testing.T) {
 
 func TestRest_RequiresNetwork(t *testing.T) {
 	_, err := rest.New()
-	assert.ErrorIs(t, err, derrors.ErrInvalidConfig)
+	assert.ErrorIs(t, err, derive.ErrInvalidConfig)
 }
 
 func TestRest_AllOptionsApplied(t *testing.T) {

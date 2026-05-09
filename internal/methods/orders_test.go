@@ -13,7 +13,6 @@ import (
 
 	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/methods"
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 )
 
 func validPlaceOrderInput() methods.PlaceOrderInput {
@@ -68,13 +67,13 @@ func TestPlaceOrderInput_Validate_AllowsEmptyTimeInForce(t *testing.T) {
 func TestPlaceOrder_RequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
 	_, err := api.PlaceOrder(context.Background(), methods.PlaceOrderInput{})
-	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
+	assert.ErrorIs(t, err, derive.ErrUnauthorized)
 }
 
 func TestPlaceOrder_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0) // signer set but subaccount=0
 	_, err := api.PlaceOrder(context.Background(), methods.PlaceOrderInput{})
-	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
 }
 
 func TestPlaceOrder_Success_PopulatesSignatureFields(t *testing.T) {
@@ -134,7 +133,7 @@ func TestCancelOrder(t *testing.T) {
 func TestCancelOrder_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
 	err := api.CancelOrder(context.Background(), "BTC-PERP", "O1")
-	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
 }
 
 func TestCancelByLabel(t *testing.T) {
@@ -214,7 +213,7 @@ func TestPrivateMethods_RequireSubaccount_Across(t *testing.T) {
 	}
 	for name, fn := range cases {
 		t.Run(name, func(t *testing.T) {
-			assert.ErrorIs(t, fn(), derrors.ErrSubaccountRequired)
+			assert.ErrorIs(t, fn(), derive.ErrSubaccountRequired)
 		})
 	}
 }

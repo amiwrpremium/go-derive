@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/amiwrpremium/go-derive"
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 )
 
 func TestSendRFQ_Happy(t *testing.T) {
@@ -25,7 +24,7 @@ func TestSendRFQ_Happy(t *testing.T) {
 func TestSendRFQ_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
 	_, err := api.SendRFQ(context.Background(), nil, derive.MustDecimal("0"))
-	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
 }
 
 func TestPollRFQs_Happy(t *testing.T) {
@@ -39,7 +38,7 @@ func TestPollRFQs_Happy(t *testing.T) {
 func TestPollRFQs_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
 	_, err := api.PollRFQs(context.Background())
-	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
 }
 
 func TestCancelRFQ_Happy(t *testing.T) {
@@ -53,5 +52,5 @@ func TestCancelRFQ_Happy(t *testing.T) {
 func TestCancelRFQ_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
 	err := api.CancelRFQ(context.Background(), "R1")
-	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
 }

@@ -47,8 +47,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
-
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/netconf"
 )
 
@@ -66,7 +65,7 @@ func NewLocalSigner(hexKey string) (*LocalSigner, error) {
 	hexKey = strings.TrimPrefix(hexKey, "0x")
 	k, err := crypto.HexToECDSA(hexKey)
 	if err != nil {
-		return nil, &derrors.SigningError{Op: "parse private key", Err: err}
+		return nil, &derive.SigningError{Op: "parse private key", Err: err}
 	}
 	return &LocalSigner{key: k, addr: crypto.PubkeyToAddress(k.PublicKey)}, nil
 }
@@ -103,10 +102,10 @@ func signDigest(key *ecdsa.PrivateKey, digest []byte) (Signature, error) {
 	var sig Signature
 	raw, err := crypto.Sign(digest, key)
 	if err != nil {
-		return sig, &derrors.SigningError{Op: "ecdsa sign", Err: err}
+		return sig, &derive.SigningError{Op: "ecdsa sign", Err: err}
 	}
 	if len(raw) != 65 {
-		return sig, &derrors.SigningError{Op: "ecdsa sign", Err: errShortSig}
+		return sig, &derive.SigningError{Op: "ecdsa sign", Err: errShortSig}
 	}
 	copy(sig[:], raw)
 	// go-ethereum returns v in {0, 1}; Solidity ecrecover wants {27, 28}.
@@ -114,4 +113,4 @@ func signDigest(key *ecdsa.PrivateKey, digest []byte) (Signature, error) {
 	return sig, nil
 }
 
-var errShortSig = derrors.New("ecdsa signature too short")
+var errShortSig = derive.New("ecdsa signature too short")

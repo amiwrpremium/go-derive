@@ -7,10 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/jsonrpc"
 	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/testutil"
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
 )
 
@@ -62,7 +62,7 @@ func TestAPIError_MapsToSentinel(t *testing.T) {
 	defer srv.Close()
 
 	srv.Handle("public/get_time", func(_ testutil.MockRequest) (any, *jsonrpc.Error) {
-		return nil, &jsonrpc.Error{Code: derrors.CodeRateLimitExceeded, Message: "rate limited"}
+		return nil, &jsonrpc.Error{Code: derive.CodeRateLimitExceeded, Message: "rate limited"}
 	})
 
 	c := withMock(t, srv)
@@ -71,9 +71,9 @@ func TestAPIError_MapsToSentinel(t *testing.T) {
 	_, err := c.GetTime(context.Background())
 	require.Error(t, err)
 
-	assert.True(t, derrors.Is(err, derrors.ErrRateLimited),
+	assert.True(t, derive.Is(err, derive.ErrRateLimited),
 		"expected rate-limit code %d to map to ErrRateLimited; got %v",
-		derrors.CodeRateLimitExceeded, err)
+		derive.CodeRateLimitExceeded, err)
 }
 
 func TestPrivateMethod_RequiresSubaccount(t *testing.T) {
@@ -84,5 +84,5 @@ func TestPrivateMethod_RequiresSubaccount(t *testing.T) {
 	defer c.Close()
 
 	_, err := c.GetPositions(context.Background())
-	assert.True(t, derrors.Is(err, derrors.ErrSubaccountRequired), "got %v", err)
+	assert.True(t, derive.Is(err, derive.ErrSubaccountRequired), "got %v", err)
 }

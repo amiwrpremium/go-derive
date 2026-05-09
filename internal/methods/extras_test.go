@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
+	"github.com/amiwrpremium/go-derive"
 )
 
 // publicMethods covers every public/* extra wrapper. They all share the
@@ -211,6 +211,6 @@ func TestExtras_PrivateRequiresSigner(t *testing.T) {
 	}
 	for _, fn := range checks {
 		_, err := fn()
-		assert.ErrorIs(t, err, derrors.ErrUnauthorized)
+		assert.ErrorIs(t, err, derive.ErrUnauthorized)
 	}
 }

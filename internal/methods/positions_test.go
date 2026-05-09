@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
+	"github.com/amiwrpremium/go-derive"
 )
 
 func TestGetPositions_Empty(t *testing.T) {
@@ -42,5 +42,5 @@ func TestGetPositions_NonEmpty(t *testing.T) {
 func TestGetPositions_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
 	_, err := api.GetPositions(context.Background())
-	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
 }

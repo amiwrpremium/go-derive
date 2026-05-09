@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
+	"github.com/amiwrpremium/go-derive"
 )
 
 func TestGetSubaccount_Happy(t *testing.T) {
@@ -32,7 +32,7 @@ func TestGetSubaccount_Happy(t *testing.T) {
 func TestGetSubaccount_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
 	_, err := api.GetSubaccount(context.Background())
-	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
 }
 
 func TestGetSubaccounts_Happy(t *testing.T) {
@@ -49,5 +49,5 @@ func TestGetSubaccounts_Happy(t *testing.T) {
 func TestGetSubaccounts_RequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
 	_, err := api.GetSubaccounts(context.Background())
-	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
+	assert.ErrorIs(t, err, derive.ErrUnauthorized)
 }

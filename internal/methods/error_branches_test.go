@@ -11,12 +11,11 @@ import (
 	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/methods"
 	"github.com/amiwrpremium/go-derive/internal/testutil"
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 )
 
 // boom is the error injected by the fake transport on every wrapper under
 // test below. Using a single sentinel keeps the table compact.
-var boom = &derrors.APIError{Code: 9999, Message: "boom"}
+var boom = &derive.APIError{Code: 9999, Message: "boom"}
 
 // rawWrapper is a generic adapter for the family of wrappers that take
 // (ctx, map[string]any) and return (json.RawMessage, error). It lets us
@@ -67,7 +66,7 @@ func TestRPCWrappers_PropagateError(t *testing.T) {
 			ft.HandleError(c.method, boom)
 			_, err := c.fn(api)(context.Background(), map[string]any{})
 			assert.Error(t, err)
-			var apiErr *derrors.APIError
+			var apiErr *derive.APIError
 			assert.True(t, errors.As(err, &apiErr))
 			assert.Equal(t, 9999, apiErr.Code)
 		})
@@ -81,91 +80,91 @@ func TestNoArgWrappers_PropagateError(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/get_margin", boom)
 		_, err := api.GetMargin(context.Background())
-		assert.ErrorAs(t, err, new(*derrors.APIError))
+		assert.ErrorAs(t, err, new(*derive.APIError))
 	})
 	t.Run("GetMMPConfig", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/get_mmp_config", boom)
 		_, err := api.GetMMPConfig(context.Background())
-		assert.ErrorAs(t, err, new(*derrors.APIError))
+		assert.ErrorAs(t, err, new(*derive.APIError))
 	})
 	t.Run("GetAccount", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/get_account", boom)
 		_, err := api.GetAccount(context.Background())
-		assert.ErrorAs(t, err, new(*derrors.APIError))
+		assert.ErrorAs(t, err, new(*derive.APIError))
 	})
 	t.Run("CancelByNonce", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/cancel_by_nonce", boom)
 		_, err := api.CancelByNonce(context.Background(), "BTC-PERP", 42)
-		assert.ErrorAs(t, err, new(*derrors.APIError))
+		assert.ErrorAs(t, err, new(*derive.APIError))
 	})
 	t.Run("SetCancelOnDisconnect", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/set_cancel_on_disconnect", boom)
 		_, err := api.SetCancelOnDisconnect(context.Background(), true)
-		assert.ErrorAs(t, err, new(*derrors.APIError))
+		assert.ErrorAs(t, err, new(*derive.APIError))
 	})
 	t.Run("ChangeSubaccountLabel", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/change_subaccount_label", boom)
 		_, err := api.ChangeSubaccountLabel(context.Background(), "newlabel")
-		assert.ErrorAs(t, err, new(*derrors.APIError))
+		assert.ErrorAs(t, err, new(*derive.APIError))
 	})
 	t.Run("GetStatistics", func(t *testing.T) {
 		api, ft := newAPI(t, true, 0)
 		ft.HandleError("public/statistics", boom)
 		_, err := api.GetStatistics(context.Background(), "BTC-PERP")
-		assert.ErrorAs(t, err, new(*derrors.APIError))
+		assert.ErrorAs(t, err, new(*derive.APIError))
 	})
 	t.Run("GetTransaction", func(t *testing.T) {
 		api, ft := newAPI(t, true, 0)
 		ft.HandleError("public/get_transaction", boom)
 		_, err := api.GetTransaction(context.Background(), "TX1")
-		assert.ErrorAs(t, err, new(*derrors.APIError))
+		assert.ErrorAs(t, err, new(*derive.APIError))
 	})
 	t.Run("GetCurrencies", func(t *testing.T) {
 		api, ft := newAPI(t, true, 0)
 		ft.HandleError("public/get_all_currencies", boom)
 		_, err := api.GetCurrencies(context.Background())
-		assert.ErrorAs(t, err, new(*derrors.APIError))
+		assert.ErrorAs(t, err, new(*derive.APIError))
 	})
 	t.Run("CancelByLabel", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/cancel_by_label", boom)
 		_, err := api.CancelByLabel(context.Background(), "L")
-		assert.ErrorAs(t, err, new(*derrors.APIError))
+		assert.ErrorAs(t, err, new(*derive.APIError))
 	})
 	t.Run("CancelByInstrument", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/cancel_by_instrument", boom)
 		_, err := api.CancelByInstrument(context.Background(), "BTC-PERP")
-		assert.ErrorAs(t, err, new(*derrors.APIError))
+		assert.ErrorAs(t, err, new(*derive.APIError))
 	})
 	t.Run("CancelAll", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/cancel_all", boom)
 		_, err := api.CancelAll(context.Background())
-		assert.ErrorAs(t, err, new(*derrors.APIError))
+		assert.ErrorAs(t, err, new(*derive.APIError))
 	})
 	t.Run("GetDepositHistory_ServerError", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/get_deposit_history", boom)
 		_, _, err := api.GetDepositHistory(context.Background(), derive.PageRequest{Page: 1, PageSize: 10})
-		assert.ErrorAs(t, err, new(*derrors.APIError))
+		assert.ErrorAs(t, err, new(*derive.APIError))
 	})
 	t.Run("GetWithdrawalHistory_ServerError", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/get_withdrawal_history", boom)
 		_, _, err := api.GetWithdrawalHistory(context.Background(), derive.PageRequest{})
-		assert.ErrorAs(t, err, new(*derrors.APIError))
+		assert.ErrorAs(t, err, new(*derive.APIError))
 	})
 	t.Run("GetTradeHistory_ServerError", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/get_trade_history", boom)
 		_, _, err := api.GetTradeHistory(context.Background(), derive.PageRequest{})
-		assert.ErrorAs(t, err, new(*derrors.APIError))
+		assert.ErrorAs(t, err, new(*derive.APIError))
 	})
 }
 

@@ -26,9 +26,9 @@ package derive
 import (
 	"context"
 
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/pkg/auth"
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
@@ -96,7 +96,7 @@ func NewClient(opts ...Option) (*Client, error) {
 		opt(cfg)
 	}
 	if cfg.network.Network == netconf.NetworkUnknown {
-		return nil, derrors.ErrInvalidConfig
+		return nil, derive.ErrInvalidConfig
 	}
 
 	r, err := rest.New(

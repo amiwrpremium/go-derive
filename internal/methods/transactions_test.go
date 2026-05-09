@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/amiwrpremium/go-derive"
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 )
 
 func TestGetTradeHistory_Happy(t *testing.T) {
@@ -44,7 +43,7 @@ func TestGetTradeHistory_OmitsZeroPagination(t *testing.T) {
 func TestGetTradeHistory_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
 	_, _, err := api.GetTradeHistory(context.Background(), derive.PageRequest{})
-	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
 }
 
 func TestGetDepositHistory_Happy(t *testing.T) {
@@ -60,7 +59,7 @@ func TestGetDepositHistory_Happy(t *testing.T) {
 func TestGetDepositHistory_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
 	_, _, err := api.GetDepositHistory(context.Background(), derive.PageRequest{})
-	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
 }
 
 func TestGetWithdrawalHistory_Happy(t *testing.T) {
@@ -79,5 +78,5 @@ func TestGetWithdrawalHistory_Happy(t *testing.T) {
 func TestGetWithdrawalHistory_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
 	_, _, err := api.GetWithdrawalHistory(context.Background(), derive.PageRequest{})
-	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+	assert.ErrorIs(t, err, derive.ErrSubaccountRequired)
 }

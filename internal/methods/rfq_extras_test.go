@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
+	"github.com/amiwrpremium/go-derive"
 )
 
 func TestRFQExtras_AllMethods(t *testing.T) {
@@ -85,6 +85,6 @@ func TestRFQExtras_RequireSigner(t *testing.T) {
 	}
 	for _, fn := range checks {
 		_, err := fn()
-		assert.ErrorIs(t, err, derrors.ErrUnauthorized)
+		assert.ErrorIs(t, err, derive.ErrUnauthorized)
 	}
 }
