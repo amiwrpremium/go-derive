@@ -3,9 +3,9 @@
 // processes that need order-book pressure, top-of-book, and trade prints
 // in one place without per-channel goroutines.
 //
-//   - orderbook (depth 10)        →  pkg/channels/derive.PublicOrderBook
-//   - ticker (1000 ms cadence)    →  pkg/channels/derive.PublicTickerSlim
-//   - trades                      →  pkg/channels/derive.PublicTrades
+//   - orderbook (depth 10)        →  derive.PublicOrderBook
+//   - ticker (1000 ms cadence)    →  derive.PublicTickerSlim
+//   - trades                      →  derive.PublicTrades
 //
 // Each select arm prints a one-line summary so it's obvious which channel
 // fired. Cancel with Ctrl-C; the example exits cleanly via ctx-cancel.

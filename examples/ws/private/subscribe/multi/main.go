@@ -3,9 +3,9 @@
 // processes that need to react to fill, balance, and order-state
 // changes from one place without per-channel goroutines.
 //
-//   - orders   → pkg/channels/derive.PrivateOrders
-//   - balances → pkg/channels/derive.PrivateBalances
-//   - trades   → pkg/channels/derive.PrivateTrades
+//   - orders   → derive.PrivateOrders
+//   - balances → derive.PrivateBalances
+//   - trades   → derive.PrivateTrades
 //
 // Position state is not a Derive subscription channel — poll
 // `private/get_positions` (REST or WS RPC) when you need it, or

@@ -22,16 +22,16 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	goderive "github.com/amiwrpremium/go-derive"
+	"github.com/amiwrpremium/go-derive"
 )
 
 // Network returns the configured Derive network (default: testnet).
-func Network() goderive.NetworkConfig {
+func Network() derive.NetworkConfig {
 	switch os.Getenv("DERIVE_NETWORK") {
 	case "mainnet":
-		return goderive.Mainnet()
+		return derive.Mainnet()
 	default:
-		return goderive.Testnet()
+		return derive.Testnet()
 	}
 }
 
@@ -65,21 +65,21 @@ func Subaccount() int64 {
 	return n
 }
 
-// MustSigner returns an goderive.Signer built from the env, or fatal-exits
+// MustSigner returns an derive.Signer built from the env, or fatal-exits
 // when DERIVE_SESSION_KEY is missing.
-func MustSigner() goderive.Signer {
+func MustSigner() derive.Signer {
 	key := os.Getenv("DERIVE_SESSION_KEY")
 	if key == "" {
 		log.Fatal("DERIVE_SESSION_KEY required for this example")
 	}
 	if owner := os.Getenv("DERIVE_OWNER"); owner != "" {
-		s, err := goderive.NewSessionKeySigner(key, common.HexToAddress(owner))
+		s, err := derive.NewSessionKeySigner(key, common.HexToAddress(owner))
 		if err != nil {
 			log.Fatalf("session key signer: %v", err)
 		}
 		return s
 	}
-	s, err := goderive.NewLocalSigner(key)
+	s, err := derive.NewLocalSigner(key)
 	if err != nil {
 		log.Fatalf("local signer: %v", err)
 	}
@@ -87,32 +87,32 @@ func MustSigner() goderive.Signer {
 }
 
 // MustRESTPublic returns a public-only REST client. Always succeeds.
-func MustRESTPublic() *goderive.RestClient {
-	c, err := goderive.NewRestClient(goderive.WithCustomNetwork(Network()))
+func MustRESTPublic() *derive.RestClient {
+	c, err := derive.NewRestClient(derive.WithCustomNetwork(Network()))
 	if err != nil {
-		log.Fatalf("goderive.NewRestClient: %v", err)
+		log.Fatalf("derive.NewRestClient: %v", err)
 	}
 	return c
 }
 
 // MustRESTPrivate returns an authenticated REST client using env creds.
-func MustRESTPrivate() *goderive.RestClient {
-	c, err := goderive.NewRestClient(
-		goderive.WithCustomNetwork(Network()),
-		goderive.WithSigner(MustSigner()),
-		goderive.WithSubaccount(Subaccount()),
+func MustRESTPrivate() *derive.RestClient {
+	c, err := derive.NewRestClient(
+		derive.WithCustomNetwork(Network()),
+		derive.WithSigner(MustSigner()),
+		derive.WithSubaccount(Subaccount()),
 	)
 	if err != nil {
-		log.Fatalf("goderive.NewRestClient: %v", err)
+		log.Fatalf("derive.NewRestClient: %v", err)
 	}
 	return c
 }
 
 // MustWSPublic returns a connected public WS client. Caller must defer Close.
-func MustWSPublic(ctx context.Context) *goderive.WsClient {
-	c, err := goderive.NewWsClient(goderive.WithCustomNetwork(Network()))
+func MustWSPublic(ctx context.Context) *derive.WsClient {
+	c, err := derive.NewWsClient(derive.WithCustomNetwork(Network()))
 	if err != nil {
-		log.Fatalf("goderive.NewWsClient: %v", err)
+		log.Fatalf("derive.NewWsClient: %v", err)
 	}
 	if err := c.Connect(ctx); err != nil {
 		_ = c.Close()
@@ -122,14 +122,14 @@ func MustWSPublic(ctx context.Context) *goderive.WsClient {
 }
 
 // MustWSPrivate returns a connected, logged-in WS client.
-func MustWSPrivate(ctx context.Context) *goderive.WsClient {
-	c, err := goderive.NewWsClient(
-		goderive.WithCustomNetwork(Network()),
-		goderive.WithSigner(MustSigner()),
-		goderive.WithSubaccount(Subaccount()),
+func MustWSPrivate(ctx context.Context) *derive.WsClient {
+	c, err := derive.NewWsClient(
+		derive.WithCustomNetwork(Network()),
+		derive.WithSigner(MustSigner()),
+		derive.WithSubaccount(Subaccount()),
 	)
 	if err != nil {
-		log.Fatalf("goderive.NewWsClient: %v", err)
+		log.Fatalf("derive.NewWsClient: %v", err)
 	}
 	if err := c.Connect(ctx); err != nil {
 		_ = c.Close()
@@ -143,23 +143,23 @@ func MustWSPrivate(ctx context.Context) *goderive.WsClient {
 }
 
 // MustDerivePublic returns the top-level facade with public-only access.
-func MustDerivePublic() *goderive.Client {
-	c, err := goderive.NewClient(goderive.WithCustomNetwork(Network()))
+func MustDerivePublic() *derive.Client {
+	c, err := derive.NewClient(derive.WithCustomNetwork(Network()))
 	if err != nil {
-		log.Fatalf("goderive.NewClient: %v", err)
+		log.Fatalf("derive.NewClient: %v", err)
 	}
 	return c
 }
 
 // MustDerivePrivate returns the top-level facade with creds.
-func MustDerivePrivate() *goderive.Client {
-	c, err := goderive.NewClient(
-		goderive.WithCustomNetwork(Network()),
-		goderive.WithSigner(MustSigner()),
-		goderive.WithSubaccount(Subaccount()),
+func MustDerivePrivate() *derive.Client {
+	c, err := derive.NewClient(
+		derive.WithCustomNetwork(Network()),
+		derive.WithSigner(MustSigner()),
+		derive.WithSubaccount(Subaccount()),
 	)
 	if err != nil {
-		log.Fatalf("goderive.NewClient: %v", err)
+		log.Fatalf("derive.NewClient: %v", err)
 	}
 	return c
 }
