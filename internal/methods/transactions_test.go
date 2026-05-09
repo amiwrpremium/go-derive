@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/amiwrpremium/go-derive/pkg/enums"
 	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
@@ -92,7 +93,7 @@ func TestGetTransaction_Decode(t *testing.T) {
 	})
 	got, err := api.GetTransaction(context.Background(), "tx-1")
 	require.NoError(t, err)
-	assert.Equal(t, "settled", got.Status)
+	assert.Equal(t, enums.TxStatusSettled, got.Status)
 	assert.Equal(t, "0xabc", got.TransactionHash)
 	assert.Equal(t, "", got.ErrorLog)
 }
@@ -107,6 +108,6 @@ func TestGetTransaction_FailedTx(t *testing.T) {
 	})
 	got, err := api.GetTransaction(context.Background(), "tx-1")
 	require.NoError(t, err)
-	assert.Equal(t, "reverted", got.Status)
+	assert.Equal(t, enums.TxStatusReverted, got.Status)
 	assert.Equal(t, "reverted: insufficient", got.ErrorLog)
 }

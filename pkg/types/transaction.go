@@ -18,6 +18,8 @@
 // values are amounts vs prices vs subaccount ids.
 package types
 
+import "github.com/amiwrpremium/go-derive/pkg/enums"
+
 // DepositTx records a single deposit into a subaccount.
 //
 // Returned by `private/get_deposit_history`; also delivered on the
@@ -50,9 +52,11 @@ type Transaction struct {
 	// ErrorLog is populated if the transaction failed. Nullable on
 	// the wire; absent decodes to empty string.
 	ErrorLog string `json:"error_log,omitempty"`
-	// Status is the transaction lifecycle state: "requested",
-	// "pending", "settled", "reverted", "ignored", or "timed_out".
-	Status string `json:"status"`
+	// Status is the transaction lifecycle state. The wire enum has
+	// six values (requested / pending / settled / reverted / ignored /
+	// timed_out); decoded to a typed [enums.TxStatus] so callers can
+	// compare against the constants and use [enums.TxStatus.Validate].
+	Status enums.TxStatus `json:"status"`
 	// TransactionHash is the on-chain transaction hash. Nullable on
 	// the wire (the server returns it once submitted); absent
 	// decodes to empty string.
