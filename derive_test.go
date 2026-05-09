@@ -1,4 +1,4 @@
-package goderive_test
+package derive_test
 
 import (
 	"strings"
@@ -6,20 +6,20 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	goderive "github.com/amiwrpremium/go-derive"
+	"github.com/amiwrpremium/go-derive"
 )
 
 func TestVersion_NonEmpty(t *testing.T) {
-	assert.NotEmpty(t, goderive.Version)
+	assert.NotEmpty(t, derive.Version)
 }
 
 func TestVersion_FormatLooksLikeSemver(t *testing.T) {
 	// Either "X.Y.Z" or "X.Y.Z-suffix".
-	assert.Regexp(t, `^\d+\.\d+\.\d+(-\w+)?$`, goderive.Version)
+	assert.Regexp(t, `^\d+\.\d+\.\d+(-\w+)?$`, derive.Version)
 }
 
 func TestUserAgent_StartsWithSDK(t *testing.T) {
-	ua := goderive.UserAgent()
+	ua := derive.UserAgent()
 	assert.True(t, strings.HasPrefix(ua, "go-derive/"))
-	assert.Contains(t, ua, goderive.Version)
+	assert.Contains(t, ua, derive.Version)
 }

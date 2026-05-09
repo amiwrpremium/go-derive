@@ -1,4 +1,4 @@
-// Package goderive is the root of the go-derive SDK for the Derive exchange
+// Package derive is the root of the go-derive SDK for the Derive exchange
 // (formerly Lyra). The user-facing API lives under pkg/. Most users want
 // pkg/derive for the top-level facade, or pkg/rest and pkg/ws directly for
 // fine-grained control.
@@ -20,7 +20,7 @@
 //	defer c.Close()
 //
 //	instruments, err := c.REST.GetInstruments(context.Background(), "BTC", "perp")
-package goderive
+package derive
 
 // Version is the SDK semantic version. It is reported in the User-Agent header
 // of REST requests and in the WebSocket connect handshake. The literal is

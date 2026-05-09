@@ -38,7 +38,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	goderive "github.com/amiwrpremium/go-derive"
+	"github.com/amiwrpremium/go-derive"
 	"github.com/amiwrpremium/go-derive/internal/methods"
 	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/transport"
@@ -65,7 +65,7 @@ type Client struct {
 // 5-minute signature expiry.
 func New(opts ...Option) (*Client, error) {
 	c := &config{
-		userAgent:    goderive.UserAgent(),
+		userAgent:    derive.UserAgent(),
 		expiry:       300,
 		tps:          10,
 		burst:        5,
