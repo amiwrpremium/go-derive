@@ -72,6 +72,70 @@ type FeeInfo struct {
 	SpotTakerFee Decimal `json:"spot_taker_fee"`
 }
 
+// Portfolio is one entry in `private/get_all_portfolios`. Each entry is a
+// full per-subaccount snapshot — collateral, positions, open orders, and
+// the engine-side margin breakdown — for one wallet's subaccount.
+//
+// The shape mirrors `PrivateGetSubaccountResultSchema` in Derive's v2.2
+// OpenAPI spec. The same schema also backs `private/get_subaccount`, but
+// that method's existing [SubAccount] return value carries only a subset
+// of the fields and adds an `OwnerAddress` not present on the wire — so
+// Portfolio is a separate, schema-faithful type rather than a reuse.
+//
+// MarginType is "PM" (Portfolio Margin), "PM2" (Portfolio Margin 2), or
+// "SM" (Standard Margin) per the OAS — kept as bare string for now; a
+// later enum-tightening pass may type it.
+type Portfolio struct {
+	// SubaccountID is the unique numeric id.
+	SubaccountID int64 `json:"subaccount_id"`
+	// Currency is the subaccount's quote currency (e.g. "USDC").
+	Currency string `json:"currency"`
+	// Label is the user-defined label.
+	Label string `json:"label"`
+	// MarginType is the margin model in use ("PM", "PM2", or "SM").
+	MarginType string `json:"margin_type"`
+	// IsUnderLiquidation reports whether the subaccount is currently in
+	// a liquidation auction.
+	IsUnderLiquidation bool `json:"is_under_liquidation"`
+	// SubaccountValue is the total mark-to-market equity (collaterals +
+	// positions value).
+	SubaccountValue Decimal `json:"subaccount_value"`
+
+	// InitialMargin is the total IM requirement of all positions and
+	// collaterals; trades that would drive this below zero are rejected.
+	InitialMargin Decimal `json:"initial_margin"`
+	// MaintenanceMargin is the total MM requirement; falling below zero
+	// flags the subaccount for liquidation.
+	MaintenanceMargin Decimal `json:"maintenance_margin"`
+	// OpenOrdersMargin is the margin requirement of all currently-open
+	// orders.
+	OpenOrdersMargin Decimal `json:"open_orders_margin"`
+	// ProjectedMarginChange is the projected change in maintenance margin
+	// requirement between now and the upcoming 8:01 UTC expiry roll.
+	ProjectedMarginChange Decimal `json:"projected_margin_change"`
+
+	// CollateralsInitialMargin is the IM credit contributed by collaterals.
+	CollateralsInitialMargin Decimal `json:"collaterals_initial_margin"`
+	// CollateralsMaintenanceMargin is the MM credit contributed by collaterals.
+	CollateralsMaintenanceMargin Decimal `json:"collaterals_maintenance_margin"`
+	// CollateralsValue is the total mark-to-market value of all collaterals.
+	CollateralsValue Decimal `json:"collaterals_value"`
+
+	// PositionsInitialMargin is the IM requirement of all positions.
+	PositionsInitialMargin Decimal `json:"positions_initial_margin"`
+	// PositionsMaintenanceMargin is the MM requirement of all positions.
+	PositionsMaintenanceMargin Decimal `json:"positions_maintenance_margin"`
+	// PositionsValue is the total mark-to-market value of all positions.
+	PositionsValue Decimal `json:"positions_value"`
+
+	// Collaterals is the per-asset collateral breakdown.
+	Collaterals []Collateral `json:"collaterals"`
+	// OpenOrders is the list of currently-open orders.
+	OpenOrders []Order `json:"open_orders"`
+	// Positions is the list of held positions.
+	Positions []Position `json:"positions"`
+}
+
 // MarginResult is the response of `private/get_margin` and
 // `public/get_margin`. Both endpoints simulate a margin calculation
 // against a (possibly modified) subaccount and report the pre/post
