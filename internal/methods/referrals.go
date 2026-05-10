@@ -55,6 +55,18 @@ func (a *API) GetInviteCode(ctx context.Context, wallet string) (*types.InviteCo
 	return &resp, nil
 }
 
+// ValidateInviteCode checks whether one invite code is valid and
+// has remaining uses. Public.
+func (a *API) ValidateInviteCode(ctx context.Context, code string) (string, error) {
+	var status string
+	if err := a.call(ctx, "public/validate_invite_code", map[string]any{
+		"code": code,
+	}, &status); err != nil {
+		return "", err
+	}
+	return status, nil
+}
+
 // GetAllReferralCodes returns every valid referral code on the
 // configured signer's wallet. Public — but the wallet param is
 // sourced from the signer if available; otherwise the engine
