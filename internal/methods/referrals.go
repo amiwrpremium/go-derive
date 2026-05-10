@@ -34,6 +34,27 @@ func (a *API) GetReferralCode(ctx context.Context, wallet string) (string, error
 	return code, nil
 }
 
+// GetInviteCode returns the invite code currently allocated to one
+// wallet, plus its remaining-uses counter (`-1` for unlimited).
+// Public.
+//
+// Pass an empty `wallet` to default to the configured signer's
+// wallet (if any).
+func (a *API) GetInviteCode(ctx context.Context, wallet string) (*types.InviteCode, error) {
+	if wallet == "" && a.Signer != nil {
+		wallet = a.Signer.Owner().Hex()
+	}
+	params := map[string]any{}
+	if wallet != "" {
+		params["wallet"] = wallet
+	}
+	var resp types.InviteCode
+	if err := a.call(ctx, "public/get_invite_code", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
 // GetAllReferralCodes returns every valid referral code on the
 // configured signer's wallet. Public — but the wallet param is
 // sourced from the signer if available; otherwise the engine
