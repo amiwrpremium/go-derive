@@ -7,6 +7,20 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.4.0](https://github.com/amiwrpremium/go-derive/compare/v0.3.0...v0.4.0) (2026-05-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* **methods:** rename GetOrderHistory→GetOrders; restore GetOrderHistory as time-window query ([#64](https://github.com/amiwrpremium/go-derive/issues/64))
+* **types:** tighten four bare-string fields to documented enums ([#63](https://github.com/amiwrpremium/go-derive/issues/63))
+
+### Features
+
+* **methods:** add 21 typed read + trigger-order endpoints ([#61](https://github.com/amiwrpremium/go-derive/issues/61)) ([7c95b93](https://github.com/amiwrpremium/go-derive/commit/7c95b93c37c67185c745c15c261ae62ebba6f905))
+* **methods:** rename GetOrderHistory→GetOrders; restore GetOrderHistory as time-window query ([#64](https://github.com/amiwrpremium/go-derive/issues/64)) ([ac7b2c7](https://github.com/amiwrpremium/go-derive/commit/ac7b2c70390e5a59307f54aa98bf02e897fc2be3))
+* **types:** tighten four bare-string fields to documented enums ([#63](https://github.com/amiwrpremium/go-derive/issues/63)) ([9e029ca](https://github.com/amiwrpremium/go-derive/commit/9e029ca289ab9d9b64684959b88a8c9ccc6caef1))
+
 ## [0.3.0](https://github.com/amiwrpremium/go-derive/compare/v0.2.17...v0.3.0) (2026-05-09)
 
 
