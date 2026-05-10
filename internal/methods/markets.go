@@ -225,6 +225,22 @@ func (a *API) GetAllUserStatistics(ctx context.Context, params map[string]any) (
 	return resp, nil
 }
 
+// GetUserStatistics returns the trading statistics for one wallet.
+// Public.
+//
+// Required `params`: `wallet`. Optional: `currency`, `end_time`,
+// `instrument_name`, `is_rfq`, `start_time`.
+func (a *API) GetUserStatistics(ctx context.Context, params map[string]any) (*types.UserStatistics, error) {
+	if params == nil {
+		params = map[string]any{}
+	}
+	var resp types.UserStatistics
+	if err := a.call(ctx, "public/user_statistics", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
 // GetStatistics returns rolling 24-hour and all-time statistics for
 // one instrument: volume, premium volume, fees, trades count, plus
 // total open interest. Public.
