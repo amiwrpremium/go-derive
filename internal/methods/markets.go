@@ -254,6 +254,22 @@ func (a *API) GetAsset(ctx context.Context, name string) (*types.Asset, error) {
 	return &resp, nil
 }
 
+// GetAssets lists Asset records matching the supplied filter.
+// Public.
+//
+// Optional `params`: `currency`, `expired`. Pass nil to omit both
+// and return every active asset.
+func (a *API) GetAssets(ctx context.Context, params map[string]any) ([]types.Asset, error) {
+	if params == nil {
+		params = map[string]any{}
+	}
+	var resp []types.Asset
+	if err := a.call(ctx, "public/get_assets", params, &resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // GetStatistics returns rolling 24-hour and all-time statistics for
 // one instrument: volume, premium volume, fees, trades count, plus
 // total open interest. Public.
