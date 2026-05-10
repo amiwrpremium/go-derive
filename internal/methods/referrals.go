@@ -14,6 +14,26 @@ import (
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
+// GetReferralCode returns the referral code currently associated
+// with one wallet. Public.
+//
+// Pass an empty `wallet` to default to the configured signer's
+// wallet (if any).
+func (a *API) GetReferralCode(ctx context.Context, wallet string) (string, error) {
+	if wallet == "" && a.Signer != nil {
+		wallet = a.Signer.Owner().Hex()
+	}
+	params := map[string]any{}
+	if wallet != "" {
+		params["wallet"] = wallet
+	}
+	var code string
+	if err := a.call(ctx, "public/get_referral_code", params, &code); err != nil {
+		return "", err
+	}
+	return code, nil
+}
+
 // GetAllReferralCodes returns every valid referral code on the
 // configured signer's wallet. Public — but the wallet param is
 // sourced from the signer if available; otherwise the engine
