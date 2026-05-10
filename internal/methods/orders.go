@@ -10,7 +10,6 @@ package methods
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -19,13 +18,6 @@ import (
 	"github.com/amiwrpremium/go-derive/pkg/enums"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
-
-// invalidInput wraps [types.ErrInvalidParams] for input DTOs declared in
-// this package, so callers can match every Validate failure with one
-// errors.Is regardless of where the DTO was declared.
-func invalidInput(field, reason string) error {
-	return fmt.Errorf("%w: %s: %s", types.ErrInvalidParams, field, reason)
-}
 
 // PlaceOrder builds, signs and submits an order. Private.
 //
