@@ -183,7 +183,7 @@ func TestClient_SubscribeQuotes(t *testing.T) {
 	sub, err := c.SubscribeQuotes(context.Background(), 7)
 	require.NoError(t, err)
 	defer func() { _ = sub.Close() }()
-	assert.True(t, srv.WaitSubscribed("subaccount.7.quotes", time.Second))
+	assert.True(t, srv.WaitSubscribed("7.quotes", time.Second))
 }
 
 func TestClient_SubscribeRFQs(t *testing.T) {

@@ -46,9 +46,10 @@ func (RFQs) Decode(raw json.RawMessage) (any, error) {
 // Quotes subscribes to quote updates received against the subaccount's
 // outstanding RFQs.
 //
-// The dotted server-side channel name is:
+// The dotted server-side channel name (per
+// https://docs.derive.xyz/reference/subaccount_id-quotes) is:
 //
-//	subaccount.{id}.quotes
+//	{subaccount_id}.quotes
 //
 // Pair with T = [[]types.Quote].
 type Quotes struct {
@@ -57,7 +58,7 @@ type Quotes struct {
 }
 
 // Name returns the dotted server-side channel string.
-func (q Quotes) Name() string { return fmt.Sprintf("subaccount.%d.quotes", q.SubaccountID) }
+func (q Quotes) Name() string { return fmt.Sprintf("%d.quotes", q.SubaccountID) }
 
 // Decode parses an inbound notification payload into a [[]types.Quote].
 func (Quotes) Decode(raw json.RawMessage) (any, error) {

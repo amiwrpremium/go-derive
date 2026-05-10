@@ -33,7 +33,7 @@ func TestRFQs_Decode_Malformed(t *testing.T) {
 }
 
 func TestQuotes_Name(t *testing.T) {
-	assert.Equal(t, "subaccount.9.quotes", private.Quotes{SubaccountID: 9}.Name())
+	assert.Equal(t, "9.quotes", private.Quotes{SubaccountID: 9}.Name())
 }
 
 func TestQuotes_Decode_Happy(t *testing.T) {
