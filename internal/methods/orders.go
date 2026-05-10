@@ -462,6 +462,20 @@ func (a *API) CancelAlgoOrder(ctx context.Context, orderID string) (*types.Order
 	return &resp, nil
 }
 
+// CancelAllAlgoOrders cancels every in-flight algo order on the
+// configured subaccount. Private.
+//
+// Returns nil on success; the wire response is a fixed "ok" string
+// surfaced as a nil error.
+func (a *API) CancelAllAlgoOrders(ctx context.Context) error {
+	if err := a.requireSubaccount(); err != nil {
+		return err
+	}
+	return a.call(ctx, "private/cancel_all_algo_orders", map[string]any{
+		"subaccount_id": a.Subaccount,
+	}, nil)
+}
+
 // CancelTriggerOrder cancels one untriggered trigger order by id.
 // Private.
 //
