@@ -14,6 +14,29 @@ import (
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
+// GetContactInfo lists every contact-info record on the configured
+// signer's wallet, optionally filtered by `contact_type`. Private.
+//
+// Pass an empty `contactType` to return every record.
+func (a *API) GetContactInfo(ctx context.Context, contactType string) ([]types.Contact, error) {
+	if err := a.requireSigner(); err != nil {
+		return nil, err
+	}
+	params := map[string]any{
+		"wallet": a.Signer.Owner().Hex(),
+	}
+	if contactType != "" {
+		params["contact_type"] = contactType
+	}
+	var resp struct {
+		Contacts []types.Contact `json:"contacts"`
+	}
+	if err := a.call(ctx, "private/get_contact_info", params, &resp); err != nil {
+		return nil, err
+	}
+	return resp.Contacts, nil
+}
+
 // CreateContactInfo registers a new contact-info record on the
 // configured signer's wallet. Private.
 //
