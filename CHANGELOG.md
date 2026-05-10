@@ -7,6 +7,17 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.7.0](https://github.com/amiwrpremium/go-derive/compare/v0.6.0...v0.7.0) (2026-05-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **ws,channels:** typed Subscribe methods, auctions.watch, fix wire-name drift ([#78](https://github.com/amiwrpremium/go-derive/issues/78))
+
+### Features
+
+* **ws,channels:** typed Subscribe methods, auctions.watch, fix wire-name drift ([#78](https://github.com/amiwrpremium/go-derive/issues/78)) ([fe75f36](https://github.com/amiwrpremium/go-derive/commit/fe75f368cabab40a6e8bf0e3c2040d369460e486))
+
 ## [0.6.0](https://github.com/amiwrpremium/go-derive/compare/v0.5.2...v0.6.0) (2026-05-10)
 
 
