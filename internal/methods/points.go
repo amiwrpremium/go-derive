@@ -27,6 +27,24 @@ func (a *API) GetPoints(ctx context.Context, program, wallet string) (*types.Poi
 	return &resp, nil
 }
 
+// GetPointsLeaderboard returns one page (up to 500 entries) of the
+// points leaderboard for one program, ordered by points desc.
+// Public.
+//
+// Pass `page` 1-indexed; the response carries the total number of
+// pages.
+func (a *API) GetPointsLeaderboard(ctx context.Context, program string, page int) (*types.PointsLeaderboard, error) {
+	params := map[string]any{"program": program}
+	if page > 0 {
+		params["page"] = page
+	}
+	var resp types.PointsLeaderboard
+	if err := a.call(ctx, "public/get_points_leaderboard", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
 // GetAllPoints returns the program-wide points snapshot for one
 // program: aggregate notional volume, user count, and per-wallet
 // points map. Public.
