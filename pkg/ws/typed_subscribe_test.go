@@ -144,7 +144,7 @@ func TestClient_SubscribeOrders(t *testing.T) {
 	sub, err := c.SubscribeOrders(context.Background(), 7)
 	require.NoError(t, err)
 	defer func() { _ = sub.Close() }()
-	assert.True(t, srv.WaitSubscribed("subaccount.7.orders", time.Second))
+	assert.True(t, srv.WaitSubscribed("7.orders", time.Second))
 }
 
 func TestClient_SubscribeBalances(t *testing.T) {
@@ -237,9 +237,9 @@ func TestClient_SubscribeOrders_DeliversTyped(t *testing.T) {
 	sub, err := c.SubscribeOrders(context.Background(), 7)
 	require.NoError(t, err)
 	defer func() { _ = sub.Close() }()
-	require.True(t, srv.WaitSubscribed("subaccount.7.orders", time.Second))
+	require.True(t, srv.WaitSubscribed("7.orders", time.Second))
 
-	srv.Notify("subaccount.7.orders", []map[string]any{{
+	srv.Notify("7.orders", []map[string]any{{
 		"order_id": "O1", "subaccount_id": 7, "instrument_name": "BTC-PERP",
 		"direction": "buy", "order_type": "limit", "time_in_force": "gtc",
 		"order_status": "open", "amount": "0.1", "filled_amount": "0",

@@ -12,11 +12,11 @@ import (
 )
 
 func TestOrders_Name(t *testing.T) {
-	assert.Equal(t, "subaccount.123.orders", private.Orders{SubaccountID: 123}.Name())
+	assert.Equal(t, "123.orders", private.Orders{SubaccountID: 123}.Name())
 }
 
 func TestOrders_Name_Zero(t *testing.T) {
-	assert.Equal(t, "subaccount.0.orders", private.Orders{}.Name())
+	assert.Equal(t, "0.orders", private.Orders{}.Name())
 }
 
 func TestOrders_Decode_Happy(t *testing.T) {
