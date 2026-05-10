@@ -35,6 +35,15 @@ type OrderQuoteResult struct {
 	// EstimatedRealizedPnL is the projected realized PnL on the
 	// (possibly partial) fill.
 	EstimatedRealizedPnL Decimal `json:"estimated_realized_pnl"`
+	// EstimatedRealizedPnLExclFees is the projected realized PnL with
+	// the fee component of cost basis excluded. For orders the engine
+	// projects as `cancelled`, this only includes PnL on the filled
+	// portion.
+	EstimatedRealizedPnLExclFees Decimal `json:"estimated_realized_pnl_excl_fees"`
+	// MaxAmount is the engine's projected upper bound on the
+	// fill amount given the simulated request, useful for sizing
+	// follow-on orders.
+	MaxAmount Decimal `json:"max_amount"`
 	// EstimatedOrderStatus is the engine's projected lifecycle
 	// state for the order on submission. Fully filled =
 	// [enums.OrderStatusFilled]; limit/maker =
