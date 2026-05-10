@@ -222,7 +222,7 @@ func TestClient_SubscribeSubaccountTradesByStatus(t *testing.T) {
 	sub, err := c.SubscribeSubaccountTradesByStatus(context.Background(), 7, enums.TxStatusSettled)
 	require.NoError(t, err)
 	defer func() { _ = sub.Close() }()
-	assert.True(t, srv.WaitSubscribed("subaccount.7.trades.settled", time.Second))
+	assert.True(t, srv.WaitSubscribed("7.trades.settled", time.Second))
 }
 
 // End-to-end decode through one typed method to confirm the type
