@@ -232,5 +232,164 @@ func TestGetLiveIncidents_Decode(t *testing.T) {
 	assert.Equal(t, "matching", got[0].Label)
 }
 
+func TestGetAllStatistics_Decode(t *testing.T) {
+	api, ft := newAPI(t, false, 0)
+	ft.HandleResult("public/all_statistics", []any{
+		map[string]any{
+			"currency": "BTC", "instrument_type": "perp",
+			"daily_fees": "100", "daily_notional_volume": "1000000",
+			"daily_premium_volume": "0", "daily_trades": int64(250),
+			"open_interest": "10", "total_fees": "100000",
+			"total_notional_volume": "1000000000", "total_premium_volume": "0",
+			"total_trades": int64(25000),
+		},
+	})
+	got, err := api.GetAllStatistics(context.Background(), 0)
+	require.NoError(t, err)
+	require.Len(t, got, 1)
+	assert.Equal(t, "BTC", got[0].Currency)
+	assert.Equal(t, "perp", got[0].InstrumentType)
+}
+
+func TestGetAllUserStatistics_Decode(t *testing.T) {
+	api, ft := newAPI(t, false, 0)
+	ft.HandleResult("public/all_user_statistics", []any{
+		map[string]any{
+			"wallet":         "0x1111111111111111111111111111111111111111",
+			"total_base_fee": "10", "total_contract_fee": "5", "total_fees": "15",
+			"total_notional_volume": "100000", "total_premium_volume": "0",
+			"total_regular_base_fee": "10", "total_regular_contract_fee": "5",
+			"total_trades":          int64(7),
+			"first_trade_timestamp": int64(1700000000000),
+			"last_trade_timestamp":  int64(1700100000000),
+		},
+	})
+	got, err := api.GetAllUserStatistics(context.Background(), nil)
+	require.NoError(t, err)
+	require.Len(t, got, 1)
+	assert.Equal(t, "0x1111111111111111111111111111111111111111", got[0].Wallet)
+	assert.Equal(t, "15", got[0].TotalFees.String())
+}
+
+func TestGetUserStatistics_Decode(t *testing.T) {
+	api, ft := newAPI(t, false, 0)
+	ft.HandleResult("public/user_statistics", map[string]any{
+		"total_base_fee": "10", "total_contract_fee": "5", "total_fees": "15",
+		"total_notional_volume": "100000", "total_premium_volume": "0",
+		"total_regular_base_fee": "10", "total_regular_contract_fee": "5",
+		"total_trades":          int64(7),
+		"first_trade_timestamp": int64(1700000000000),
+		"last_trade_timestamp":  int64(1700100000000),
+	})
+	got, err := api.GetUserStatistics(context.Background(), map[string]any{
+		"wallet": "0x1111111111111111111111111111111111111111",
+	})
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	assert.Equal(t, int64(7), got.TotalTrades)
+}
+
+func TestGetAsset_Decode(t *testing.T) {
+	api, ft := newAPI(t, false, 0)
+	ft.HandleResult("public/get_asset", map[string]any{
+		"address":        "0x1111111111111111111111111111111111111111",
+		"asset_id":       "1",
+		"asset_name":     "USDC",
+		"asset_type":     "erc20",
+		"currency":       "USDC",
+		"is_collateral":  true,
+		"is_position":    false,
+		"erc20_details":  map[string]any{"decimals": 6},
+		"option_details": nil,
+		"perp_details":   nil,
+	})
+	got, err := api.GetAsset(context.Background(), "USDC")
+	require.NoError(t, err)
+	assert.Equal(t, "USDC", got.AssetName)
+	assert.True(t, got.IsCollateral)
+}
+
+func TestGetAssets_Decode(t *testing.T) {
+	api, ft := newAPI(t, false, 0)
+	ft.HandleResult("public/get_assets", []any{
+		map[string]any{
+			"address":  "0x1111111111111111111111111111111111111111",
+			"asset_id": "1", "asset_name": "USDC", "asset_type": "erc20",
+			"currency": "USDC", "is_collateral": true, "is_position": false,
+		},
+	})
+	got, err := api.GetAssets(context.Background(), map[string]any{"currency": "USDC"})
+	require.NoError(t, err)
+	require.Len(t, got, 1)
+	assert.Equal(t, "USDC", got[0].AssetName)
+}
+
+func TestGetBridgeBalances_Decode(t *testing.T) {
+	api, ft := newAPI(t, false, 0)
+	ft.HandleResult("public/get_bridge_balances", []any{
+		map[string]any{
+			"name": "across", "integrator": "across-protocol",
+			"chain_id": int64(1), "balance": "1000000", "balance_hours": "72",
+		},
+	})
+	got, err := api.GetBridgeBalances(context.Background())
+	require.NoError(t, err)
+	require.Len(t, got, 1)
+	assert.Equal(t, "across", got[0].Name)
+}
+
+func TestGetStDRVSnapshots_Decode(t *testing.T) {
+	api, ft := newAPI(t, false, 0)
+	ft.HandleResult("public/get_stdrv_snapshots", map[string]any{
+		"wallet": "0x1111111111111111111111111111111111111111",
+		"snapshots": []any{
+			map[string]any{"amount": "1000", "timestamp_sec": int64(1700000000)},
+			map[string]any{"amount": "1010", "timestamp_sec": int64(1700003600)},
+		},
+	})
+	got, err := api.GetStDRVSnapshots(context.Background(), map[string]any{
+		"wallet": "0x1111111111111111111111111111111111111111",
+	})
+	require.NoError(t, err)
+	require.Len(t, got.Snapshots, 2)
+	assert.Equal(t, "1010", got.Snapshots[1].Amount.String())
+}
+
+func TestGetDescendantTree_Decode(t *testing.T) {
+	api, ft := newAPI(t, false, 0)
+	ft.HandleResult("public/get_descendant_tree", map[string]any{
+		"parent":      "0x1111111111111111111111111111111111111111",
+		"descendants": []any{},
+	})
+	got, err := api.GetDescendantTree(context.Background(), "0x1111111111111111111111111111111111111111")
+	require.NoError(t, err)
+	assert.Equal(t, "0x1111111111111111111111111111111111111111", got.Parent)
+	assert.NotEmpty(t, got.Descendants, "descendants is preserved as raw JSON")
+}
+
+func TestGetTreeRoots_Decode(t *testing.T) {
+	api, ft := newAPI(t, false, 0)
+	ft.HandleResult("public/get_tree_roots", map[string]any{
+		"roots": []any{},
+	})
+	got, err := api.GetTreeRoots(context.Background())
+	require.NoError(t, err)
+	assert.NotEmpty(t, got.Roots)
+}
+
+func TestMarginWatch_Decode(t *testing.T) {
+	api, ft := newAPI(t, false, 0)
+	ft.HandleResult("public/margin_watch", map[string]any{
+		"subaccount_id": int64(7), "currency": "USDC", "margin_type": "PM",
+		"subaccount_value": "10000", "initial_margin": "100",
+		"maintenance_margin": "50", "valuation_timestamp": int64(1700000000),
+		"collaterals": []any{}, "positions": []any{},
+	})
+	got, err := api.MarginWatch(context.Background(), map[string]any{"subaccount_id": 7})
+	require.NoError(t, err)
+	assert.Equal(t, int64(7), got.SubaccountID)
+	assert.Equal(t, "PM", got.MarginType)
+}
+
 // silence unused json import warning on platforms where compiler is strict.
 var _ = json.Marshal

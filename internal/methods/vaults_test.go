@@ -45,6 +45,56 @@ func TestGetVaultShare_Decode(t *testing.T) {
 	assert.Equal(t, 1, page.Count)
 }
 
+func TestGetVaultAssets_Decode(t *testing.T) {
+	api, ft := newAPI(t, false, 0)
+	ft.HandleResult("public/get_vault_assets", []any{
+		map[string]any{
+			"asset_id": "1", "chain_id": int64(1),
+			"erc20_address": "0x1111111111111111111111111111111111111111",
+			"integrator":    "across", "name": "rswETH", "rpc_url": "https://rpc.example",
+		},
+	})
+	got, err := api.GetVaultAssets(context.Background())
+	require.NoError(t, err)
+	require.Len(t, got, 1)
+	assert.Equal(t, "rswETH", got[0].Name)
+}
+
+func TestGetVaultPools_Decode(t *testing.T) {
+	api, ft := newAPI(t, false, 0)
+	ft.HandleResult("public/get_vault_pools", []any{
+		map[string]any{
+			"address":  "0x1111111111111111111111111111111111111111",
+			"chain_id": int64(1), "name": "rswETH-pool", "pool_type": "basis",
+		},
+	})
+	got, err := api.GetVaultPools(context.Background())
+	require.NoError(t, err)
+	require.Len(t, got, 1)
+	assert.Equal(t, "rswETH-pool", got[0].Name)
+}
+
+func TestGetVaultRates_Decode(t *testing.T) {
+	api, ft := newAPI(t, false, 0)
+	ft.HandleResult("public/get_vault_rates", map[string]any{
+		"rate":           "0.05",
+		"total_rate":     "0.07",
+		"funding_rate":   "0.01",
+		"interest_rate":  "0.04",
+		"lrt_price":      "1.05",
+		"base_balance":   "100",
+		"quote_balance":  "200",
+		"perp_balance":   "0",
+		"yearly_funding": "0.10",
+	})
+	got, err := api.GetVaultRates(context.Background(), "weeth")
+	require.NoError(t, err)
+	assert.Equal(t, "0.05", got.Rate.String())
+	assert.Equal(t, "0.07", got.TotalRate.String())
+	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.Equal(t, "weeth", params["vault_type"])
+}
+
 func TestGetVaultStatistics_Decode(t *testing.T) {
 	api, ft := newAPI(t, false, 0)
 	ft.HandleResult("public/get_vault_statistics", []any{
