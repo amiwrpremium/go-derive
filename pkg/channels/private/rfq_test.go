@@ -13,7 +13,7 @@ import (
 
 func TestRFQs_Name(t *testing.T) {
 	assert.Equal(t,
-		"wallet.0xC0FFee0000000000000000000000000000000000.rfqs",
+		"0xC0FFee0000000000000000000000000000000000.rfqs",
 		private.RFQs{Wallet: "0xC0FFee0000000000000000000000000000000000"}.Name())
 }
 

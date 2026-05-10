@@ -196,7 +196,7 @@ func TestClient_SubscribeRFQs(t *testing.T) {
 	sub, err := c.SubscribeRFQs(context.Background(), "0xabc")
 	require.NoError(t, err)
 	defer func() { _ = sub.Close() }()
-	assert.True(t, srv.WaitSubscribed("wallet.0xabc.rfqs", time.Second))
+	assert.True(t, srv.WaitSubscribed("0xabc.rfqs", time.Second))
 }
 
 func TestClient_SubscribeSubaccountTrades(t *testing.T) {
