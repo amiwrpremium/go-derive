@@ -19,8 +19,8 @@ import (
 // WebSocket channel: an [InstrumentTicker] snapshot plus the
 // ticker's emission timestamp.
 //
-// Mirrors `TickerInstrumentNameIntervalPublisherDataSchema` in
-// `derivexyz/cockpit/orderbook-types`.
+// Mirrors the publisher-data envelope documented at
+// docs.derive.xyz/reference/ticker-instrument_name-interval.
 type InstrumentTickerFeed struct {
 	// Timestamp is the emission timestamp (millisecond Unix epoch).
 	Timestamp MillisTime `json:"timestamp"`
@@ -33,7 +33,8 @@ type InstrumentTickerFeed struct {
 // instrument's metadata (sizes, fees, schedule) and live market
 // data (top-of-book, marks, index, price bands) in a single struct.
 //
-// Mirrors `InstrumentTickerSchema` in `derivexyz/cockpit/orderbook-types`.
+// Mirrors the per-instrument ticker payload documented at
+// docs.derive.xyz/reference/ticker-instrument_name-interval.
 //
 // The four nested complex blocks are kept as [json.RawMessage] for
 // the same reasons [InstrumentTickerSlim.Stats] /
