@@ -476,6 +476,24 @@ func (a *API) CancelAllAlgoOrders(ctx context.Context) error {
 	}, nil)
 }
 
+// GetAlgoOrders lists every active algo order on the configured
+// subaccount. Private.
+//
+// Counterpart to [API.GetOpenOrders] for algo orders. Returns a bare
+// list — no pagination wrapper.
+func (a *API) GetAlgoOrders(ctx context.Context) ([]types.Order, error) {
+	if err := a.requireSubaccount(); err != nil {
+		return nil, err
+	}
+	var resp []types.Order
+	if err := a.call(ctx, "private/get_algo_orders", map[string]any{
+		"subaccount_id": a.Subaccount,
+	}, &resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // CancelTriggerOrder cancels one untriggered trigger order by id.
 // Private.
 //
