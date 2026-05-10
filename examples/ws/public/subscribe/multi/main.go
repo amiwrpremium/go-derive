@@ -3,9 +3,9 @@
 // processes that need order-book pressure, top-of-book, and trade prints
 // in one place without per-channel goroutines.
 //
-//   - orderbook (depth 10)        →  pkg/channels/public.OrderBook
-//   - ticker (1000 ms cadence)    →  pkg/channels/public.TickerSlim
-//   - trades                      →  pkg/channels/public.Trades
+//   - orderbook (depth 10)        →  Client.SubscribeOrderBook
+//   - ticker_slim (1000 ms)       →  Client.SubscribeTickerSlim
+//   - trades                      →  Client.SubscribeTrades
 //
 // Each select arm prints a one-line summary so it's obvious which channel
 // fired. Cancel with Ctrl-C; the example exits cleanly via ctx-cancel.
@@ -13,9 +13,6 @@ package main
 
 import (
 	"github.com/amiwrpremium/go-derive/examples/example"
-	"github.com/amiwrpremium/go-derive/pkg/channels/public"
-	"github.com/amiwrpremium/go-derive/pkg/types"
-	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 func main() {
@@ -26,21 +23,15 @@ func main() {
 
 	inst := example.Instrument()
 
-	ob, err := ws.Subscribe[types.OrderBook](ctx, c, public.OrderBook{
-		Instrument: inst, Depth: 10,
-	})
+	ob, err := c.SubscribeOrderBook(ctx, inst, "", 10)
 	example.Fatal(err)
 	defer ob.Close()
 
-	tk, err := ws.Subscribe[types.TickerSlim](ctx, c, public.TickerSlim{
-		Instrument: inst,
-	})
+	tk, err := c.SubscribeTickerSlim(ctx, inst, "")
 	example.Fatal(err)
 	defer tk.Close()
 
-	tr, err := ws.Subscribe[[]types.Trade](ctx, c, public.Trades{
-		Instrument: inst,
-	})
+	tr, err := c.SubscribeTrades(ctx, inst)
 	example.Fatal(err)
 	defer tr.Close()
 

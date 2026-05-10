@@ -3,9 +3,7 @@
 // (one when an auction begins/updates, one when it ends).
 //
 // The channel takes no parameters — every subscriber receives the same
-// engine-wide stream. Demonstrates the typed convenience wrapper
-// Client.SubscribeAuctionsWatch alongside the generic ws.Subscribe[T]
-// (commented out below).
+// engine-wide stream.
 package main
 
 import (
@@ -19,14 +17,9 @@ func main() {
 	c := example.MustWSPublic(ctx)
 	defer c.Close()
 
-	// Typed convenience method (preferred):
 	sub, err := c.SubscribeAuctionsWatch(ctx)
 	example.Fatal(err)
 	defer sub.Close()
-
-	// Equivalent generic form — uncomment to swap in:
-	//
-	//	sub, err := ws.Subscribe[types.AuctionWatchEvent](ctx, c, public.AuctionsWatch{})
 
 	for {
 		select {

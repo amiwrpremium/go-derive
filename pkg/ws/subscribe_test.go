@@ -2,6 +2,7 @@ package ws_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"testing"
 	"time"
@@ -10,10 +11,22 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/amiwrpremium/go-derive/internal/testutil"
-	"github.com/amiwrpremium/go-derive/pkg/channels/public"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
+
+// decodeOrderBookJSON is the test-side decoder for the order-book
+// channel; production callers reach the same shape through
+// Client.SubscribeOrderBook.
+func decodeOrderBookJSON(raw json.RawMessage) (types.OrderBook, error) {
+	var ob types.OrderBook
+	return ob, json.Unmarshal(raw, &ob)
+}
+
+func decodeString(raw json.RawMessage) (string, error) {
+	var s string
+	return s, json.Unmarshal(raw, &s)
+}
 
 func TestSubscribe_TypedDelivery(t *testing.T) {
 	srv := testutil.NewMockWSServer()
@@ -22,7 +35,7 @@ func TestSubscribe_TypedDelivery(t *testing.T) {
 	require.NoError(t, c.Connect(context.Background()))
 	defer func() { _ = c.Close() }()
 
-	sub, err := ws.Subscribe[types.OrderBook](context.Background(), c, public.OrderBook{Instrument: "BTC-PERP"})
+	sub, err := ws.Subscribe(context.Background(), c, "orderbook.BTC-PERP.1.10", decodeOrderBookJSON)
 	require.NoError(t, err)
 	defer func() { _ = sub.Close() }()
 
@@ -50,7 +63,7 @@ func TestSubscribe_Channel_Method(t *testing.T) {
 	require.NoError(t, c.Connect(context.Background()))
 	defer func() { _ = c.Close() }()
 
-	sub, err := ws.Subscribe[types.OrderBook](context.Background(), c, public.OrderBook{Instrument: "X"})
+	sub, err := ws.Subscribe(context.Background(), c, "orderbook.X.1.10", decodeOrderBookJSON)
 	require.NoError(t, err)
 	defer func() { _ = sub.Close() }()
 
@@ -64,7 +77,7 @@ func TestSubscribe_Close_StopsUpdates(t *testing.T) {
 	require.NoError(t, c.Connect(context.Background()))
 	defer func() { _ = c.Close() }()
 
-	sub, err := ws.Subscribe[types.OrderBook](context.Background(), c, public.OrderBook{Instrument: "X"})
+	sub, err := ws.Subscribe(context.Background(), c, "orderbook.X.1.10", decodeOrderBookJSON)
 	require.NoError(t, err)
 	require.NoError(t, sub.Close())
 	// Second Close is harmless.
@@ -78,8 +91,8 @@ func TestSubscribe_TypeMismatch_Drops(t *testing.T) {
 	require.NoError(t, c.Connect(context.Background()))
 	defer func() { _ = c.Close() }()
 
-	// Subscribe with the wrong T (string) for an OrderBook channel.
-	sub, err := ws.Subscribe[string](context.Background(), c, public.OrderBook{Instrument: "BTC-PERP"})
+	// Subscribe with a string-decoder against an order-book payload.
+	sub, err := ws.Subscribe(context.Background(), c, "orderbook.BTC-PERP.1.10", decodeString)
 	require.NoError(t, err)
 	defer func() { _ = sub.Close() }()
 	require.True(t, srv.WaitSubscribed("orderbook.BTC-PERP.1.10", 1*time.Second))
@@ -92,7 +105,7 @@ func TestSubscribe_TypeMismatch_Drops(t *testing.T) {
 
 	select {
 	case <-sub.Updates():
-		t.Fatal("type mismatch should have prevented delivery")
+		t.Fatal("string decoder against an object payload should not deliver")
 	case <-time.After(150 * time.Millisecond):
 		// expected
 	}
@@ -110,7 +123,7 @@ func TestSubscribeFunc_DriverCallback(t *testing.T) {
 	defer cancel()
 
 	go func() {
-		_ = ws.SubscribeFunc(ctx, c, public.OrderBook{Instrument: "ETH-PERP"}, func(ob types.OrderBook) {
+		_ = ws.SubscribeFunc(ctx, c, "orderbook.ETH-PERP.1.10", decodeOrderBookJSON, func(ob types.OrderBook) {
 			got <- ob
 		})
 	}()
@@ -140,7 +153,7 @@ func TestSubscribeFunc_ContextCancelReturnsErr(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan error, 1)
 	go func() {
-		done <- ws.SubscribeFunc(ctx, c, public.OrderBook{Instrument: "X"}, func(types.OrderBook) {})
+		done <- ws.SubscribeFunc(ctx, c, "orderbook.X.1.10", decodeOrderBookJSON, func(types.OrderBook) {})
 	}()
 	require.True(t, srv.WaitSubscribed("orderbook.X.1.10", 1*time.Second))
 	cancel()
