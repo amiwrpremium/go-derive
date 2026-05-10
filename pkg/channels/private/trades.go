@@ -18,9 +18,10 @@ import (
 
 // Trades subscribes to fill events for one subaccount.
 //
-// The dotted server-side channel name is:
+// The dotted server-side channel name (per
+// https://docs.derive.xyz/reference/subaccount_id-trades) is:
 //
-//	subaccount.{id}.trades
+//	{subaccount_id}.trades
 //
 // Pair this descriptor with T = [[]types.Trade] when calling
 // [github.com/amiwrpremium/go-derive/pkg/ws.Subscribe]. Each notification
@@ -31,7 +32,7 @@ type Trades struct {
 }
 
 // Name returns the dotted server-side channel string.
-func (t Trades) Name() string { return fmt.Sprintf("subaccount.%d.trades", t.SubaccountID) }
+func (t Trades) Name() string { return fmt.Sprintf("%d.trades", t.SubaccountID) }
 
 // Decode parses an inbound notification payload into a [[]types.Trade].
 func (Trades) Decode(raw json.RawMessage) (any, error) {

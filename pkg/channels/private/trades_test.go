@@ -13,7 +13,7 @@ import (
 )
 
 func TestPrivateTrades_Name(t *testing.T) {
-	assert.Equal(t, "subaccount.7.trades", private.Trades{SubaccountID: 7}.Name())
+	assert.Equal(t, "7.trades", private.Trades{SubaccountID: 7}.Name())
 }
 
 func TestPrivateTrades_Decode_Happy(t *testing.T) {

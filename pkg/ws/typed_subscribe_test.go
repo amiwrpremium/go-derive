@@ -209,7 +209,7 @@ func TestClient_SubscribeSubaccountTrades(t *testing.T) {
 	sub, err := c.SubscribeSubaccountTrades(context.Background(), 7)
 	require.NoError(t, err)
 	defer func() { _ = sub.Close() }()
-	assert.True(t, srv.WaitSubscribed("subaccount.7.trades", time.Second))
+	assert.True(t, srv.WaitSubscribed("7.trades", time.Second))
 }
 
 func TestClient_SubscribeSubaccountTradesByStatus(t *testing.T) {
