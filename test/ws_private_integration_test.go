@@ -9,10 +9,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/amiwrpremium/go-derive/pkg/channels/private"
-	"github.com/amiwrpremium/go-derive/pkg/types"
-	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 func TestWS_Login(t *testing.T) {
@@ -28,13 +24,13 @@ func TestWS_OrdersSubscribe(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	sub, err := ws.Subscribe[[]types.Order](ctx, c, private.Orders{SubaccountID: env.subaccount})
+	sub, err := c.SubscribeOrders(ctx, env.subaccount)
 	require.NoError(t, err)
 	defer sub.Close()
 
 	// Orders channel sends only on lifecycle events; subscribing without
 	// error is the success criterion.
-	assert.Equal(t, "subaccount."+itoa(env.subaccount)+".orders", sub.Channel())
+	assert.Equal(t, itoa(env.subaccount)+".orders", sub.Channel())
 }
 
 func TestWS_BalancesSubscribe(t *testing.T) {
@@ -44,7 +40,7 @@ func TestWS_BalancesSubscribe(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	sub, err := ws.Subscribe[types.Balance](ctx, c, private.Balances{SubaccountID: env.subaccount})
+	sub, err := c.SubscribeBalances(ctx, env.subaccount)
 	require.NoError(t, err)
 	defer sub.Close()
 

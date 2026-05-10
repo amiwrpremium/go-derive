@@ -2,31 +2,21 @@
 //
 // This file declares one Subscribe* method per documented Derive
 // channel, each a thin convenience wrapper over the generic
-// [Subscribe] function.
+// [Subscribe] function. They exist so callers can subscribe in one
+// line without hand-building the dotted channel name.
 package ws
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/amiwrpremium/go-derive/pkg/channels/private"
-	"github.com/amiwrpremium/go-derive/pkg/channels/public"
 	"github.com/amiwrpremium/go-derive/pkg/enums"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
-// The Subscribe* methods declared below are thin convenience wrappers
-// over the generic [Subscribe] function. They exist so callers can subscribe in one
-// line without hand-picking T and the matching descriptor:
-//
-//	// Generic form:
-//	sub, _ := ws.Subscribe[[]types.Order](ctx, c, private.Orders{SubaccountID: 7})
-//
-//	// Typed form (this file):
-//	sub, _ := c.SubscribeOrders(ctx, 7)
-//
-// The generic [Subscribe] remains the supported building block for
-// custom or third-party channel descriptors; the typed methods here
-// cover every channel listed at https://docs.derive.xyz/reference/.
+// The Subscribe* methods declared below cover every channel listed
+// at https://docs.derive.xyz/reference/. The generic [Subscribe]
+// remains available for custom or yet-undocumented channels.
 
 // --------------------------------------------------------------------
 // Public channels (no auth required).
@@ -34,60 +24,89 @@ import (
 
 // SubscribeMarginWatch streams the platform-wide stream of
 // subaccounts whose maintenance margin has crossed the watch
-// threshold. See [public.MarginWatch].
+// threshold. Wire channel: `margin.watch`.
 func (c *Client) SubscribeMarginWatch(ctx context.Context) (*Subscription[[]types.MarginWatch], error) {
-	return Subscribe[[]types.MarginWatch](ctx, c, public.MarginWatch{})
+	return Subscribe(ctx, c, "margin.watch", decodeJSON[[]types.MarginWatch])
 }
 
 // SubscribeAuctionsWatch streams the platform-wide state of ongoing
-// liquidation auctions. See [public.AuctionsWatch].
+// liquidation auctions. Wire channel: `auctions.watch`.
 func (c *Client) SubscribeAuctionsWatch(ctx context.Context) (*Subscription[types.AuctionWatchEvent], error) {
-	return Subscribe[types.AuctionWatchEvent](ctx, c, public.AuctionsWatch{})
+	return Subscribe(ctx, c, "auctions.watch", decodeJSON[types.AuctionWatchEvent])
 }
 
 // SubscribeOrderBook streams incremental order-book updates for one
 // instrument. Empty group defaults to "1" (no grouping); zero depth
-// defaults to 10. See [public.OrderBook].
+// defaults to 10. Wire channel:
+// `orderbook.{instrument}.{group}.{depth}`.
 func (c *Client) SubscribeOrderBook(ctx context.Context, instrument, group string, depth int) (*Subscription[types.OrderBook], error) {
-	return Subscribe[types.OrderBook](ctx, c, public.OrderBook{Instrument: instrument, Group: group, Depth: depth})
+	if group == "" {
+		group = "1"
+	}
+	if depth == 0 {
+		depth = 10
+	}
+	return Subscribe(ctx, c,
+		fmt.Sprintf("orderbook.%s.%s.%d", instrument, group, depth),
+		decodeJSON[types.OrderBook])
 }
 
 // SubscribeSpotFeed streams oracle-signed spot feeds for one
-// currency. See [public.SpotFeed].
+// currency. Wire channel: `spot_feed.{currency}`.
 func (c *Client) SubscribeSpotFeed(ctx context.Context, currency string) (*Subscription[types.SpotFeed], error) {
-	return Subscribe[types.SpotFeed](ctx, c, public.SpotFeed{Currency: currency})
+	return Subscribe(ctx, c,
+		fmt.Sprintf("spot_feed.%s", currency),
+		decodeJSON[types.SpotFeed])
 }
 
 // SubscribeTicker streams the full ticker payload for one
-// instrument. Empty interval defaults to "1000". See [public.Ticker].
+// instrument. Empty interval defaults to "1000". Wire channel:
+// `ticker.{instrument}.{interval}`.
 func (c *Client) SubscribeTicker(ctx context.Context, instrument, interval string) (*Subscription[types.InstrumentTickerFeed], error) {
-	return Subscribe[types.InstrumentTickerFeed](ctx, c, public.Ticker{Instrument: instrument, Interval: interval})
+	if interval == "" {
+		interval = "1000"
+	}
+	return Subscribe(ctx, c,
+		fmt.Sprintf("ticker.%s.%s", instrument, interval),
+		decodeJSON[types.InstrumentTickerFeed])
 }
 
 // SubscribeTickerSlim streams the slim ticker payload for one
-// instrument. Empty interval defaults to "1000".
-// See [public.TickerSlim].
+// instrument. Empty interval defaults to "1000". Wire channel:
+// `ticker_slim.{instrument}.{interval}`.
 func (c *Client) SubscribeTickerSlim(ctx context.Context, instrument, interval string) (*Subscription[types.TickerSlim], error) {
-	return Subscribe[types.TickerSlim](ctx, c, public.TickerSlim{Instrument: instrument, Interval: interval})
+	if interval == "" {
+		interval = "1000"
+	}
+	return Subscribe(ctx, c,
+		fmt.Sprintf("ticker_slim.%s.%s", instrument, interval),
+		decodeJSON[types.TickerSlim])
 }
 
 // SubscribeTrades streams public trade prints on one instrument.
-// See [public.Trades].
+// Wire channel: `trades.{instrument}`.
 func (c *Client) SubscribeTrades(ctx context.Context, instrument string) (*Subscription[[]types.Trade], error) {
-	return Subscribe[[]types.Trade](ctx, c, public.Trades{Instrument: instrument})
+	return Subscribe(ctx, c,
+		fmt.Sprintf("trades.%s", instrument),
+		decodeJSON[[]types.Trade])
 }
 
 // SubscribeTradesByType streams public trade prints aggregated by
-// instrument type and currency. See [public.TradesByType].
+// instrument type and currency. Wire channel:
+// `trades.{instrument_type}.{currency}`.
 func (c *Client) SubscribeTradesByType(ctx context.Context, instrumentType enums.InstrumentType, currency string) (*Subscription[[]types.Trade], error) {
-	return Subscribe[[]types.Trade](ctx, c, public.TradesByType{InstrumentType: instrumentType, Currency: currency})
+	return Subscribe(ctx, c,
+		fmt.Sprintf("trades.%s.%s", instrumentType, currency),
+		decodeJSON[[]types.Trade])
 }
 
-// SubscribeTradesByTypeWithStatus is like SubscribeTradesByType but
-// also filters by on-chain transaction status.
-// See [public.TradesByTypeTxStatus].
+// SubscribeTradesByTypeWithStatus is like [Client.SubscribeTradesByType]
+// but also filters by on-chain transaction status. Wire channel:
+// `trades.{instrument_type}.{currency}.{tx_status}`.
 func (c *Client) SubscribeTradesByTypeWithStatus(ctx context.Context, instrumentType enums.InstrumentType, currency string, txStatus enums.TxStatus) (*Subscription[[]types.Trade], error) {
-	return Subscribe[[]types.Trade](ctx, c, public.TradesByTypeTxStatus{InstrumentType: instrumentType, Currency: currency, TxStatus: txStatus})
+	return Subscribe(ctx, c,
+		fmt.Sprintf("trades.%s.%s.%s", instrumentType, currency, txStatus),
+		decodeJSON[[]types.Trade])
 }
 
 // --------------------------------------------------------------------
@@ -95,44 +114,60 @@ func (c *Client) SubscribeTradesByTypeWithStatus(ctx context.Context, instrument
 // --------------------------------------------------------------------
 
 // SubscribeBalances streams balance updates for one subaccount.
-// See [private.Balances].
+// Wire channel: `{subaccount_id}.balances`.
 func (c *Client) SubscribeBalances(ctx context.Context, subaccountID int64) (*Subscription[types.Balance], error) {
-	return Subscribe[types.Balance](ctx, c, private.Balances{SubaccountID: subaccountID})
+	return Subscribe(ctx, c,
+		fmt.Sprintf("%d.balances", subaccountID),
+		decodeJSON[types.Balance])
 }
 
 // SubscribeOrders streams order lifecycle events for one
-// subaccount. See [private.Orders].
+// subaccount. Wire channel: `{subaccount_id}.orders`.
 func (c *Client) SubscribeOrders(ctx context.Context, subaccountID int64) (*Subscription[[]types.Order], error) {
-	return Subscribe[[]types.Order](ctx, c, private.Orders{SubaccountID: subaccountID})
+	return Subscribe(ctx, c,
+		fmt.Sprintf("%d.orders", subaccountID),
+		decodeJSON[[]types.Order])
 }
 
 // SubscribeBestQuotes streams the running best-quote state for every
-// open RFQ on one subaccount. See [private.BestQuotes].
+// open RFQ on one subaccount. Wire channel:
+// `{subaccount_id}.best.quotes`.
 func (c *Client) SubscribeBestQuotes(ctx context.Context, subaccountID int64) (*Subscription[[]types.BestQuoteFeedEvent], error) {
-	return Subscribe[[]types.BestQuoteFeedEvent](ctx, c, private.BestQuotes{SubaccountID: subaccountID})
+	return Subscribe(ctx, c,
+		fmt.Sprintf("%d.best.quotes", subaccountID),
+		decodeJSON[[]types.BestQuoteFeedEvent])
 }
 
 // SubscribeRFQs streams RFQ lifecycle events for one wallet across
-// every subaccount it owns. See [private.RFQs].
+// every subaccount it owns. Wire channel: `{wallet}.rfqs`.
 func (c *Client) SubscribeRFQs(ctx context.Context, wallet string) (*Subscription[[]types.RFQ], error) {
-	return Subscribe[[]types.RFQ](ctx, c, private.RFQs{Wallet: wallet})
+	return Subscribe(ctx, c,
+		fmt.Sprintf("%s.rfqs", wallet),
+		decodeJSON[[]types.RFQ])
 }
 
-// SubscribeQuotes streams quote events for one subaccount.
-// See [private.Quotes].
+// SubscribeQuotes streams quote events for one subaccount. Wire
+// channel: `{subaccount_id}.quotes`.
 func (c *Client) SubscribeQuotes(ctx context.Context, subaccountID int64) (*Subscription[[]types.Quote], error) {
-	return Subscribe[[]types.Quote](ctx, c, private.Quotes{SubaccountID: subaccountID})
+	return Subscribe(ctx, c,
+		fmt.Sprintf("%d.quotes", subaccountID),
+		decodeJSON[[]types.Quote])
 }
 
 // SubscribeSubaccountTrades streams trade events for one
-// subaccount. See [private.Trades].
+// subaccount. Wire channel: `{subaccount_id}.trades`.
 func (c *Client) SubscribeSubaccountTrades(ctx context.Context, subaccountID int64) (*Subscription[[]types.Trade], error) {
-	return Subscribe[[]types.Trade](ctx, c, private.Trades{SubaccountID: subaccountID})
+	return Subscribe(ctx, c,
+		fmt.Sprintf("%d.trades", subaccountID),
+		decodeJSON[[]types.Trade])
 }
 
-// SubscribeSubaccountTradesByStatus is like SubscribeSubaccountTrades
-// but also filters by on-chain transaction status.
-// See [private.TradesByTxStatus].
+// SubscribeSubaccountTradesByStatus is like
+// [Client.SubscribeSubaccountTrades] but also filters by on-chain
+// transaction status. Wire channel:
+// `{subaccount_id}.trades.{tx_status}`.
 func (c *Client) SubscribeSubaccountTradesByStatus(ctx context.Context, subaccountID int64, txStatus enums.TxStatus) (*Subscription[[]types.Trade], error) {
-	return Subscribe[[]types.Trade](ctx, c, private.TradesByTxStatus{SubaccountID: subaccountID, TxStatus: txStatus})
+	return Subscribe(ctx, c,
+		fmt.Sprintf("%d.trades.%s", subaccountID, txStatus),
+		decodeJSON[[]types.Trade])
 }

@@ -5,10 +5,7 @@ package main
 
 import (
 	"github.com/amiwrpremium/go-derive/examples/example"
-	"github.com/amiwrpremium/go-derive/pkg/channels/public"
 	"github.com/amiwrpremium/go-derive/pkg/enums"
-	"github.com/amiwrpremium/go-derive/pkg/types"
-	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 func main() {
@@ -17,11 +14,7 @@ func main() {
 	c := example.MustWSPublic(ctx)
 	defer c.Close()
 
-	sub, err := ws.Subscribe[[]types.Trade](ctx, c, public.TradesByTypeTxStatus{
-		InstrumentType: enums.InstrumentTypePerp,
-		Currency:       "BTC",
-		TxStatus:       enums.TxStatusSettled,
-	})
+	sub, err := c.SubscribeTradesByTypeWithStatus(ctx, enums.InstrumentTypePerp, "BTC", enums.TxStatusSettled)
 	example.Fatal(err)
 	defer sub.Close()
 

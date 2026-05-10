@@ -21,7 +21,7 @@
 //	if err := c.Connect(ctx); err != nil { ... }
 //	if err := c.Login(ctx); err != nil { ... }
 //
-//	sub, err := ws.Subscribe[types.OrderBook](ctx, c, public.OrderBook{Instrument: "BTC-PERP"})
+//	sub, err := c.SubscribeOrderBook(ctx, "BTC-PERP", "", 0)
 //	defer sub.Close()
 //	for ob := range sub.Updates() { ... }
 //
@@ -34,25 +34,32 @@ package ws
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/amiwrpremium/go-derive/internal/transport"
-	"github.com/amiwrpremium/go-derive/pkg/channels"
 )
 
 // Subscribe registers a typed subscription on a [Client] and returns a
 // [Subscription] whose Updates channel yields values of type T.
 //
-// T must match the type the channel descriptor's Decode method returns; a
-// mismatch is dropped silently rather than crashing the read pump (the
-// underlying decoder error is surfaced if a debugger is attached). Pass
-// the right T for the descriptor — e.g. types.OrderBook for
-// public.OrderBook, []types.Trade for public.Trades.
+// channelName is the dotted wire string from the docs (e.g.
+// "orderbook.BTC-PERP.1.10" or "7.orders"). decoder turns one
+// notification's raw payload into a typed T; for the common case where
+// payloads are plain JSON, pass [decodeJSON][T] (the convenience the
+// typed Subscribe* methods on [Client] use internally).
+//
+// Most callers should prefer the typed methods on [Client] —
+// [Client.SubscribeOrderBook], [Client.SubscribeOrders], etc. They
+// bake in the right name and decoder so you only pass the channel
+// parameters. Use this generic form when you need a channel that
+// isn't documented yet, or to attach a custom decoder.
 //
 // Generics let callers avoid type assertions at the use site:
 //
-//	sub, _ := ws.Subscribe[types.OrderBook](ctx, c,
-//	    public.OrderBook{Instrument: "BTC-PERP"})
+//	sub, _ := ws.Subscribe(ctx, c, "orderbook.BTC-PERP.1.10",
+//	    func(raw json.RawMessage) (types.OrderBook, error) {
+//	        var ob types.OrderBook
+//	        return ob, json.Unmarshal(raw, &ob)
+//	    })
 //	defer sub.Close()
 //	for ob := range sub.Updates() {
 //	    fmt.Println(ob.Bids[0])
@@ -62,26 +69,18 @@ import (
 // caller is slow, newer events are dropped (best-effort fan-out, not a
 // reliable queue). Use [SubscribeFunc] when you want to be sure every event
 // is processed.
-func Subscribe[T any](ctx context.Context, c *Client, ch channels.Channel) (*Subscription[T], error) {
+func Subscribe[T any](ctx context.Context, c *Client, channelName string, decoder func(json.RawMessage) (T, error)) (*Subscription[T], error) {
 	dec := func(raw json.RawMessage) (any, error) {
-		v, err := ch.Decode(raw)
-		if err != nil {
-			return nil, err
-		}
-		typed, ok := v.(T)
-		if !ok {
-			return nil, fmt.Errorf("ws: channel %q: decoded type %T does not match expected %T", ch.Name(), v, *new(T))
-		}
-		return typed, nil
+		return decoder(raw)
 	}
-	sub, err := c.transport().Subscribe(ctx, ch.Name(), dec)
+	sub, err := c.transport().Subscribe(ctx, channelName, dec)
 	if err != nil {
 		return nil, err
 	}
 	out := &Subscription[T]{
 		raw:     sub,
 		typed:   make(chan T, 256),
-		channel: ch.Name(),
+		channel: channelName,
 	}
 	go out.pump()
 	return out, nil
@@ -96,8 +95,8 @@ func Subscribe[T any](ctx context.Context, c *Client, ch channels.Channel) (*Sub
 // channel-receive loop, or when you want to guarantee every event is
 // processed (the callback runs synchronously, so back-pressure on the
 // caller is back-pressure on the subscription).
-func SubscribeFunc[T any](ctx context.Context, c *Client, ch channels.Channel, fn func(T)) error {
-	sub, err := Subscribe[T](ctx, c, ch)
+func SubscribeFunc[T any](ctx context.Context, c *Client, channelName string, decoder func(json.RawMessage) (T, error), fn func(T)) error {
+	sub, err := Subscribe[T](ctx, c, channelName, decoder)
 	if err != nil {
 		return err
 	}

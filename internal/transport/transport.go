@@ -41,8 +41,11 @@ type Transport interface {
 
 // Decoder turns a raw notification payload (the bytes inside
 // [github.com/amiwrpremium/go-derive/internal/jsonrpc.SubscriptionParams.Data])
-// into a typed value. Channel descriptors in pkg/channels supply concrete
-// decoders.
+// into a typed value. The typed Subscribe* methods on
+// [github.com/amiwrpremium/go-derive/pkg/ws.Client] supply concrete
+// decoders for every documented channel; the generic
+// [github.com/amiwrpremium/go-derive/pkg/ws.Subscribe] takes a
+// caller-supplied decoder.
 type Decoder func(raw json.RawMessage) (any, error)
 
 // Subscription is the consumer-facing handle returned by

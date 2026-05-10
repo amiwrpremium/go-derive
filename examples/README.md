@@ -120,15 +120,15 @@ examples/
       connect/              ws.Connect lifecycle
       get_time/ ... get_trade_history/   same RPC set as rest/public/, over WS
       subscribe/
-        orderbook/                ws.Subscribe[types.OrderBook]
-        trades/                   ws.Subscribe[[]types.Trade] (per-instrument)
-        trades_by_type/           ws.Subscribe[[]types.Trade] (per type+currency)
-        trades_by_type_settled/   filtered to settled fills
-        ticker/                   ws.Subscribe[types.TickerSlim] (compact)
-        ticker_full/              ws.Subscribe[types.InstrumentTickerFeed] (full)
-        spot_feed/                ws.Subscribe[types.SpotFeedData]
-        margin_watch/             ws.Subscribe[[]types.MarginWatch]
-        auctions_watch/           c.SubscribeAuctionsWatch — liquidation auctions
+        orderbook/                c.SubscribeOrderBook
+        trades/                   c.SubscribeTrades (per-instrument)
+        trades_by_type/           c.SubscribeTradesByType (per type+currency)
+        trades_by_type_settled/   c.SubscribeTradesByTypeWithStatus
+        ticker/                   c.SubscribeTickerSlim (compact)
+        ticker_full/              c.SubscribeTicker (full)
+        spot_feed/                c.SubscribeSpotFeed
+        margin_watch/             c.SubscribeMarginWatch
+        auctions_watch/           c.SubscribeAuctionsWatch
     private/
       login/                public/login RPC
       get_subaccount/ ... get_withdrawal_history/   private RPC set
@@ -136,13 +136,13 @@ examples/
       rfq/                  send / poll / cancel
       mmp/                  set / reset
       subscribe/            subaccount channels
-        orders/
-        balances/
-        trades/
-        trades_settled/     filtered to settled fills
-        rfqs/
-        quotes/
-        best_quotes/        ws.Subscribe[[]types.BestQuoteFeedEvent]
+        orders/             c.SubscribeOrders
+        balances/           c.SubscribeBalances
+        trades/             c.SubscribeSubaccountTrades
+        trades_settled/     c.SubscribeSubaccountTradesByStatus
+        rfqs/               c.SubscribeRFQs
+        quotes/             c.SubscribeQuotes
+        best_quotes/        c.SubscribeBestQuotes
 ```
 
 ## Running one

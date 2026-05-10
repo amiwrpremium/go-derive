@@ -1,14 +1,9 @@
 // Streams the running best-quote state for every open RFQ on the
-// configured subaccount. Note the unusual channel-name format
-// ({subaccount_id}.best.quotes per the docs) — see the package
-// docs on private.BestQuotes for details.
+// configured subaccount. Wire channel: `{subaccount_id}.best.quotes`.
 package main
 
 import (
 	"github.com/amiwrpremium/go-derive/examples/example"
-	"github.com/amiwrpremium/go-derive/pkg/channels/private"
-	"github.com/amiwrpremium/go-derive/pkg/types"
-	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 func main() {
@@ -17,9 +12,7 @@ func main() {
 	c := example.MustWSPrivate(ctx)
 	defer c.Close()
 
-	sub, err := ws.Subscribe[[]types.BestQuoteFeedEvent](ctx, c, private.BestQuotes{
-		SubaccountID: example.Subaccount(),
-	})
+	sub, err := c.SubscribeBestQuotes(ctx, example.Subaccount())
 	example.Fatal(err)
 	defer sub.Close()
 

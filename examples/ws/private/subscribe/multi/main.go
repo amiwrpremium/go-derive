@@ -3,9 +3,9 @@
 // processes that need to react to fill, balance, and order-state
 // changes from one place without per-channel goroutines.
 //
-//   - orders   → pkg/channels/private.Orders
-//   - balances → pkg/channels/private.Balances
-//   - trades   → pkg/channels/private.Trades
+//   - orders   → Client.SubscribeOrders
+//   - balances → Client.SubscribeBalances
+//   - trades   → Client.SubscribeSubaccountTrades
 //
 // Position state is not a Derive subscription channel — poll
 // `private/get_positions` (REST or WS RPC) when you need it, or
@@ -18,9 +18,6 @@ package main
 
 import (
 	"github.com/amiwrpremium/go-derive/examples/example"
-	"github.com/amiwrpremium/go-derive/pkg/channels/private"
-	"github.com/amiwrpremium/go-derive/pkg/types"
-	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 func main() {
@@ -31,15 +28,15 @@ func main() {
 
 	subID := example.Subaccount()
 
-	orders, err := ws.Subscribe[[]types.Order](ctx, c, private.Orders{SubaccountID: subID})
+	orders, err := c.SubscribeOrders(ctx, subID)
 	example.Fatal(err)
 	defer orders.Close()
 
-	balances, err := ws.Subscribe[types.Balance](ctx, c, private.Balances{SubaccountID: subID})
+	balances, err := c.SubscribeBalances(ctx, subID)
 	example.Fatal(err)
 	defer balances.Close()
 
-	trades, err := ws.Subscribe[[]types.Trade](ctx, c, private.Trades{SubaccountID: subID})
+	trades, err := c.SubscribeSubaccountTrades(ctx, subID)
 	example.Fatal(err)
 	defer trades.Close()
 

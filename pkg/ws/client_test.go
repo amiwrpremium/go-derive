@@ -13,7 +13,6 @@ import (
 	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/internal/testutil"
 	"github.com/amiwrpremium/go-derive/pkg/auth"
-	"github.com/amiwrpremium/go-derive/pkg/channels/public"
 	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
@@ -99,9 +98,7 @@ func TestWSClient_SubscribeTyped(t *testing.T) {
 	require.NoError(t, c.Connect(context.Background()))
 	defer func() { _ = c.Close() }()
 
-	sub, err := ws.Subscribe[types.OrderBook](context.Background(), c, public.OrderBook{
-		Instrument: "BTC-PERP", Group: "1", Depth: 5,
-	})
+	sub, err := c.SubscribeOrderBook(context.Background(), "BTC-PERP", "1", 5)
 	require.NoError(t, err)
 	defer func() { _ = sub.Close() }()
 
@@ -136,7 +133,7 @@ func TestWSClient_SubscribeFunc(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {
-		_ = ws.SubscribeFunc(ctx, c, public.OrderBook{Instrument: "ETH-PERP"}, func(ob types.OrderBook) {
+		_ = ws.SubscribeFunc(ctx, c, "orderbook.ETH-PERP.1.10", decodeOrderBookJSON, func(ob types.OrderBook) {
 			got <- ob
 		})
 	}()
@@ -158,15 +155,16 @@ func TestWSClient_SubscribeFunc(t *testing.T) {
 }
 
 func TestWSClient_SubscribeMethodTypeMismatch(t *testing.T) {
-	// Channel decodes into types.OrderBook but the test asks for a different type;
-	// the generic glue must reject the mismatch without crashing.
+	// Decoder produces a string, but the channel emits an object —
+	// the unmarshal step must error and the typed pump must not
+	// crash or deliver anything.
 	srv := testutil.NewMockWSServer()
 	defer srv.Close()
 	c := newWSClient(t, srv, false)
 	require.NoError(t, c.Connect(context.Background()))
 	defer func() { _ = c.Close() }()
 
-	sub, err := ws.Subscribe[string](context.Background(), c, public.OrderBook{Instrument: "BTC-PERP"})
+	sub, err := ws.Subscribe(context.Background(), c, "orderbook.BTC-PERP.1.10", decodeString)
 	require.NoError(t, err)
 	defer func() { _ = sub.Close() }()
 	require.True(t, srv.WaitSubscribed("orderbook.BTC-PERP.1.10", 1*time.Second))

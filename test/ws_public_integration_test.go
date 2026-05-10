@@ -9,10 +9,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/amiwrpremium/go-derive/pkg/channels/public"
-	"github.com/amiwrpremium/go-derive/pkg/types"
-	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 func TestWS_PublicConnect(t *testing.T) {
@@ -28,9 +24,7 @@ func TestWS_OrderBookSubscribe(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	sub, err := ws.Subscribe[types.OrderBook](ctx, c, public.OrderBook{
-		Instrument: env.instrument, Depth: 5,
-	})
+	sub, err := c.SubscribeOrderBook(ctx, env.instrument, "", 5)
 	require.NoError(t, err)
 	defer sub.Close()
 
@@ -50,9 +44,7 @@ func TestWS_TickerSubscribe(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	sub, err := ws.Subscribe[types.TickerSlim](ctx, c, public.TickerSlim{
-		Instrument: env.instrument, Interval: "1000",
-	})
+	sub, err := c.SubscribeTickerSlim(ctx, env.instrument, "1000")
 	require.NoError(t, err)
 	defer sub.Close()
 
@@ -73,7 +65,7 @@ func TestWS_TradesSubscribe(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	sub, err := ws.Subscribe[[]types.Trade](ctx, c, public.Trades{Instrument: env.instrument})
+	sub, err := c.SubscribeTrades(ctx, env.instrument)
 	require.NoError(t, err)
 	defer sub.Close()
 

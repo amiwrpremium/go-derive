@@ -9,9 +9,6 @@ package main
 
 import (
 	"github.com/amiwrpremium/go-derive/examples/example"
-	"github.com/amiwrpremium/go-derive/pkg/channels/public"
-	"github.com/amiwrpremium/go-derive/pkg/types"
-	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 func main() {
@@ -20,7 +17,7 @@ func main() {
 	c := example.MustWSPublic(ctx)
 	defer c.Close()
 
-	sub, err := ws.Subscribe[[]types.MarginWatch](ctx, c, public.MarginWatch{})
+	sub, err := c.SubscribeMarginWatch(ctx)
 	example.Fatal(err)
 	defer sub.Close()
 
