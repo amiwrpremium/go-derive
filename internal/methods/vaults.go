@@ -57,6 +57,16 @@ func (a *API) GetVaultAssets(ctx context.Context) ([]types.VaultAsset, error) {
 	return resp, nil
 }
 
+// GetVaultPools lists every registered vault ERC-20 pool — the
+// manager contracts that hold vault deposits. Public.
+func (a *API) GetVaultPools(ctx context.Context) ([]types.VaultPool, error) {
+	var resp []types.VaultPool
+	if err := a.call(ctx, "public/get_vault_pools", map[string]any{}, &resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // GetVaultStatistics returns a summary snapshot for every Derive
 // vault — price-per-share, total supply, USD TVL, and the
 // last-trade subaccount value. Public.
