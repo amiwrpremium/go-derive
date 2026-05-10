@@ -191,6 +191,24 @@ func (a *API) GetLiveIncidents(ctx context.Context) ([]types.Incident, error) {
 	return resp.Incidents, nil
 }
 
+// GetAllStatistics returns the per-(currency, instrument_type)
+// aggregate of rolling 24h and all-time statistics across every
+// instrument. Public.
+//
+// Optional `endTime` (Unix seconds) — pass 0 for the engine's
+// default (now).
+func (a *API) GetAllStatistics(ctx context.Context, endTime int64) ([]types.AggregateStatistics, error) {
+	params := map[string]any{}
+	if endTime > 0 {
+		params["end_time"] = endTime
+	}
+	var resp []types.AggregateStatistics
+	if err := a.call(ctx, "public/all_statistics", params, &resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // GetStatistics returns rolling 24-hour and all-time statistics for
 // one instrument: volume, premium volume, fees, trades count, plus
 // total open interest. Public.
