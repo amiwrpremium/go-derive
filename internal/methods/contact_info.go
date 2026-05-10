@@ -58,6 +58,26 @@ func (a *API) UpdateContactInfo(ctx context.Context, contactID int64, newValue s
 	return &resp.ContactInfo, nil
 }
 
+// DeleteContactInfo removes a contact-info record by id. Returns
+// the id and the engine's `deleted` confirmation flag.
+func (a *API) DeleteContactInfo(ctx context.Context, contactID int64) (deletedContactID int64, deleted bool, err error) {
+	if err := a.requireSigner(); err != nil {
+		return 0, false, err
+	}
+	params := map[string]any{
+		"wallet":     a.Signer.Owner().Hex(),
+		"contact_id": contactID,
+	}
+	var resp struct {
+		ContactID int64 `json:"contact_id"`
+		Deleted   bool  `json:"deleted"`
+	}
+	if err := a.call(ctx, "private/delete_contact_info", params, &resp); err != nil {
+		return 0, false, err
+	}
+	return resp.ContactID, resp.Deleted, nil
+}
+
 // CreateContactInfo registers a new contact-info record on the
 // configured signer's wallet. Private.
 //
