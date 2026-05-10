@@ -1,3 +1,7 @@
+// Package ws is the WebSocket-backed client for Derive's JSON-RPC API.
+//
+// This file holds the private [decodeJSON] helper used by every
+// typed Subscribe* method on [Client].
 package ws
 
 import "encoding/json"
