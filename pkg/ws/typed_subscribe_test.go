@@ -92,7 +92,7 @@ func TestClient_SubscribeMarginWatch(t *testing.T) {
 	sub, err := c.SubscribeMarginWatch(context.Background())
 	require.NoError(t, err)
 	defer func() { _ = sub.Close() }()
-	assert.True(t, srv.WaitSubscribed("margin_watch", time.Second))
+	assert.True(t, srv.WaitSubscribed("margin.watch", time.Second))
 }
 
 func TestClient_SubscribeAuctionsWatch(t *testing.T) {

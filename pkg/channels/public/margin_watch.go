@@ -19,11 +19,11 @@ import (
 //
 // The dotted server-side channel name is the bare literal:
 //
-//	margin_watch
+//	margin.watch
 //
-// Per the cockpit `channel_margin_watch.rs` schema, the channel
-// takes no parameters — every subscribed client receives the same
-// engine-wide stream. Consumers filter client-side on the
+// Per the docs (https://docs.derive.xyz/reference/margin-watch),
+// the channel takes no parameters — every subscribed client receives
+// the same engine-wide stream. Consumers filter client-side on the
 // [types.MarginWatch.MarginType] / [types.MarginWatch.SubaccountID]
 // fields if they only care about a subset.
 //
@@ -34,7 +34,7 @@ import (
 type MarginWatch struct{}
 
 // Name returns the dotted server-side channel string.
-func (MarginWatch) Name() string { return "margin_watch" }
+func (MarginWatch) Name() string { return "margin.watch" }
 
 // Decode parses an inbound notification payload into [[]types.MarginWatch].
 func (MarginWatch) Decode(raw json.RawMessage) (any, error) {
