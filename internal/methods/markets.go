@@ -323,6 +323,29 @@ func (a *API) GetTreeRoots(ctx context.Context) (*types.TreeRoots, error) {
 	return &resp, nil
 }
 
+// MarginWatch calculates the mark-to-market and maintenance-margin
+// snapshot for one subaccount. Public.
+//
+// `params` accepts `subaccount_id` (required), plus optional
+// `force_onchain` (force on-chain balance fetch) and
+// `is_delayed_liquidation` (lower MM requirement under a
+// delayed-liquidation grace period).
+//
+// Note: this is the RPC counterpart to the platform-wide
+// `margin_watch` WebSocket channel. The RPC returns a single
+// snapshot for one subaccount; the channel emits a stream of
+// at-risk subaccounts engine-wide.
+func (a *API) MarginWatch(ctx context.Context, params map[string]any) (*types.MarginSnapshot, error) {
+	if params == nil {
+		params = map[string]any{}
+	}
+	var resp types.MarginSnapshot
+	if err := a.call(ctx, "public/margin_watch", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
 // GetStatistics returns rolling 24-hour and all-time statistics for
 // one instrument: volume, premium volume, fees, trades count, plus
 // total open interest. Public.
