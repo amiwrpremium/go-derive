@@ -214,7 +214,7 @@ func TestGetOrders_WithFilter(t *testing.T) {
 		"orders":     []any{},
 		"pagination": map[string]any{"num_pages": 1, "count": 0},
 	})
-	_, _, err := api.GetOrders(context.Background(), types.PageRequest{}, &methods.GetOrdersFilter{
+	_, _, err := api.GetOrders(context.Background(), types.PageRequest{}, &types.GetOrdersFilter{
 		InstrumentName: "BTC-PERP",
 		Label:          "alpha",
 		Status:         enums.OrderStatusOpen,

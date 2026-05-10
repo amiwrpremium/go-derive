@@ -208,19 +208,6 @@ func (a *API) GetOpenOrders(ctx context.Context) ([]types.Order, error) {
 	return resp.Orders, err
 }
 
-// GetOrdersFilter narrows what [API.GetOrders] returns. Each field
-// is optional; the zero value asks the engine for unfiltered results.
-type GetOrdersFilter struct {
-	// InstrumentName filters to one instrument.
-	InstrumentName string
-	// Label filters to orders carrying the user-defined label.
-	Label string
-	// Status filters by order status. The wire enum is
-	// open / filled / cancelled / expired / untriggered / algo_active
-	// (see [enums.OrderStatus]).
-	Status enums.OrderStatus
-}
-
 // GetOrders paginates orders on the configured subaccount, narrowed
 // by the supplied filter. Private.
 //
@@ -230,7 +217,7 @@ type GetOrdersFilter struct {
 // To page through orders by time window, use [API.GetOrderHistory]
 // instead — `/private/get_orders` only filters by status /
 // instrument / label, not by time.
-func (a *API) GetOrders(ctx context.Context, page types.PageRequest, filter *GetOrdersFilter) ([]types.Order, types.Page, error) {
+func (a *API) GetOrders(ctx context.Context, page types.PageRequest, filter *types.GetOrdersFilter) ([]types.Order, types.Page, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return nil, types.Page{}, err
 	}
