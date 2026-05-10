@@ -53,6 +53,28 @@ examples/
       get_vault_balances/             c.GetVaultBalances (DERIVE_WALLET)
       get_vault_share/                c.GetVaultShare (DERIVE_VAULT_NAME)
       get_vault_statistics/           c.GetVaultStatistics
+      get_vault_assets/               c.GetVaultAssets
+      get_vault_pools/                c.GetVaultPools
+      get_vault_rates/                c.GetVaultRates (DERIVE_VAULT_TYPE)
+      order_quote/                    c.OrderQuotePublic
+      margin_watch/                   c.MarginWatch (DERIVE_SUBACCOUNT)
+      all_statistics/                 c.GetAllStatistics
+      all_user_statistics/            c.GetAllUserStatistics
+      user_statistics/                c.GetUserStatistics (DERIVE_WALLET)
+      get_detailed_maker_snapshot_history/  c.GetDetailedMakerSnapshotHistory (DERIVE_PROGRAM_NAME, DERIVE_EPOCH_START)
+      get_all_points/                 c.GetAllPoints (DERIVE_PROGRAM_NAME)
+      get_points/                     c.GetPoints (DERIVE_PROGRAM_NAME, DERIVE_WALLET)
+      get_points_leaderboard/         c.GetPointsLeaderboard (DERIVE_PROGRAM_NAME)
+      get_all_referral_codes/         c.GetAllReferralCodes
+      get_referral_code/              c.GetReferralCode (DERIVE_WALLET)
+      get_invite_code/                c.GetInviteCode (DERIVE_WALLET)
+      validate_invite_code/           c.ValidateInviteCode (DERIVE_INVITE_CODE)
+      get_asset/                      c.GetAsset (DERIVE_ASSET_NAME)
+      get_assets/                     c.GetAssets (DERIVE_CURRENCY)
+      get_descendant_tree/            c.GetDescendantTree (DERIVE_WALLET_OR_INVITE_CODE)
+      get_tree_roots/                 c.GetTreeRoots
+      get_bridge_balances/            c.GetBridgeBalances
+      get_stdrv_snapshots/            c.GetStDRVSnapshots (DERIVE_WALLET, DERIVE_FROM_SEC, DERIVE_TO_SEC)
     private/                (DERIVE_SESSION_KEY + DERIVE_SUBACCOUNT)
       get_subaccount/         c.GetSubaccount
       get_subaccounts/        c.GetSubaccounts
@@ -67,6 +89,8 @@ examples/
       get_deposit_history/    c.GetDepositHistory
       get_withdrawal_history/ c.GetWithdrawalHistory
       get_liquidator_history/ c.GetLiquidatorHistory
+      get_algo_orders/        c.GetAlgoOrders
+      get_trigger_orders/     c.GetTriggerOrders
       orders/
         place/                       c.PlaceOrder (DERIVE_RUN_LIVE_ORDERS=1)
         cancel/                      c.CancelOrder (DERIVE_ORDER_ID)
@@ -75,6 +99,13 @@ examples/
         cancel_by_instrument/        c.CancelByInstrument
         cancel_trigger_order/        c.CancelTriggerOrder (DERIVE_ORDER_ID)
         cancel_all_trigger_orders/   c.CancelAllTriggerOrders (DERIVE_RUN_LIVE_ORDERS=1)
+        cancel_algo_order/           c.CancelAlgoOrder (DERIVE_ORDER_ID)
+        cancel_all_algo_orders/      c.CancelAllAlgoOrders (DERIVE_RUN_LIVE_ORDERS=1)
+      contact_info/
+        create/              c.CreateContactInfo (DERIVE_CONTACT_TYPE, DERIVE_CONTACT_VALUE)
+        get/                 c.GetContactInfo (optional DERIVE_CONTACT_TYPE)
+        update/              c.UpdateContactInfo (DERIVE_CONTACT_ID, DERIVE_CONTACT_VALUE)
+        delete/              c.DeleteContactInfo (DERIVE_CONTACT_ID)
       rfq/
         send/                c.SendRFQ
         poll/                c.PollRFQs
@@ -110,6 +141,7 @@ examples/
         trades_settled/     filtered to settled fills
         rfqs/
         quotes/
+        best_quotes/        ws.Subscribe[[]types.BestQuoteFeedEvent]
 ```
 
 ## Running one
@@ -159,5 +191,13 @@ Common to most examples, loaded by `examples/example/example.go`:
 | `DERIVE_REFERRAL_CODE` | (unset) | optional filter for `get_referral_performance/` |
 | `DERIVE_WALLET` | (unset) | optional smart-contract wallet for `get_vault_balances/` |
 | `DERIVE_VAULT_NAME` | (unset) | required by `get_vault_share/` |
+| `DERIVE_VAULT_TYPE` | (unset) | optional for `get_vault_rates/` (e.g. `lbtc`, `weeth`) |
+| `DERIVE_ASSET_NAME` | (unset) | required by `get_asset/` |
+| `DERIVE_INVITE_CODE` | (unset) | required by `validate_invite_code/` |
+| `DERIVE_WALLET_OR_INVITE_CODE` | (unset) | required by `get_descendant_tree/` |
+| `DERIVE_FROM_SEC` / `DERIVE_TO_SEC` | (unset) | required by `get_stdrv_snapshots/` (Unix seconds) |
+| `DERIVE_CONTACT_TYPE` | (unset) | required by `contact_info/create/`, optional filter for `contact_info/get/` |
+| `DERIVE_CONTACT_VALUE` | (unset) | required by `contact_info/{create,update}/` |
+| `DERIVE_CONTACT_ID` | (unset) | required by `contact_info/{update,delete}/` |
 
 Never paste a real mainnet key — testnet is the default for a reason.
