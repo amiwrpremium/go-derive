@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.8.1](https://github.com/amiwrpremium/go-derive/compare/v0.8.0...v0.8.1) (2026-05-10)
+
+
+### Documentation
+
+* **types:** drop stale SubAccount reference in Portfolio doc ([#84](https://github.com/amiwrpremium/go-derive/issues/84)) ([83d04c9](https://github.com/amiwrpremium/go-derive/commit/83d04c954a07bb6e28f2f469cec7788c235db8f6))
+
 ## [0.8.0](https://github.com/amiwrpremium/go-derive/compare/v0.7.0...v0.8.0) (2026-05-10)
 
 
