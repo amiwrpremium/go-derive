@@ -3,7 +3,7 @@ package main
 
 import (
 	"github.com/amiwrpremium/go-derive/examples/example"
-	"github.com/amiwrpremium/go-derive/internal/methods"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -12,7 +12,7 @@ func main() {
 	c := example.MustWSPrivate(ctx)
 	defer c.Close()
 
-	example.Fatal(c.SetMMPConfig(ctx, methods.MMPConfig{
+	example.Fatal(c.SetMMPConfig(ctx, types.MMPConfig{
 		Currency:        "BTC",
 		MMPFrozenTimeMs: 5000,
 		MMPIntervalMs:   1000,

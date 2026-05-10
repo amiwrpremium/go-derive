@@ -8,25 +8,24 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/amiwrpremium/go-derive/internal/methods"
 	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestMMPConfig_Validate_Happy(t *testing.T) {
-	cfg := methods.MMPConfig{Currency: "BTC", MMPFrozenTimeMs: 1000, MMPIntervalMs: 500}
+	cfg := types.MMPConfig{Currency: "BTC", MMPFrozenTimeMs: 1000, MMPIntervalMs: 500}
 	require.NoError(t, cfg.Validate())
 }
 
 func TestMMPConfig_Validate_Rejects(t *testing.T) {
 	cases := []struct {
 		name string
-		cfg  methods.MMPConfig
+		cfg  types.MMPConfig
 		want string
 	}{
-		{"empty currency", methods.MMPConfig{}, "currency"},
-		{"negative frozen", methods.MMPConfig{Currency: "BTC", MMPFrozenTimeMs: -1}, "mmp_frozen_time"},
-		{"negative interval", methods.MMPConfig{Currency: "BTC", MMPIntervalMs: -1}, "mmp_interval"},
+		{"empty currency", types.MMPConfig{}, "currency"},
+		{"negative frozen", types.MMPConfig{Currency: "BTC", MMPFrozenTimeMs: -1}, "mmp_frozen_time"},
+		{"negative interval", types.MMPConfig{Currency: "BTC", MMPIntervalMs: -1}, "mmp_interval"},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -41,7 +40,7 @@ func TestMMPConfig_Validate_Rejects(t *testing.T) {
 func TestSetMMPConfig_AllFieldsPopulated(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleResult("private/set_mmp_config", nil)
-	cfg := methods.MMPConfig{
+	cfg := types.MMPConfig{
 		Currency:        "BTC",
 		MMPFrozenTimeMs: 1000,
 		MMPIntervalMs:   500,
@@ -60,7 +59,7 @@ func TestSetMMPConfig_AllFieldsPopulated(t *testing.T) {
 func TestSetMMPConfig_OmitsEmptyAmountLimit(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleResult("private/set_mmp_config", nil)
-	cfg := methods.MMPConfig{Currency: "BTC", MMPDeltaLimit: "1"}
+	cfg := types.MMPConfig{Currency: "BTC", MMPDeltaLimit: "1"}
 	require.NoError(t, api.SetMMPConfig(context.Background(), cfg))
 	params := paramsAsMap(t, ft.LastCall().Params)
 	_, has := params["mmp_amount_limit"]
@@ -70,7 +69,7 @@ func TestSetMMPConfig_OmitsEmptyAmountLimit(t *testing.T) {
 func TestSetMMPConfig_OmitsEmptyDeltaLimit(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleResult("private/set_mmp_config", nil)
-	cfg := methods.MMPConfig{Currency: "BTC", MMPAmountLimit: "1"}
+	cfg := types.MMPConfig{Currency: "BTC", MMPAmountLimit: "1"}
 	require.NoError(t, api.SetMMPConfig(context.Background(), cfg))
 	params := paramsAsMap(t, ft.LastCall().Params)
 	_, has := params["mmp_delta_limit"]
@@ -80,7 +79,7 @@ func TestSetMMPConfig_OmitsEmptyDeltaLimit(t *testing.T) {
 func TestSetMMPConfig_OmitsBothLimits(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleResult("private/set_mmp_config", nil)
-	cfg := methods.MMPConfig{Currency: "BTC"}
+	cfg := types.MMPConfig{Currency: "BTC"}
 	require.NoError(t, api.SetMMPConfig(context.Background(), cfg))
 	params := paramsAsMap(t, ft.LastCall().Params)
 	_, hasA := params["mmp_amount_limit"]
@@ -91,7 +90,7 @@ func TestSetMMPConfig_OmitsBothLimits(t *testing.T) {
 
 func TestSetMMPConfig_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	err := api.SetMMPConfig(context.Background(), methods.MMPConfig{Currency: "BTC"})
+	err := api.SetMMPConfig(context.Background(), types.MMPConfig{Currency: "BTC"})
 	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
 }
 
