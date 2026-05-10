@@ -73,15 +73,13 @@ type FeeInfo struct {
 	SpotTakerFee Decimal `json:"spot_taker_fee"`
 }
 
-// Portfolio is one entry in `private/get_all_portfolios`. Each entry is a
-// full per-subaccount snapshot — collateral, positions, open orders, and
-// the engine-side margin breakdown — for one wallet's subaccount.
+// Portfolio is one entry in `private/get_all_portfolios` and also the
+// shape returned by `private/get_subaccount`. Each entry is a full
+// per-subaccount snapshot — collateral, positions, open orders, and the
+// engine-side margin breakdown — for one wallet's subaccount.
 //
 // The shape mirrors `PrivateGetSubaccountResultSchema` in Derive's v2.2
-// OpenAPI spec. The same schema also backs `private/get_subaccount`, but
-// that method's existing [SubAccount] return value carries only a subset
-// of the fields and adds an `OwnerAddress` not present on the wire — so
-// Portfolio is a separate, schema-faithful type rather than a reuse.
+// OpenAPI spec.
 //
 // MarginType is "PM" (Portfolio Margin), "PM2" (Portfolio Margin 2), or
 // "SM" (Standard Margin) per the OAS — kept as bare string for now; a
