@@ -270,6 +270,16 @@ func (a *API) GetAssets(ctx context.Context, params map[string]any) ([]types.Ass
 	return resp, nil
 }
 
+// GetBridgeBalances lists every bridge / cross-chain balance the
+// engine tracks. Public.
+func (a *API) GetBridgeBalances(ctx context.Context) ([]types.BridgeBalance, error) {
+	var resp []types.BridgeBalance
+	if err := a.call(ctx, "public/get_bridge_balances", map[string]any{}, &resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // GetStatistics returns rolling 24-hour and all-time statistics for
 // one instrument: volume, premium volume, fees, trades count, plus
 // total open interest. Public.
