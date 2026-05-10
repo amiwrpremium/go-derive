@@ -7,6 +7,18 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.4.1](https://github.com/amiwrpremium/go-derive/compare/v0.4.0...v0.4.1) (2026-05-10)
+
+
+### Features
+
+* **channels:** cover the 4 cockpit channels the SDK was missing ([#67](https://github.com/amiwrpremium/go-derive/issues/67)) ([5fbf8a4](https://github.com/amiwrpremium/go-derive/commit/5fbf8a4799643ece0331edaac38a49b41a85c23c))
+
+
+### Documentation
+
+* **examples:** cover the 21 typed endpoints from v0.4.0 ([#65](https://github.com/amiwrpremium/go-derive/issues/65)) ([8ccde10](https://github.com/amiwrpremium/go-derive/commit/8ccde1030e2b7106911b2571f5ec66b6a2891085))
+
 ## [0.4.0](https://github.com/amiwrpremium/go-derive/compare/v0.3.0...v0.4.0) (2026-05-09)
 
 
