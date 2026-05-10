@@ -1,3 +1,11 @@
+// Package public declares Derive's public (no-auth) WebSocket subscription
+// channels: order books, public trade prints, tickers, and instrument
+// add/remove events.
+//
+// Every descriptor in this package satisfies
+// [github.com/amiwrpremium/go-derive/pkg/channels.Channel]; pass them to
+// [github.com/amiwrpremium/go-derive/pkg/ws.Subscribe] together with a
+// matching T.
 package public
 
 import (
