@@ -334,6 +334,27 @@ func (a *API) RFQGetBestQuote(ctx context.Context, params map[string]any) (*type
 	return &resp, nil
 }
 
+// OrderQuotePublic is the unauthenticated counterpart of
+// [API.OrderQuote] — it runs a hypothetical order through the
+// matching engine without submitting and returns the engine's
+// estimates for fill price, fee, and post-trade margin balance.
+//
+// Wraps `public/order_quote`. Same `params` shape as
+// [API.OrderQuote] (plus the same signing fields, which the engine
+// uses for the simulation but does not validate); same response
+// type. No signer or subaccount required — useful for pre-flight
+// checks before signing anything.
+func (a *API) OrderQuotePublic(ctx context.Context, params map[string]any) (*types.OrderQuoteResult, error) {
+	if params == nil {
+		params = map[string]any{}
+	}
+	var resp types.OrderQuoteResult
+	if err := a.call(ctx, "public/order_quote", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
 // OrderQuote runs a hypothetical order through the matching engine
 // without submitting and reports the engine's estimates for fill
 // price, fee, and post-trade margin balance. Useful for
