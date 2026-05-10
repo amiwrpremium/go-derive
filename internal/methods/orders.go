@@ -494,6 +494,26 @@ func (a *API) GetAlgoOrders(ctx context.Context) ([]types.Order, error) {
 	return resp, nil
 }
 
+// GetTriggerOrders lists every untriggered trigger order on the
+// configured subaccount. Private.
+//
+// The wire response wraps the list in a `{subaccount_id, orders[]}`
+// envelope, mirroring [API.GetOpenOrders].
+func (a *API) GetTriggerOrders(ctx context.Context) ([]types.Order, error) {
+	if err := a.requireSubaccount(); err != nil {
+		return nil, err
+	}
+	var resp struct {
+		Orders []types.Order `json:"orders"`
+	}
+	if err := a.call(ctx, "private/get_trigger_orders", map[string]any{
+		"subaccount_id": a.Subaccount,
+	}, &resp); err != nil {
+		return nil, err
+	}
+	return resp.Orders, nil
+}
+
 // CancelTriggerOrder cancels one untriggered trigger order by id.
 // Private.
 //
