@@ -93,6 +93,8 @@ examples/
       get_trigger_orders/     c.GetTriggerOrders
       orders/
         place/                       c.PlaceOrder (DERIVE_RUN_LIVE_ORDERS=1)
+        place_algo/                  c.PlaceAlgoOrder (DERIVE_RUN_LIVE_ORDERS=1)
+        place_trigger/               c.PlaceTriggerOrder (DERIVE_RUN_LIVE_ORDERS=1)
         cancel/                      c.CancelOrder (DERIVE_ORDER_ID)
         cancel_all/                  c.CancelAll
         cancel_by_label/             c.CancelByLabel (DERIVE_LABEL)
