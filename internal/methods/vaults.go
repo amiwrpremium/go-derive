@@ -47,6 +47,16 @@ func (a *API) GetVaultShare(ctx context.Context, params map[string]any) ([]types
 	return resp.VaultShares, resp.Pagination, nil
 }
 
+// GetVaultAssets lists every ERC-20 asset tracked by Derive's vault
+// orderbook. Public.
+func (a *API) GetVaultAssets(ctx context.Context) ([]types.VaultAsset, error) {
+	var resp []types.VaultAsset
+	if err := a.call(ctx, "public/get_vault_assets", map[string]any{}, &resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // GetVaultStatistics returns a summary snapshot for every Derive
 // vault — price-per-share, total supply, USD TVL, and the
 // last-trade subaccount value. Public.
