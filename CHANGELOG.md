@@ -7,6 +7,17 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.5.0](https://github.com/amiwrpremium/go-derive/compare/v0.4.1...v0.5.0) (2026-05-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* bump for SubAccount breaking change in #68 ([#69](https://github.com/amiwrpremium/go-derive/issues/69))
+
+### Features
+
+* bump for SubAccount breaking change in [#68](https://github.com/amiwrpremium/go-derive/issues/68) ([#69](https://github.com/amiwrpremium/go-derive/issues/69)) ([2bf845f](https://github.com/amiwrpremium/go-derive/commit/2bf845f841aea91fa9f898fd247ae863cd3c977a))
+
 ## [0.4.1](https://github.com/amiwrpremium/go-derive/compare/v0.4.0...v0.4.1) (2026-05-10)
 
 
