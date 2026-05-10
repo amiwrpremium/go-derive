@@ -7,6 +7,18 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.5.1](https://github.com/amiwrpremium/go-derive/compare/v0.5.0...v0.5.1) (2026-05-10)
+
+
+### Documentation
+
+* **types:** point schema annotations at docs.derive.xyz ([#73](https://github.com/amiwrpremium/go-derive/issues/73)) ([77b7139](https://github.com/amiwrpremium/go-derive/commit/77b7139e772a1f189b94372e633443a769653e30))
+
+
+### Tests
+
+* **methods:** decode coverage for the 30 new methods from v0.5.0 ([#71](https://github.com/amiwrpremium/go-derive/issues/71)) ([7de30cd](https://github.com/amiwrpremium/go-derive/commit/7de30cdbfb0d5cef1261a80abe1c4173212232c1))
+
 ## [0.5.0](https://github.com/amiwrpremium/go-derive/compare/v0.4.1...v0.5.0) (2026-05-10)
 
 
