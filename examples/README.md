@@ -89,10 +89,14 @@ examples/
       connect/              ws.Connect lifecycle
       get_time/ ... get_trade_history/   same RPC set as rest/public/, over WS
       subscribe/
-        orderbook/          ws.Subscribe[types.OrderBook]
-        trades/             ws.Subscribe[[]types.Trade]
-        ticker/             ws.Subscribe[types.Ticker]
-        instruments/        ws.Subscribe[[]types.Instrument]
+        orderbook/                ws.Subscribe[types.OrderBook]
+        trades/                   ws.Subscribe[[]types.Trade] (per-instrument)
+        trades_by_type/           ws.Subscribe[[]types.Trade] (per type+currency)
+        trades_by_type_settled/   filtered to settled fills
+        ticker/                   ws.Subscribe[types.TickerSlim] (compact)
+        ticker_full/              ws.Subscribe[types.InstrumentTickerFeed] (full)
+        spot_feed/                ws.Subscribe[types.SpotFeedData]
+        margin_watch/             ws.Subscribe[[]types.MarginWatch]
     private/
       login/                public/login RPC
       get_subaccount/ ... get_withdrawal_history/   private RPC set
@@ -101,9 +105,9 @@ examples/
       mmp/                  set / reset
       subscribe/            subaccount channels
         orders/
-        positions/
         balances/
         trades/
+        trades_settled/     filtered to settled fills
         rfqs/
         quotes/
 ```

@@ -1,7 +1,6 @@
-// Streams ticker_slim updates for one instrument.
-//
-// `ticker_slim` is the only ticker channel Derive currently supports;
-// the legacy `ticker` channel was deprecated.
+// Streams ticker_slim updates for one instrument — the compact wire
+// variant. For the full payload (instrument metadata + live market
+// data), see ws/public/subscribe/ticker_full.
 package main
 
 import (
