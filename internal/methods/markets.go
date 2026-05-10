@@ -209,6 +209,22 @@ func (a *API) GetAllStatistics(ctx context.Context, endTime int64) ([]types.Aggr
 	return resp, nil
 }
 
+// GetAllUserStatistics returns the per-wallet trading statistics
+// for every wallet matching the supplied filters. Public.
+//
+// Optional `params`: `currency`, `end_time`, `instrument_name`,
+// `is_rfq`, `start_time`. Pass nil to omit all filters.
+func (a *API) GetAllUserStatistics(ctx context.Context, params map[string]any) ([]types.UserStatistics, error) {
+	if params == nil {
+		params = map[string]any{}
+	}
+	var resp []types.UserStatistics
+	if err := a.call(ctx, "public/all_user_statistics", params, &resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // GetStatistics returns rolling 24-hour and all-time statistics for
 // one instrument: volume, premium volume, fees, trades count, plus
 // total open interest. Public.
