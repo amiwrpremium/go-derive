@@ -37,6 +37,27 @@ func (a *API) GetContactInfo(ctx context.Context, contactType string) ([]types.C
 	return resp.Contacts, nil
 }
 
+// UpdateContactInfo updates the value of an existing contact-info
+// record. The `contact_type` itself is immutable on update —
+// to change it, delete and re-create.
+func (a *API) UpdateContactInfo(ctx context.Context, contactID int64, newValue string) (*types.Contact, error) {
+	if err := a.requireSigner(); err != nil {
+		return nil, err
+	}
+	params := map[string]any{
+		"wallet":        a.Signer.Owner().Hex(),
+		"contact_id":    contactID,
+		"contact_value": newValue,
+	}
+	var resp struct {
+		ContactInfo types.Contact `json:"contact_info"`
+	}
+	if err := a.call(ctx, "private/update_contact_info", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp.ContactInfo, nil
+}
+
 // CreateContactInfo registers a new contact-info record on the
 // configured signer's wallet. Private.
 //
