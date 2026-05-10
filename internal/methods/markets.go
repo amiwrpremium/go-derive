@@ -191,6 +191,161 @@ func (a *API) GetLiveIncidents(ctx context.Context) ([]types.Incident, error) {
 	return resp.Incidents, nil
 }
 
+// GetAllStatistics returns the per-(currency, instrument_type)
+// aggregate of rolling 24h and all-time statistics across every
+// instrument. Public.
+//
+// Optional `endTime` (Unix seconds) — pass 0 for the engine's
+// default (now).
+func (a *API) GetAllStatistics(ctx context.Context, endTime int64) ([]types.AggregateStatistics, error) {
+	params := map[string]any{}
+	if endTime > 0 {
+		params["end_time"] = endTime
+	}
+	var resp []types.AggregateStatistics
+	if err := a.call(ctx, "public/all_statistics", params, &resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// GetAllUserStatistics returns the per-wallet trading statistics
+// for every wallet matching the supplied filters. Public.
+//
+// Optional `params`: `currency`, `end_time`, `instrument_name`,
+// `is_rfq`, `start_time`. Pass nil to omit all filters.
+func (a *API) GetAllUserStatistics(ctx context.Context, params map[string]any) ([]types.UserStatistics, error) {
+	if params == nil {
+		params = map[string]any{}
+	}
+	var resp []types.UserStatistics
+	if err := a.call(ctx, "public/all_user_statistics", params, &resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// GetUserStatistics returns the trading statistics for one wallet.
+// Public.
+//
+// Required `params`: `wallet`. Optional: `currency`, `end_time`,
+// `instrument_name`, `is_rfq`, `start_time`.
+func (a *API) GetUserStatistics(ctx context.Context, params map[string]any) (*types.UserStatistics, error) {
+	if params == nil {
+		params = map[string]any{}
+	}
+	var resp types.UserStatistics
+	if err := a.call(ctx, "public/user_statistics", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// GetAsset fetches one Asset record by name. Public.
+//
+// Distinct from [API.GetInstrument]: an asset is the on-chain
+// ERC-1155 entity (token id, decimals, address); an instrument adds
+// the orderbook / pricing surface.
+func (a *API) GetAsset(ctx context.Context, name string) (*types.Asset, error) {
+	var resp types.Asset
+	if err := a.call(ctx, "public/get_asset", map[string]any{"asset_name": name}, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// GetAssets lists Asset records matching the supplied filter.
+// Public.
+//
+// Optional `params`: `currency`, `expired`. Pass nil to omit both
+// and return every active asset.
+func (a *API) GetAssets(ctx context.Context, params map[string]any) ([]types.Asset, error) {
+	if params == nil {
+		params = map[string]any{}
+	}
+	var resp []types.Asset
+	if err := a.call(ctx, "public/get_assets", params, &resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// GetBridgeBalances lists every bridge / cross-chain balance the
+// engine tracks. Public.
+func (a *API) GetBridgeBalances(ctx context.Context) ([]types.BridgeBalance, error) {
+	var resp []types.BridgeBalance
+	if err := a.call(ctx, "public/get_bridge_balances", map[string]any{}, &resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// GetStDRVSnapshots returns one wallet's staked-DRV balance snapshots
+// over a time window. Public.
+//
+// Required `params`: `wallet`, `from_sec`, `to_sec`.
+func (a *API) GetStDRVSnapshots(ctx context.Context, params map[string]any) (*types.StDRVSnapshots, error) {
+	if params == nil {
+		params = map[string]any{}
+	}
+	var resp types.StDRVSnapshots
+	if err := a.call(ctx, "public/get_stdrv_snapshots", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// GetDescendantTree returns the referee tree rooted at one wallet
+// (or invite code). Public.
+//
+// The `Descendants` field is preserved as raw JSON because the wire
+// shape is recursive; decode further at the call site.
+func (a *API) GetDescendantTree(ctx context.Context, walletOrInviteCode string) (*types.DescendantTree, error) {
+	var resp types.DescendantTree
+	if err := a.call(ctx, "public/get_descendant_tree", map[string]any{
+		"wallet_or_invite_code": walletOrInviteCode,
+	}, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// GetTreeRoots returns every root wallet (top-of-tree referrer) the
+// engine tracks. Public.
+//
+// The `Roots` field is preserved as raw JSON because the inner
+// shape varies per program.
+func (a *API) GetTreeRoots(ctx context.Context) (*types.TreeRoots, error) {
+	var resp types.TreeRoots
+	if err := a.call(ctx, "public/get_tree_roots", map[string]any{}, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// MarginWatch calculates the mark-to-market and maintenance-margin
+// snapshot for one subaccount. Public.
+//
+// `params` accepts `subaccount_id` (required), plus optional
+// `force_onchain` (force on-chain balance fetch) and
+// `is_delayed_liquidation` (lower MM requirement under a
+// delayed-liquidation grace period).
+//
+// Note: this is the RPC counterpart to the platform-wide
+// `margin_watch` WebSocket channel. The RPC returns a single
+// snapshot for one subaccount; the channel emits a stream of
+// at-risk subaccounts engine-wide.
+func (a *API) MarginWatch(ctx context.Context, params map[string]any) (*types.MarginSnapshot, error) {
+	if params == nil {
+		params = map[string]any{}
+	}
+	var resp types.MarginSnapshot
+	if err := a.call(ctx, "public/margin_watch", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
 // GetStatistics returns rolling 24-hour and all-time statistics for
 // one instrument: volume, premium volume, fees, trades count, plus
 // total open interest. Public.

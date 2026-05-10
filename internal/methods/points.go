@@ -1,0 +1,60 @@
+// Package methods is the shared implementation of every JSON-RPC method
+// Derive exposes. Both pkg/rest.Client and pkg/ws.Client embed *API so that
+// each method is defined exactly once, parameterised by the underlying
+// transport.
+//
+// Public methods are unauthenticated; private methods require Signer to be
+// non-nil. Private methods that mutate orders also use the Domain to sign
+// the per-action EIP-712 hash.
+package methods
+
+import (
+	"context"
+
+	"github.com/amiwrpremium/go-derive/pkg/types"
+)
+
+// GetPoints returns one wallet's points record for one program.
+// Public.
+func (a *API) GetPoints(ctx context.Context, program, wallet string) (*types.PointsRecord, error) {
+	var resp types.PointsRecord
+	if err := a.call(ctx, "public/get_points", map[string]any{
+		"program": program,
+		"wallet":  wallet,
+	}, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// GetPointsLeaderboard returns one page (up to 500 entries) of the
+// points leaderboard for one program, ordered by points desc.
+// Public.
+//
+// Pass `page` 1-indexed; the response carries the total number of
+// pages.
+func (a *API) GetPointsLeaderboard(ctx context.Context, program string, page int) (*types.PointsLeaderboard, error) {
+	params := map[string]any{"program": program}
+	if page > 0 {
+		params["page"] = page
+	}
+	var resp types.PointsLeaderboard
+	if err := a.call(ctx, "public/get_points_leaderboard", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// GetAllPoints returns the program-wide points snapshot for one
+// program: aggregate notional volume, user count, and per-wallet
+// points map. Public.
+//
+// The per-wallet `points` map is preserved as raw JSON because the
+// inner schema varies per program; decode further at the call site.
+func (a *API) GetAllPoints(ctx context.Context, program string) (*types.AllPointsResult, error) {
+	var resp types.AllPointsResult
+	if err := a.call(ctx, "public/get_all_points", map[string]any{"program": program}, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}

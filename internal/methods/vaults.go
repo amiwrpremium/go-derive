@@ -47,6 +47,43 @@ func (a *API) GetVaultShare(ctx context.Context, params map[string]any) ([]types
 	return resp.VaultShares, resp.Pagination, nil
 }
 
+// GetVaultAssets lists every ERC-20 asset tracked by Derive's vault
+// orderbook. Public.
+func (a *API) GetVaultAssets(ctx context.Context) ([]types.VaultAsset, error) {
+	var resp []types.VaultAsset
+	if err := a.call(ctx, "public/get_vault_assets", map[string]any{}, &resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// GetVaultPools lists every registered vault ERC-20 pool — the
+// manager contracts that hold vault deposits. Public.
+func (a *API) GetVaultPools(ctx context.Context) ([]types.VaultPool, error) {
+	var resp []types.VaultPool
+	if err := a.call(ctx, "public/get_vault_pools", map[string]any{}, &resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// GetVaultRates returns the engine's current view of one basis
+// vault's rate components — funding, interest, LRT yield, and
+// the per-leg balances. Public.
+//
+// Required `vaultType`: documented values are `lbtc` and `weeth`.
+func (a *API) GetVaultRates(ctx context.Context, vaultType string) (*types.VaultRates, error) {
+	params := map[string]any{}
+	if vaultType != "" {
+		params["vault_type"] = vaultType
+	}
+	var resp types.VaultRates
+	if err := a.call(ctx, "public/get_vault_rates", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
 // GetVaultStatistics returns a summary snapshot for every Derive
 // vault — price-per-share, total supply, USD TVL, and the
 // last-trade subaccount value. Public.

@@ -13,17 +13,32 @@ import (
 func TestGetSubaccount_Happy(t *testing.T) {
 	api, ft := newAPI(t, true, 7)
 	ft.HandleResult("private/get_subaccount", map[string]any{
-		"subaccount_id":        7,
-		"owner_address":        "0x1111111111111111111111111111111111111111",
-		"margin_type":          "PM",
-		"is_under_liquidation": false,
-		"subaccount_value":     "0",
-		"initial_margin":       "0",
-		"maintenance_margin":   "0",
+		"subaccount_id":                  7,
+		"currency":                       "USDC",
+		"label":                          "main",
+		"margin_type":                    "PM",
+		"is_under_liquidation":           false,
+		"subaccount_value":               "0",
+		"initial_margin":                 "0",
+		"maintenance_margin":             "0",
+		"open_orders_margin":             "0",
+		"projected_margin_change":        "0",
+		"collaterals_initial_margin":     "0",
+		"collaterals_maintenance_margin": "0",
+		"collaterals_value":              "0",
+		"positions_initial_margin":       "0",
+		"positions_maintenance_margin":   "0",
+		"positions_value":                "0",
+		"collaterals":                    []any{},
+		"open_orders":                    []any{},
+		"positions":                      []any{},
 	})
 	got, err := api.GetSubaccount(context.Background())
 	require.NoError(t, err)
+	require.NotNil(t, got)
 	assert.Equal(t, int64(7), got.SubaccountID)
+	assert.Equal(t, "main", got.Label)
+	assert.Equal(t, "USDC", got.Currency)
 
 	params := paramsAsMap(t, ft.LastCall().Params)
 	assert.Equal(t, float64(7), params["subaccount_id"])

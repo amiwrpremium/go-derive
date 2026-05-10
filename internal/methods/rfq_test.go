@@ -297,6 +297,36 @@ func TestRFQGetBestQuote_Decode_NoQuote(t *testing.T) {
 	assert.Equal(t, "1000", res.EstimatedTotalCost.String())
 }
 
+func TestOrderQuotePublic_Decode(t *testing.T) {
+	api, ft := newAPI(t, false, 0)
+	ft.HandleResult("public/order_quote", map[string]any{
+		"is_valid":                         true,
+		"invalid_reason":                   nil,
+		"estimated_fill_amount":            "1",
+		"estimated_fill_price":             "50000",
+		"estimated_fee":                    "5",
+		"estimated_realized_pnl":           "0",
+		"estimated_realized_pnl_excl_fees": "0",
+		"estimated_order_status":           "filled",
+		"max_amount":                       "10",
+		"suggested_max_fee":                "10",
+		"pre_initial_margin":               "100",
+		"post_initial_margin":              "120",
+		"post_liquidation_price":           nil,
+	})
+	got, err := api.OrderQuotePublic(context.Background(), map[string]any{
+		"instrument_name": "BTC-PERP",
+		"direction":       "buy",
+		"amount":          "1",
+		"limit_price":     "50000",
+	})
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	assert.True(t, got.IsValid)
+	assert.Equal(t, enums.OrderStatusFilled, got.EstimatedOrderStatus)
+	assert.Equal(t, "10", got.MaxAmount.String())
+}
+
 func TestOrderQuote_Decode(t *testing.T) {
 	api, ft := newAPI(t, true, 7)
 	ft.HandleResult("private/order_quote", map[string]any{

@@ -442,6 +442,78 @@ func (a *API) CancelByNonce(ctx context.Context, instrument string, nonce uint64
 	return &resp, nil
 }
 
+// CancelAlgoOrder cancels one in-flight algo order by id. Private.
+//
+// Returns the cancelled order (in `algo_active` -> `cancelled`
+// state). Counterpart to [API.CancelTriggerOrder] for algo orders
+// (e.g. TWAP) that have started slicing into the market.
+func (a *API) CancelAlgoOrder(ctx context.Context, orderID string) (*types.Order, error) {
+	if err := a.requireSubaccount(); err != nil {
+		return nil, err
+	}
+	params := map[string]any{
+		"subaccount_id": a.Subaccount,
+		"order_id":      orderID,
+	}
+	var resp types.Order
+	if err := a.call(ctx, "private/cancel_algo_order", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// CancelAllAlgoOrders cancels every in-flight algo order on the
+// configured subaccount. Private.
+//
+// Returns nil on success; the wire response is a fixed "ok" string
+// surfaced as a nil error.
+func (a *API) CancelAllAlgoOrders(ctx context.Context) error {
+	if err := a.requireSubaccount(); err != nil {
+		return err
+	}
+	return a.call(ctx, "private/cancel_all_algo_orders", map[string]any{
+		"subaccount_id": a.Subaccount,
+	}, nil)
+}
+
+// GetAlgoOrders lists every active algo order on the configured
+// subaccount. Private.
+//
+// Counterpart to [API.GetOpenOrders] for algo orders. Returns a bare
+// list — no pagination wrapper.
+func (a *API) GetAlgoOrders(ctx context.Context) ([]types.Order, error) {
+	if err := a.requireSubaccount(); err != nil {
+		return nil, err
+	}
+	var resp []types.Order
+	if err := a.call(ctx, "private/get_algo_orders", map[string]any{
+		"subaccount_id": a.Subaccount,
+	}, &resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// GetTriggerOrders lists every untriggered trigger order on the
+// configured subaccount. Private.
+//
+// The wire response wraps the list in a `{subaccount_id, orders[]}`
+// envelope, mirroring [API.GetOpenOrders].
+func (a *API) GetTriggerOrders(ctx context.Context) ([]types.Order, error) {
+	if err := a.requireSubaccount(); err != nil {
+		return nil, err
+	}
+	var resp struct {
+		Orders []types.Order `json:"orders"`
+	}
+	if err := a.call(ctx, "private/get_trigger_orders", map[string]any{
+		"subaccount_id": a.Subaccount,
+	}, &resp); err != nil {
+		return nil, err
+	}
+	return resp.Orders, nil
+}
+
 // CancelTriggerOrder cancels one untriggered trigger order by id.
 // Private.
 //
