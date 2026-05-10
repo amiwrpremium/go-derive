@@ -17,23 +17,13 @@ func TestAuctionsWatch_Name(t *testing.T) {
 }
 
 func TestAuctionsWatch_Decode_Ongoing(t *testing.T) {
-	raw := json.RawMessage(`{
-        "subaccount_id": 7,
-        "state": "ongoing",
-        "timestamp": 1700000000000,
-        "details": {
-            "currency": "USDC",
-            "estimated_bid_price": "-12.5",
-            "estimated_discount_pnl": "1.2",
-            "estimated_mtm": "100",
-            "estimated_percent_bid": "0.25",
-            "last_seen_trade_id": 42,
-            "margin_type": "PM",
-            "min_cash_transfer": "50",
-            "min_price_limit": "5",
-            "subaccount_balances": {"USDC": "100"}
-        }
-    }`)
+	raw := json.RawMessage(`{"subaccount_id":7,"state":"ongoing",` +
+		`"timestamp":1700000000000,"details":{"currency":"USDC",` +
+		`"estimated_bid_price":"-12.5","estimated_discount_pnl":"1.2",` +
+		`"estimated_mtm":"100","estimated_percent_bid":"0.25",` +
+		`"last_seen_trade_id":42,"margin_type":"PM",` +
+		`"min_cash_transfer":"50","min_price_limit":"5",` +
+		`"subaccount_balances":{"USDC":"100"}}}`)
 	got, err := public.AuctionsWatch{}.Decode(raw)
 	require.NoError(t, err)
 	ev, ok := got.(types.AuctionWatchEvent)
@@ -45,12 +35,8 @@ func TestAuctionsWatch_Decode_Ongoing(t *testing.T) {
 }
 
 func TestAuctionsWatch_Decode_Ended(t *testing.T) {
-	raw := json.RawMessage(`{
-        "subaccount_id": 9,
-        "state": "ended",
-        "timestamp": 1700000060000,
-        "details": null
-    }`)
+	raw := json.RawMessage(`{"subaccount_id":9,"state":"ended",` +
+		`"timestamp":1700000060000,"details":null}`)
 	got, err := public.AuctionsWatch{}.Decode(raw)
 	require.NoError(t, err)
 	ev := got.(types.AuctionWatchEvent)

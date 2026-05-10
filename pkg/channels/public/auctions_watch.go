@@ -1,3 +1,9 @@
+// Package public declares Derive's public (no-auth) WebSocket subscription
+// channels.
+//
+// This file holds the [AuctionsWatch] descriptor for the
+// `auctions.watch` channel. See the package doc on [MarginWatch]
+// for the cross-cutting interface contract.
 package public
 
 import (

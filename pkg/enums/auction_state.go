@@ -1,3 +1,7 @@
+// Package enums declares the named-string enums used across the SDK.
+//
+// This file holds [AuctionState], the lifecycle state reported on the
+// `auctions.watch` WebSocket channel.
 package enums
 
 // AuctionState is the lifecycle state reported on the `auctions.watch`

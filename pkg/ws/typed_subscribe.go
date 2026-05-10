@@ -1,3 +1,8 @@
+// Package ws is the WebSocket-backed client for Derive's JSON-RPC API.
+//
+// This file declares one Subscribe* method per documented Derive
+// channel, each a thin convenience wrapper over the generic
+// [Subscribe] function.
 package ws
 
 import (
@@ -9,9 +14,8 @@ import (
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
-// This file declares one Subscribe* method per documented Derive
-// channel, each a thin convenience wrapper over the generic
-// [Subscribe] function. They exist so callers can subscribe in one
+// The Subscribe* methods declared below are thin convenience wrappers
+// over the generic [Subscribe] function. They exist so callers can subscribe in one
 // line without hand-picking T and the matching descriptor:
 //
 //	// Generic form:
