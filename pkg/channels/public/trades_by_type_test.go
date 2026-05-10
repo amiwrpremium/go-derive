@@ -33,3 +33,26 @@ func TestTradesByType_Decode_Malformed(t *testing.T) {
 	_, err := public.TradesByType{}.Decode([]byte(`{`))
 	assert.Error(t, err)
 }
+
+func TestTradesByTypeTxStatus_Name(t *testing.T) {
+	got := public.TradesByTypeTxStatus{
+		InstrumentType: enums.InstrumentTypePerp,
+		Currency:       "BTC",
+		TxStatus:       enums.TxStatusSettled,
+	}.Name()
+	assert.Equal(t, "trades.perp.BTC.settled", got)
+}
+
+func TestTradesByTypeTxStatus_Decode_Happy(t *testing.T) {
+	raw := json.RawMessage(`[{"trade_id":"t1","instrument_name":"BTC-PERP","direction":"buy","trade_price":"100","trade_amount":"1","timestamp":1700000000000}]`)
+	v, err := public.TradesByTypeTxStatus{TxStatus: enums.TxStatusSettled}.Decode(raw)
+	require.NoError(t, err)
+	trades, ok := v.([]types.Trade)
+	require.True(t, ok)
+	require.Len(t, trades, 1)
+}
+
+func TestTradesByTypeTxStatus_Decode_Malformed(t *testing.T) {
+	_, err := public.TradesByTypeTxStatus{}.Decode([]byte(`{`))
+	assert.Error(t, err)
+}
