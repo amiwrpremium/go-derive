@@ -157,7 +157,7 @@ func TestClient_SubscribeBalances(t *testing.T) {
 	sub, err := c.SubscribeBalances(context.Background(), 7)
 	require.NoError(t, err)
 	defer func() { _ = sub.Close() }()
-	assert.True(t, srv.WaitSubscribed("subaccount.7.balances", time.Second))
+	assert.True(t, srv.WaitSubscribed("7.balances", time.Second))
 }
 
 func TestClient_SubscribeBestQuotes(t *testing.T) {
