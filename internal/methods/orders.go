@@ -25,11 +25,30 @@ import (
 // nonce and expiry are embedded in the JSON-RPC params so the matching engine
 // can recompute the EIP-712 hash and verify.
 func (a *API) PlaceOrder(ctx context.Context, in types.PlaceOrderInput) (types.Order, error) {
-	if err := a.requireSigner(); err != nil {
+	params, err := a.signedOrderParams(ctx, in)
+	if err != nil {
 		return types.Order{}, err
 	}
-	if err := a.requireSubaccount(); err != nil {
+	var resp struct {
+		Order types.Order `json:"order"`
+	}
+	if err := a.call(ctx, "private/order", params, &resp); err != nil {
 		return types.Order{}, err
+	}
+	return resp.Order, nil
+}
+
+// signedOrderParams is the shared signing block for every order-
+// submission endpoint (private/order, private/algo_order,
+// private/trigger_order). It produces the JSON-RPC params map with
+// the standard order fields plus the EIP-712 action signature.
+// Method-specific extras (algo_*, trigger_*) are added by the caller.
+func (a *API) signedOrderParams(ctx context.Context, in types.PlaceOrderInput) (map[string]any, error) {
+	if err := a.requireSigner(); err != nil {
+		return nil, err
+	}
+	if err := a.requireSubaccount(); err != nil {
+		return nil, err
 	}
 
 	nonce := a.Nonces.Next()
@@ -54,7 +73,7 @@ func (a *API) PlaceOrder(ctx context.Context, in types.PlaceOrderInput) (types.O
 	}
 	dataHash, err := tmd.Hash()
 	if err != nil {
-		return types.Order{}, err
+		return nil, err
 	}
 
 	action := auth.ActionData{
@@ -68,30 +87,60 @@ func (a *API) PlaceOrder(ctx context.Context, in types.PlaceOrderInput) (types.O
 	}
 	sig, err := a.Signer.SignAction(ctx, a.Domain, action)
 	if err != nil {
-		return types.Order{}, err
+		return nil, err
 	}
 
-	params := types.OrderParams{
-		InstrumentName:  in.InstrumentName,
-		Direction:       in.Direction,
-		OrderType:       in.OrderType,
-		TimeInForce:     in.TimeInForce,
-		Amount:          in.Amount,
-		LimitPrice:      in.LimitPrice,
-		MaxFee:          in.MaxFee,
-		SubaccountID:    a.Subaccount,
-		Nonce:           nonce,
-		Signer:          types.Address(a.Signer.Address()),
-		Signature:       sig.Hex(),
-		SignatureExpiry: expiry,
-		Label:           in.Label,
-		MMP:             in.MMP,
-		ReduceOnly:      in.ReduceOnly,
+	params := map[string]any{
+		"instrument_name":      in.InstrumentName,
+		"direction":            in.Direction,
+		"order_type":           in.OrderType,
+		"amount":               in.Amount,
+		"limit_price":          in.LimitPrice,
+		"max_fee":              in.MaxFee,
+		"subaccount_id":        a.Subaccount,
+		"nonce":                nonce,
+		"signer":               a.Signer.Address().Hex(),
+		"signature":            sig.Hex(),
+		"signature_expiry_sec": expiry,
 	}
+	if in.TimeInForce != "" {
+		params["time_in_force"] = in.TimeInForce
+	}
+	if in.Label != "" {
+		params["label"] = in.Label
+	}
+	if in.MMP {
+		params["mmp"] = true
+	}
+	if in.ReduceOnly {
+		params["reduce_only"] = true
+	}
+	return params, nil
+}
+
+// PlaceAlgoOrder builds, signs and submits a TWAP-style algorithmic
+// order. Private. Wraps `private/algo_order`.
+//
+// Signing flow is identical to [API.PlaceOrder] — the algo-specific
+// fields (algo_type, algo_duration_sec, algo_num_slices) are added
+// alongside the standard order params; they are not part of the
+// EIP-712 signature payload.
+//
+// Returns the engine's order record in `algo_active` state. Cancel
+// with [API.CancelAlgoOrder] or [API.CancelAllAlgoOrders].
+func (a *API) PlaceAlgoOrder(ctx context.Context, in types.AlgoOrderInput) (types.Order, error) {
+	params, err := a.signedOrderParams(ctx, in.PlaceOrderInput)
+	if err != nil {
+		return types.Order{}, err
+	}
+	params["algo_type"] = in.AlgoType
+	params["algo_duration_sec"] = in.AlgoDurationSec
+	params["algo_num_slices"] = in.AlgoNumSlices
+
 	var resp struct {
 		Order types.Order `json:"order"`
 	}
-	if err := a.call(ctx, "private/order", params, &resp); err != nil {
+	if err := a.call(ctx, "private/algo_order", params, &resp); err != nil {
 		return types.Order{}, err
 	}
 	return resp.Order, nil

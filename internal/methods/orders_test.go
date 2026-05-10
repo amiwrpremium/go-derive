@@ -122,6 +122,62 @@ func TestPlaceOrder_Success_PopulatesSignatureFields(t *testing.T) {
 	assert.Equal(t, "BTC-PERP", params["instrument_name"])
 }
 
+func TestPlaceAlgoOrder_Success_PopulatesAlgoFields(t *testing.T) {
+	api, ft := newAPI(t, true, 1)
+
+	ft.Handle("private/algo_order", func(_ json.RawMessage) (any, error) {
+		return map[string]any{
+			"order": map[string]any{
+				"order_id": "A1", "subaccount_id": 1, "instrument_name": "BTC-PERP",
+				"direction": "buy", "order_type": "limit", "time_in_force": "gtc",
+				"order_status": "algo_active", "amount": "1", "filled_amount": "0",
+				"limit_price": "65000", "max_fee": "10", "nonce": 1,
+				"signer":                "0x0000000000000000000000000000000000000000",
+				"creation_timestamp":    1700000000000,
+				"last_update_timestamp": 1700000000000,
+				"algo_type":             "twap",
+				"algo_duration_sec":     3600,
+				"algo_num_slices":       60,
+			},
+		}, nil
+	})
+
+	in := types.AlgoOrderInput{
+		PlaceOrderInput: types.PlaceOrderInput{
+			InstrumentName: "BTC-PERP",
+			Asset:          types.Address(common.HexToAddress("0x1111111111111111111111111111111111111111")),
+			Direction:      enums.DirectionBuy,
+			OrderType:      enums.OrderTypeLimit,
+			TimeInForce:    enums.TimeInForceGTC,
+			Amount:         types.MustDecimal("1"),
+			LimitPrice:     types.MustDecimal("65000"),
+			MaxFee:         types.MustDecimal("10"),
+		},
+		AlgoType:        enums.AlgoTypeTWAP,
+		AlgoDurationSec: 3600,
+		AlgoNumSlices:   60,
+	}
+	order, err := api.PlaceAlgoOrder(context.Background(), in)
+	require.NoError(t, err)
+	assert.Equal(t, "A1", order.OrderID)
+	assert.Equal(t, "twap", order.AlgoType)
+
+	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.Equal(t, "twap", params["algo_type"])
+	assert.Equal(t, float64(3600), params["algo_duration_sec"])
+	assert.Equal(t, float64(60), params["algo_num_slices"])
+	// Signature plumbing comes from the shared helper.
+	sig, _ := params["signature"].(string)
+	assert.True(t, strings.HasPrefix(sig, "0x") && len(sig) == 132)
+	assert.NotEmpty(t, params["signer"])
+}
+
+func TestPlaceAlgoOrder_RequiresSigner(t *testing.T) {
+	api, _ := newAPI(t, false, 0)
+	_, err := api.PlaceAlgoOrder(context.Background(), types.AlgoOrderInput{})
+	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
+}
+
 func TestCancelOrder(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleResult("private/cancel", nil)
