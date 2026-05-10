@@ -3,7 +3,6 @@ package main
 
 import (
 	"github.com/amiwrpremium/go-derive/examples/example"
-	"github.com/amiwrpremium/go-derive/internal/methods"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
@@ -13,7 +12,7 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	orders, page, err := c.GetOrderHistory(ctx, types.PageRequest{PageSize: 10}, methods.OrderHistoryQuery{})
+	orders, page, err := c.GetOrderHistory(ctx, types.PageRequest{PageSize: 10}, types.OrderHistoryQuery{})
 	example.Fatal(err)
 	example.Print("count", len(orders))
 	example.Print("total pages", page.NumPages)

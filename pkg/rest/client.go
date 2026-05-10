@@ -19,7 +19,7 @@
 //
 //	c, _ := rest.New(rest.WithMainnet(), rest.WithSigner(s), rest.WithSubaccount(123))
 //	instruments, _ := c.GetInstruments(ctx, "BTC", enums.InstrumentTypePerp)
-//	c.PlaceOrder(ctx, methods.PlaceOrderInput{...})
+//	c.PlaceOrder(ctx, types.PlaceOrderInput{...})
 //
 // # Errors
 //

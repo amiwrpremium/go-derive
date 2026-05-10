@@ -12,16 +12,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/amiwrpremium/go-derive/internal/methods"
 	"github.com/amiwrpremium/go-derive/pkg/enums"
 	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
-func validPlaceOrderInput() methods.PlaceOrderInput {
-	return methods.PlaceOrderInput{
+func validPlaceOrderInput() types.PlaceOrderInput {
+	return types.PlaceOrderInput{
 		InstrumentName: "BTC-PERP",
-		Asset:          common.HexToAddress("0x1111111111111111111111111111111111111111"),
+		Asset:          types.Address(common.HexToAddress("0x1111111111111111111111111111111111111111")),
 		Direction:      enums.DirectionBuy,
 		OrderType:      enums.OrderTypeLimit,
 		Amount:         types.MustDecimal("1"),
@@ -37,17 +36,17 @@ func TestPlaceOrderInput_Validate_Happy(t *testing.T) {
 func TestPlaceOrderInput_Validate_Rejects(t *testing.T) {
 	cases := []struct {
 		name string
-		mut  func(*methods.PlaceOrderInput)
+		mut  func(*types.PlaceOrderInput)
 		want string
 	}{
-		{"empty instrument", func(in *methods.PlaceOrderInput) { in.InstrumentName = "" }, "instrument_name"},
-		{"zero asset", func(in *methods.PlaceOrderInput) { in.Asset = common.Address{} }, "asset"},
-		{"bad direction", func(in *methods.PlaceOrderInput) { in.Direction = enums.Direction("x") }, "direction"},
-		{"bad order type", func(in *methods.PlaceOrderInput) { in.OrderType = enums.OrderType("x") }, "order_type"},
-		{"bad time-in-force", func(in *methods.PlaceOrderInput) { in.TimeInForce = enums.TimeInForce("x") }, "time_in_force"},
-		{"zero amount", func(in *methods.PlaceOrderInput) { in.Amount = types.MustDecimal("0") }, "amount"},
-		{"zero price", func(in *methods.PlaceOrderInput) { in.LimitPrice = types.MustDecimal("0") }, "limit_price"},
-		{"negative fee", func(in *methods.PlaceOrderInput) { in.MaxFee = types.MustDecimal("-1") }, "max_fee"},
+		{"empty instrument", func(in *types.PlaceOrderInput) { in.InstrumentName = "" }, "instrument_name"},
+		{"zero asset", func(in *types.PlaceOrderInput) { in.Asset = types.Address{} }, "asset"},
+		{"bad direction", func(in *types.PlaceOrderInput) { in.Direction = enums.Direction("x") }, "direction"},
+		{"bad order type", func(in *types.PlaceOrderInput) { in.OrderType = enums.OrderType("x") }, "order_type"},
+		{"bad time-in-force", func(in *types.PlaceOrderInput) { in.TimeInForce = enums.TimeInForce("x") }, "time_in_force"},
+		{"zero amount", func(in *types.PlaceOrderInput) { in.Amount = types.MustDecimal("0") }, "amount"},
+		{"zero price", func(in *types.PlaceOrderInput) { in.LimitPrice = types.MustDecimal("0") }, "limit_price"},
+		{"negative fee", func(in *types.PlaceOrderInput) { in.MaxFee = types.MustDecimal("-1") }, "max_fee"},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -69,13 +68,13 @@ func TestPlaceOrderInput_Validate_AllowsEmptyTimeInForce(t *testing.T) {
 
 func TestPlaceOrder_RequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
-	_, err := api.PlaceOrder(context.Background(), methods.PlaceOrderInput{})
+	_, err := api.PlaceOrder(context.Background(), types.PlaceOrderInput{})
 	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
 }
 
 func TestPlaceOrder_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0) // signer set but subaccount=0
-	_, err := api.PlaceOrder(context.Background(), methods.PlaceOrderInput{})
+	_, err := api.PlaceOrder(context.Background(), types.PlaceOrderInput{})
 	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
 }
 
@@ -97,9 +96,9 @@ func TestPlaceOrder_Success_PopulatesSignatureFields(t *testing.T) {
 		}, nil
 	})
 
-	in := methods.PlaceOrderInput{
+	in := types.PlaceOrderInput{
 		InstrumentName: "BTC-PERP",
-		Asset:          common.HexToAddress("0x1111111111111111111111111111111111111111"),
+		Asset:          types.Address(common.HexToAddress("0x1111111111111111111111111111111111111111")),
 		SubID:          0,
 		Direction:      enums.DirectionBuy,
 		OrderType:      enums.OrderTypeLimit,
@@ -214,7 +213,7 @@ func TestGetOrders_WithFilter(t *testing.T) {
 		"orders":     []any{},
 		"pagination": map[string]any{"num_pages": 1, "count": 0},
 	})
-	_, _, err := api.GetOrders(context.Background(), types.PageRequest{}, &methods.GetOrdersFilter{
+	_, _, err := api.GetOrders(context.Background(), types.PageRequest{}, &types.GetOrdersFilter{
 		InstrumentName: "BTC-PERP",
 		Label:          "alpha",
 		Status:         enums.OrderStatusOpen,
@@ -248,7 +247,7 @@ func TestGetOrderHistory_Decode(t *testing.T) {
 		},
 		"pagination": map[string]any{"num_pages": 1, "count": 1},
 	})
-	orders, page, err := api.GetOrderHistory(context.Background(), types.PageRequest{}, methods.OrderHistoryQuery{
+	orders, page, err := api.GetOrderHistory(context.Background(), types.PageRequest{}, types.OrderHistoryQuery{
 		FromTimestamp: types.MillisTime{T: time.UnixMilli(1700000000000)},
 		ToTimestamp:   types.MillisTime{T: time.UnixMilli(1700000060000)},
 	})
@@ -265,7 +264,7 @@ func TestGetOrderHistory_Decode(t *testing.T) {
 
 func TestGetOrderHistory_RequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
-	_, _, err := api.GetOrderHistory(context.Background(), types.PageRequest{}, methods.OrderHistoryQuery{})
+	_, _, err := api.GetOrderHistory(context.Background(), types.PageRequest{}, types.OrderHistoryQuery{})
 	assert.True(t, errors.Is(err, derrors.ErrUnauthorized))
 }
 
@@ -276,7 +275,7 @@ func TestGetOrderHistory_AcceptsWalletWithoutSubaccount(t *testing.T) {
 		"orders":        []any{},
 		"pagination":    map[string]any{"num_pages": 0, "count": 0},
 	})
-	_, _, err := api.GetOrderHistory(context.Background(), types.PageRequest{}, methods.OrderHistoryQuery{Wallet: "0xabc"})
+	_, _, err := api.GetOrderHistory(context.Background(), types.PageRequest{}, types.OrderHistoryQuery{Wallet: "0xabc"})
 	require.NoError(t, err)
 	params := paramsAsMap(t, ft.LastCall().Params)
 	_, hasSub := params["subaccount_id"]
@@ -286,7 +285,7 @@ func TestGetOrderHistory_AcceptsWalletWithoutSubaccount(t *testing.T) {
 
 func TestGetOrderHistory_RequiresSubaccountWhenWalletAbsent(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	_, _, err := api.GetOrderHistory(context.Background(), types.PageRequest{}, methods.OrderHistoryQuery{})
+	_, _, err := api.GetOrderHistory(context.Background(), types.PageRequest{}, types.OrderHistoryQuery{})
 	assert.True(t, errors.Is(err, derrors.ErrSubaccountRequired))
 }
 

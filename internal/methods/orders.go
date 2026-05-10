@@ -10,7 +10,6 @@ package methods
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -20,74 +19,12 @@ import (
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
-// invalidInput wraps [types.ErrInvalidParams] for input DTOs declared in
-// this package, so callers can match every Validate failure with one
-// errors.Is regardless of where the DTO was declared.
-func invalidInput(field, reason string) error {
-	return fmt.Errorf("%w: %s: %s", types.ErrInvalidParams, field, reason)
-}
-
-// PlaceOrderInput is a thin convenience wrapper for the user-facing
-// PlaceOrder. It contains only the strategically-relevant fields; the SDK
-// fills in subaccount id, signature, signer, nonce and expiry from the
-// configured signer and ambient state.
-type PlaceOrderInput struct {
-	InstrumentName string
-	Asset          common.Address
-	SubID          uint64
-	Direction      enums.Direction
-	OrderType      enums.OrderType
-	TimeInForce    enums.TimeInForce
-	Amount         types.Decimal
-	LimitPrice     types.Decimal
-	MaxFee         types.Decimal
-	Label          string
-	MMP            bool
-	ReduceOnly     bool
-}
-
-// Validate performs schema-level checks on the receiver: required fields
-// populated, enum values in range, numeric fields in bounds. It does not
-// validate against an instrument's tick / amount step (those live on
-// [types.Instrument] and require a network round-trip).
-//
-// Returns nil on success or an error wrapping [types.ErrInvalidParams].
-func (in PlaceOrderInput) Validate() error {
-	if in.InstrumentName == "" {
-		return invalidInput("instrument_name", "required")
-	}
-	if in.Asset == (common.Address{}) {
-		return invalidInput("asset", "required")
-	}
-	if err := in.Direction.Validate(); err != nil {
-		return invalidInput("direction", err.Error())
-	}
-	if err := in.OrderType.Validate(); err != nil {
-		return invalidInput("order_type", err.Error())
-	}
-	if in.TimeInForce != "" {
-		if err := in.TimeInForce.Validate(); err != nil {
-			return invalidInput("time_in_force", err.Error())
-		}
-	}
-	if in.Amount.Sign() <= 0 {
-		return invalidInput("amount", "must be positive")
-	}
-	if in.LimitPrice.Sign() <= 0 {
-		return invalidInput("limit_price", "must be positive")
-	}
-	if in.MaxFee.Sign() < 0 {
-		return invalidInput("max_fee", "must be non-negative")
-	}
-	return nil
-}
-
 // PlaceOrder builds, signs and submits an order. Private.
 //
 // The session key signs the action; the resulting signature, signer address,
 // nonce and expiry are embedded in the JSON-RPC params so the matching engine
 // can recompute the EIP-712 hash and verify.
-func (a *API) PlaceOrder(ctx context.Context, in PlaceOrderInput) (types.Order, error) {
+func (a *API) PlaceOrder(ctx context.Context, in types.PlaceOrderInput) (types.Order, error) {
 	if err := a.requireSigner(); err != nil {
 		return types.Order{}, err
 	}
@@ -107,7 +44,7 @@ func (a *API) PlaceOrder(ctx context.Context, in PlaceOrderInput) (types.Order, 
 	}
 
 	tmd := auth.TradeModuleData{
-		Asset:       in.Asset,
+		Asset:       common.Address(in.Asset),
 		SubID:       in.SubID,
 		LimitPrice:  in.LimitPrice.Inner(),
 		Amount:      in.Amount.Inner(),
@@ -263,19 +200,6 @@ func (a *API) GetOpenOrders(ctx context.Context) ([]types.Order, error) {
 	return resp.Orders, err
 }
 
-// GetOrdersFilter narrows what [API.GetOrders] returns. Each field
-// is optional; the zero value asks the engine for unfiltered results.
-type GetOrdersFilter struct {
-	// InstrumentName filters to one instrument.
-	InstrumentName string
-	// Label filters to orders carrying the user-defined label.
-	Label string
-	// Status filters by order status. The wire enum is
-	// open / filled / cancelled / expired / untriggered / algo_active
-	// (see [enums.OrderStatus]).
-	Status enums.OrderStatus
-}
-
 // GetOrders paginates orders on the configured subaccount, narrowed
 // by the supplied filter. Private.
 //
@@ -285,7 +209,7 @@ type GetOrdersFilter struct {
 // To page through orders by time window, use [API.GetOrderHistory]
 // instead — `/private/get_orders` only filters by status /
 // instrument / label, not by time.
-func (a *API) GetOrders(ctx context.Context, page types.PageRequest, filter *GetOrdersFilter) ([]types.Order, types.Page, error) {
+func (a *API) GetOrders(ctx context.Context, page types.PageRequest, filter *types.GetOrdersFilter) ([]types.Order, types.Page, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return nil, types.Page{}, err
 	}
@@ -317,18 +241,6 @@ func (a *API) GetOrders(ctx context.Context, page types.PageRequest, filter *Get
 	return resp.Orders, resp.Pagination, nil
 }
 
-// OrderHistoryQuery narrows what [API.GetOrderHistory] returns.
-// FromTimestamp / ToTimestamp form a closed window in milliseconds
-// since the Unix epoch; either side can be zero to defer to the
-// server-side default (0 / current time). Wallet, when non-empty,
-// queries across every subaccount under that wallet — when empty,
-// the configured subaccount is used.
-type OrderHistoryQuery struct {
-	FromTimestamp types.MillisTime
-	ToTimestamp   types.MillisTime
-	Wallet        string
-}
-
 // GetOrderHistory paginates past orders for the configured
 // subaccount or wallet, filtered by a time window. Private.
 //
@@ -336,7 +248,7 @@ type OrderHistoryQuery struct {
 // threaded through when both Wallet is empty and the subaccount is
 // non-zero — supply a Wallet to query across every subaccount the
 // wallet owns.
-func (a *API) GetOrderHistory(ctx context.Context, page types.PageRequest, q OrderHistoryQuery) ([]types.Order, types.Page, error) {
+func (a *API) GetOrderHistory(ctx context.Context, page types.PageRequest, q types.OrderHistoryQuery) ([]types.Order, types.Page, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, types.Page{}, err
 	}
