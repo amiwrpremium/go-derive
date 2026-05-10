@@ -30,37 +30,59 @@ examples/
 
   rest/
     public/                 (no auth)
-      get_time/             c.GetTime
-      get_currencies/       c.GetCurrencies
-      get_instruments/      c.GetInstruments(currency, type)
-      get_instrument/       c.GetInstrument(name)
-      get_ticker/           c.GetTicker
-      get_orderbook/        c.GetOrderBook
-      get_trade_history/    c.GetPublicTradeHistory
+      get_time/                       c.GetTime
+      get_currencies/                 c.GetCurrencies
+      get_currency/                   c.GetCurrency (DERIVE_CURRENCY)
+      get_instruments/                c.GetInstruments(currency, type)
+      get_instrument/                 c.GetInstrument(name)
+      get_all_instruments/            c.GetAllInstruments
+      get_ticker/                     c.GetTicker
+      get_tickers/                    c.GetTickers
+      get_orderbook/                  c.GetOrderBook
+      get_trade_history/              c.GetPublicTradeHistory
+      get_option_settlement_prices/   c.GetOptionSettlementPrices (DERIVE_CURRENCY)
+      get_live_incidents/             c.GetLiveIncidents
+      get_index_chart_data/           c.GetIndexChartData
+      get_tradingview_chart_data/     c.GetTradingViewChartData
+      get_spot_feed_history_candles/  c.GetSpotFeedHistoryCandles
+      get_interest_rate_history/      c.GetInterestRateHistory
+      get_liquidation_history/        c.GetPublicLiquidationHistory
+      get_maker_programs/             c.GetMakerPrograms
+      get_maker_program_scores/       c.GetMakerProgramScores (DERIVE_PROGRAM_NAME, DERIVE_EPOCH_START)
+      get_referral_performance/       c.GetReferralPerformance (DERIVE_REFERRAL_CODE)
+      get_vault_balances/             c.GetVaultBalances (DERIVE_WALLET)
+      get_vault_share/                c.GetVaultShare (DERIVE_VAULT_NAME)
+      get_vault_statistics/           c.GetVaultStatistics
     private/                (DERIVE_SESSION_KEY + DERIVE_SUBACCOUNT)
-      get_subaccount/       c.GetSubaccount
-      get_subaccounts/      c.GetSubaccounts
-      get_collateral/       c.GetCollateral
-      get_positions/        c.GetPositions
-      get_open_orders/      c.GetOpenOrders
-      get_order/            c.GetOrder (DERIVE_ORDER_ID)
-      get_order_history/    c.GetOrderHistory
-      get_trade_history/    c.GetTradeHistory
-      get_deposit_history/  c.GetDepositHistory
-      get_withdrawal_history/  c.GetWithdrawalHistory
+      get_subaccount/         c.GetSubaccount
+      get_subaccounts/        c.GetSubaccounts
+      get_all_portfolios/     c.GetAllPortfolios
+      get_collateral/         c.GetCollateral
+      get_positions/          c.GetPositions
+      get_open_orders/        c.GetOpenOrders
+      get_order/              c.GetOrder (DERIVE_ORDER_ID)
+      get_orders/             c.GetOrders
+      get_order_history/      c.GetOrderHistory
+      get_trade_history/      c.GetTradeHistory
+      get_deposit_history/    c.GetDepositHistory
+      get_withdrawal_history/ c.GetWithdrawalHistory
+      get_liquidator_history/ c.GetLiquidatorHistory
       orders/
-        place/              c.PlaceOrder (DERIVE_RUN_LIVE_ORDERS=1)
-        cancel/             c.CancelOrder (DERIVE_ORDER_ID)
-        cancel_all/         c.CancelAll
-        cancel_by_label/    c.CancelByLabel (DERIVE_LABEL)
-        cancel_by_instrument/  c.CancelByInstrument
+        place/                       c.PlaceOrder (DERIVE_RUN_LIVE_ORDERS=1)
+        cancel/                      c.CancelOrder (DERIVE_ORDER_ID)
+        cancel_all/                  c.CancelAll
+        cancel_by_label/             c.CancelByLabel (DERIVE_LABEL)
+        cancel_by_instrument/        c.CancelByInstrument
+        cancel_trigger_order/        c.CancelTriggerOrder (DERIVE_ORDER_ID)
+        cancel_all_trigger_orders/   c.CancelAllTriggerOrders (DERIVE_RUN_LIVE_ORDERS=1)
       rfq/
-        send/               c.SendRFQ
-        poll/               c.PollRFQs
-        cancel/             c.CancelRFQ (DERIVE_RFQ_ID)
+        send/                c.SendRFQ
+        poll/                c.PollRFQs
+        cancel/              c.CancelRFQ (DERIVE_RFQ_ID)
+        replace_quote/       c.ReplaceQuote (DERIVE_RUN_LIVE_ORDERS=1)
       mmp/
-        set/                c.SetMMPConfig
-        reset/              c.ResetMMP
+        set/                 c.SetMMPConfig
+        reset/               c.ResetMMP
 
   ws/
     public/
@@ -124,8 +146,14 @@ Common to most examples, loaded by `examples/example/example.go`:
 | `DERIVE_SUBACCOUNT` | (unset) | numeric subaccount id, required for `private/` |
 | `DERIVE_BASE_ASSET` | (unset) | on-chain asset address required by the `orders/place/` example |
 | `DERIVE_RUN_LIVE_ORDERS` | (unset) | set to `1` to actually place an order |
-| `DERIVE_ORDER_ID` | (unset) | for `get_order/` and `cancel/` examples |
+| `DERIVE_ORDER_ID` | (unset) | for `get_order/`, `cancel/`, `cancel_trigger_order/` |
 | `DERIVE_RFQ_ID` | (unset) | for the `rfq/cancel/` example |
 | `DERIVE_LABEL` | (unset) | for `cancel_by_label/` |
+| `DERIVE_CURRENCY` | (varies) | for `get_currency/` (ETH), `get_option_settlement_prices/` (BTC), index/spot chart examples (BTC) |
+| `DERIVE_PROGRAM_NAME` | (unset) | required by `get_maker_program_scores/` |
+| `DERIVE_EPOCH_START` | (unset) | required by `get_maker_program_scores/` (Unix seconds) |
+| `DERIVE_REFERRAL_CODE` | (unset) | optional filter for `get_referral_performance/` |
+| `DERIVE_WALLET` | (unset) | optional smart-contract wallet for `get_vault_balances/` |
+| `DERIVE_VAULT_NAME` | (unset) | required by `get_vault_share/` |
 
 Never paste a real mainnet key — testnet is the default for a reason.
