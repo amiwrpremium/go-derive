@@ -442,6 +442,26 @@ func (a *API) CancelByNonce(ctx context.Context, instrument string, nonce uint64
 	return &resp, nil
 }
 
+// CancelAlgoOrder cancels one in-flight algo order by id. Private.
+//
+// Returns the cancelled order (in `algo_active` -> `cancelled`
+// state). Counterpart to [API.CancelTriggerOrder] for algo orders
+// (e.g. TWAP) that have started slicing into the market.
+func (a *API) CancelAlgoOrder(ctx context.Context, orderID string) (*types.Order, error) {
+	if err := a.requireSubaccount(); err != nil {
+		return nil, err
+	}
+	params := map[string]any{
+		"subaccount_id": a.Subaccount,
+		"order_id":      orderID,
+	}
+	var resp types.Order
+	if err := a.call(ctx, "private/cancel_algo_order", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
 // CancelTriggerOrder cancels one untriggered trigger order by id.
 // Private.
 //
