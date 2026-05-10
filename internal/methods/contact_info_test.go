@@ -14,11 +14,11 @@ func TestCreateContactInfo_Decode(t *testing.T) {
 	api, ft := newAPI(t, true, 0)
 	ft.HandleResult("private/create_contact_info", map[string]any{
 		"contact_info": map[string]any{
-			"id":              int64(7),
-			"contact_type":    "email",
-			"contact_value":   "alice@example.com",
-			"created_at_sec":  int64(1700000000),
-			"updated_at_sec":  int64(1700000000),
+			"id":             int64(7),
+			"contact_type":   "email",
+			"contact_value":  "alice@example.com",
+			"created_at_sec": int64(1700000000),
+			"updated_at_sec": int64(1700000000),
 		},
 	})
 	got, err := api.CreateContactInfo(context.Background(), "email", "alice@example.com")
