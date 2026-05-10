@@ -241,6 +241,19 @@ func (a *API) GetUserStatistics(ctx context.Context, params map[string]any) (*ty
 	return &resp, nil
 }
 
+// GetAsset fetches one Asset record by name. Public.
+//
+// Distinct from [API.GetInstrument]: an asset is the on-chain
+// ERC-1155 entity (token id, decimals, address); an instrument adds
+// the orderbook / pricing surface.
+func (a *API) GetAsset(ctx context.Context, name string) (*types.Asset, error) {
+	var resp types.Asset
+	if err := a.call(ctx, "public/get_asset", map[string]any{"asset_name": name}, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
 // GetStatistics returns rolling 24-hour and all-time statistics for
 // one instrument: volume, premium volume, fees, trades count, plus
 // total open interest. Public.
