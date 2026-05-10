@@ -310,6 +310,19 @@ func (a *API) GetDescendantTree(ctx context.Context, walletOrInviteCode string) 
 	return &resp, nil
 }
 
+// GetTreeRoots returns every root wallet (top-of-tree referrer) the
+// engine tracks. Public.
+//
+// The `Roots` field is preserved as raw JSON because the inner
+// shape varies per program.
+func (a *API) GetTreeRoots(ctx context.Context) (*types.TreeRoots, error) {
+	var resp types.TreeRoots
+	if err := a.call(ctx, "public/get_tree_roots", map[string]any{}, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
 // GetStatistics returns rolling 24-hour and all-time statistics for
 // one instrument: volume, premium volume, fees, trades count, plus
 // total open interest. Public.
