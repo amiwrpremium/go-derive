@@ -14,6 +14,19 @@ import (
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
+// GetPoints returns one wallet's points record for one program.
+// Public.
+func (a *API) GetPoints(ctx context.Context, program, wallet string) (*types.PointsRecord, error) {
+	var resp types.PointsRecord
+	if err := a.call(ctx, "public/get_points", map[string]any{
+		"program": program,
+		"wallet":  wallet,
+	}, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
 // GetAllPoints returns the program-wide points snapshot for one
 // program: aggregate notional volume, user count, and per-wallet
 // points map. Public.
