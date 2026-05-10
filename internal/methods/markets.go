@@ -295,6 +295,21 @@ func (a *API) GetStDRVSnapshots(ctx context.Context, params map[string]any) (*ty
 	return &resp, nil
 }
 
+// GetDescendantTree returns the referee tree rooted at one wallet
+// (or invite code). Public.
+//
+// The `Descendants` field is preserved as raw JSON because the wire
+// shape is recursive; decode further at the call site.
+func (a *API) GetDescendantTree(ctx context.Context, walletOrInviteCode string) (*types.DescendantTree, error) {
+	var resp types.DescendantTree
+	if err := a.call(ctx, "public/get_descendant_tree", map[string]any{
+		"wallet_or_invite_code": walletOrInviteCode,
+	}, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
 // GetStatistics returns rolling 24-hour and all-time statistics for
 // one instrument: volume, premium volume, fees, trades count, plus
 // total open interest. Public.
