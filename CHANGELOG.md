@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.5.2](https://github.com/amiwrpremium/go-derive/compare/v0.5.1...v0.5.2) (2026-05-10)
+
+
+### Documentation
+
+* **examples:** cover the 30 methods + best_quotes channel from v0.5.0 ([#74](https://github.com/amiwrpremium/go-derive/issues/74)) ([70820c2](https://github.com/amiwrpremium/go-derive/commit/70820c2050dbb81e950ad8ec53321fd7b1449468))
+
 ## [0.5.1](https://github.com/amiwrpremium/go-derive/compare/v0.5.0...v0.5.1) (2026-05-10)
 
 
