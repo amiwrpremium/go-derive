@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/amiwrpremium/go-derive/pkg/enums"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
@@ -34,6 +35,41 @@ func (t Trades) Name() string { return fmt.Sprintf("subaccount.%d.trades", t.Sub
 
 // Decode parses an inbound notification payload into a [[]types.Trade].
 func (Trades) Decode(raw json.RawMessage) (any, error) {
+	var trades []types.Trade
+	if err := json.Unmarshal(raw, &trades); err != nil {
+		return nil, err
+	}
+	return trades, nil
+}
+
+// TradesByTxStatus subscribes to fill events for one subaccount, filtered
+// server-side by on-chain transaction status. Useful for makers who only
+// want to see settled fills.
+//
+// The dotted server-side channel name is:
+//
+//	subaccount.{id}.trades.{tx_status}
+//
+// Per the cockpit `channel_subaccount_id_trades_tx_status.rs` schema,
+// only `settled` and `reverted` are documented filter values today —
+// other [enums.TxStatus] values may be rejected by the engine. Same
+// per-batch payload as [Trades]; pair with T = [[]types.Trade].
+type TradesByTxStatus struct {
+	// SubaccountID scopes the stream to one subaccount.
+	SubaccountID int64
+	// TxStatus is the on-chain transaction status to filter by.
+	// Documented values: [enums.TxStatusSettled], [enums.TxStatusReverted].
+	TxStatus enums.TxStatus
+}
+
+// Name returns the dotted server-side channel string.
+func (t TradesByTxStatus) Name() string {
+	return fmt.Sprintf("subaccount.%d.trades.%s", t.SubaccountID, t.TxStatus)
+}
+
+// Decode parses an inbound notification payload into a [[]types.Trade].
+// Same payload shape as the unfiltered [Trades] channel.
+func (TradesByTxStatus) Decode(raw json.RawMessage) (any, error) {
 	var trades []types.Trade
 	if err := json.Unmarshal(raw, &trades); err != nil {
 		return nil, err
