@@ -17,9 +17,10 @@ import (
 
 // RFQs subscribes to lifecycle updates for RFQs initiated by one wallet.
 //
-// The dotted server-side channel name is:
+// The dotted server-side channel name (per
+// https://docs.derive.xyz/reference/wallet-rfqs) is:
 //
-//	wallet.{address}.rfqs
+//	{wallet}.rfqs
 //
 // RFQs on Derive are wallet-scoped — a single signer address sees every
 // RFQ it issued across all of its subaccounts. Address must be a 0x-prefixed
@@ -32,7 +33,7 @@ type RFQs struct {
 }
 
 // Name returns the dotted server-side channel string.
-func (r RFQs) Name() string { return fmt.Sprintf("wallet.%s.rfqs", r.Wallet) }
+func (r RFQs) Name() string { return fmt.Sprintf("%s.rfqs", r.Wallet) }
 
 // Decode parses an inbound notification payload into a [[]types.RFQ].
 func (RFQs) Decode(raw json.RawMessage) (any, error) {
@@ -46,9 +47,10 @@ func (RFQs) Decode(raw json.RawMessage) (any, error) {
 // Quotes subscribes to quote updates received against the subaccount's
 // outstanding RFQs.
 //
-// The dotted server-side channel name is:
+// The dotted server-side channel name (per
+// https://docs.derive.xyz/reference/subaccount_id-quotes) is:
 //
-//	subaccount.{id}.quotes
+//	{subaccount_id}.quotes
 //
 // Pair with T = [[]types.Quote].
 type Quotes struct {
@@ -57,7 +59,7 @@ type Quotes struct {
 }
 
 // Name returns the dotted server-side channel string.
-func (q Quotes) Name() string { return fmt.Sprintf("subaccount.%d.quotes", q.SubaccountID) }
+func (q Quotes) Name() string { return fmt.Sprintf("%d.quotes", q.SubaccountID) }
 
 // Decode parses an inbound notification payload into a [[]types.Quote].
 func (Quotes) Decode(raw json.RawMessage) (any, error) {

@@ -13,7 +13,7 @@ import (
 )
 
 func TestMarginWatch_Name(t *testing.T) {
-	assert.Equal(t, "margin_watch", public.MarginWatch{}.Name())
+	assert.Equal(t, "margin.watch", public.MarginWatch{}.Name())
 }
 
 func TestMarginWatch_Decode(t *testing.T) {

@@ -18,9 +18,10 @@ import (
 // Balances subscribes to collateral and total-equity updates on one
 // subaccount.
 //
-// The dotted server-side channel name is:
+// The dotted server-side channel name (per
+// https://docs.derive.xyz/reference/subaccount_id-balances) is:
 //
-//	subaccount.{id}.balances
+//	{subaccount_id}.balances
 //
 // Pair this descriptor with T = [types.Balance] (a single struct, not a
 // slice) when calling [github.com/amiwrpremium/go-derive/pkg/ws.Subscribe].
@@ -30,7 +31,7 @@ type Balances struct {
 }
 
 // Name returns the dotted server-side channel string.
-func (b Balances) Name() string { return fmt.Sprintf("subaccount.%d.balances", b.SubaccountID) }
+func (b Balances) Name() string { return fmt.Sprintf("%d.balances", b.SubaccountID) }
 
 // Decode parses an inbound notification payload into a [types.Balance].
 func (Balances) Decode(raw json.RawMessage) (any, error) {

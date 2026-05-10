@@ -128,6 +128,7 @@ examples/
         ticker_full/              ws.Subscribe[types.InstrumentTickerFeed] (full)
         spot_feed/                ws.Subscribe[types.SpotFeedData]
         margin_watch/             ws.Subscribe[[]types.MarginWatch]
+        auctions_watch/           c.SubscribeAuctionsWatch — liquidation auctions
     private/
       login/                public/login RPC
       get_subaccount/ ... get_withdrawal_history/   private RPC set

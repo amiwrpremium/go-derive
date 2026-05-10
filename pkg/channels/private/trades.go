@@ -18,9 +18,10 @@ import (
 
 // Trades subscribes to fill events for one subaccount.
 //
-// The dotted server-side channel name is:
+// The dotted server-side channel name (per
+// https://docs.derive.xyz/reference/subaccount_id-trades) is:
 //
-//	subaccount.{id}.trades
+//	{subaccount_id}.trades
 //
 // Pair this descriptor with T = [[]types.Trade] when calling
 // [github.com/amiwrpremium/go-derive/pkg/ws.Subscribe]. Each notification
@@ -31,7 +32,7 @@ type Trades struct {
 }
 
 // Name returns the dotted server-side channel string.
-func (t Trades) Name() string { return fmt.Sprintf("subaccount.%d.trades", t.SubaccountID) }
+func (t Trades) Name() string { return fmt.Sprintf("%d.trades", t.SubaccountID) }
 
 // Decode parses an inbound notification payload into a [[]types.Trade].
 func (Trades) Decode(raw json.RawMessage) (any, error) {
@@ -46,14 +47,14 @@ func (Trades) Decode(raw json.RawMessage) (any, error) {
 // server-side by on-chain transaction status. Useful for makers who only
 // want to see settled fills.
 //
-// The dotted server-side channel name is:
+// The dotted server-side channel name (per
+// https://docs.derive.xyz/reference/subaccount_id-trades-tx_status) is:
 //
-//	subaccount.{id}.trades.{tx_status}
+//	{subaccount_id}.trades.{tx_status}
 //
-// Per the cockpit `channel_subaccount_id_trades_tx_status.rs` schema,
-// only `settled` and `reverted` are documented filter values today —
-// other [enums.TxStatus] values may be rejected by the engine. Same
-// per-batch payload as [Trades]; pair with T = [[]types.Trade].
+// Per the docs, only `settled` and `reverted` are documented filter
+// values today — other [enums.TxStatus] values may be rejected by the
+// engine. Same per-batch payload as [Trades]; pair with T = [[]types.Trade].
 type TradesByTxStatus struct {
 	// SubaccountID scopes the stream to one subaccount.
 	SubaccountID int64
@@ -64,7 +65,7 @@ type TradesByTxStatus struct {
 
 // Name returns the dotted server-side channel string.
 func (t TradesByTxStatus) Name() string {
-	return fmt.Sprintf("subaccount.%d.trades.%s", t.SubaccountID, t.TxStatus)
+	return fmt.Sprintf("%d.trades.%s", t.SubaccountID, t.TxStatus)
 }
 
 // Decode parses an inbound notification payload into a [[]types.Trade].

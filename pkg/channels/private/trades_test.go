@@ -13,7 +13,7 @@ import (
 )
 
 func TestPrivateTrades_Name(t *testing.T) {
-	assert.Equal(t, "subaccount.7.trades", private.Trades{SubaccountID: 7}.Name())
+	assert.Equal(t, "7.trades", private.Trades{SubaccountID: 7}.Name())
 }
 
 func TestPrivateTrades_Decode_Happy(t *testing.T) {
@@ -32,7 +32,7 @@ func TestPrivateTrades_Decode_Malformed(t *testing.T) {
 
 func TestPrivateTradesByTxStatus_Name(t *testing.T) {
 	got := private.TradesByTxStatus{SubaccountID: 7, TxStatus: enums.TxStatusSettled}.Name()
-	assert.Equal(t, "subaccount.7.trades.settled", got)
+	assert.Equal(t, "7.trades.settled", got)
 }
 
 func TestPrivateTradesByTxStatus_Decode_Happy(t *testing.T) {
