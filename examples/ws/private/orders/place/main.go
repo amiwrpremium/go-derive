@@ -9,7 +9,6 @@ import (
 	"github.com/shopspring/decimal"
 
 	"github.com/amiwrpremium/go-derive/examples/example"
-	"github.com/amiwrpremium/go-derive/internal/methods"
 	"github.com/amiwrpremium/go-derive/pkg/enums"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
@@ -28,9 +27,9 @@ func main() {
 	limit := tk.MarkPrice.Inner().Mul(decimal.RequireFromString("0.95"))
 	price, _ := types.NewDecimal(limit.String())
 
-	o, err := c.PlaceOrder(ctx, methods.PlaceOrderInput{
+	o, err := c.PlaceOrder(ctx, types.PlaceOrderInput{
 		InstrumentName: example.Instrument(),
-		Asset:          example.BaseAsset(),
+		Asset:          types.Address(example.BaseAsset()),
 		Direction:      enums.DirectionBuy,
 		OrderType:      enums.OrderTypeLimit,
 		TimeInForce:    enums.TimeInForceGTC,

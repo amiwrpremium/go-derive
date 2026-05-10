@@ -27,67 +27,12 @@ func invalidInput(field, reason string) error {
 	return fmt.Errorf("%w: %s: %s", types.ErrInvalidParams, field, reason)
 }
 
-// PlaceOrderInput is a thin convenience wrapper for the user-facing
-// PlaceOrder. It contains only the strategically-relevant fields; the SDK
-// fills in subaccount id, signature, signer, nonce and expiry from the
-// configured signer and ambient state.
-type PlaceOrderInput struct {
-	InstrumentName string
-	Asset          common.Address
-	SubID          uint64
-	Direction      enums.Direction
-	OrderType      enums.OrderType
-	TimeInForce    enums.TimeInForce
-	Amount         types.Decimal
-	LimitPrice     types.Decimal
-	MaxFee         types.Decimal
-	Label          string
-	MMP            bool
-	ReduceOnly     bool
-}
-
-// Validate performs schema-level checks on the receiver: required fields
-// populated, enum values in range, numeric fields in bounds. It does not
-// validate against an instrument's tick / amount step (those live on
-// [types.Instrument] and require a network round-trip).
-//
-// Returns nil on success or an error wrapping [types.ErrInvalidParams].
-func (in PlaceOrderInput) Validate() error {
-	if in.InstrumentName == "" {
-		return invalidInput("instrument_name", "required")
-	}
-	if in.Asset == (common.Address{}) {
-		return invalidInput("asset", "required")
-	}
-	if err := in.Direction.Validate(); err != nil {
-		return invalidInput("direction", err.Error())
-	}
-	if err := in.OrderType.Validate(); err != nil {
-		return invalidInput("order_type", err.Error())
-	}
-	if in.TimeInForce != "" {
-		if err := in.TimeInForce.Validate(); err != nil {
-			return invalidInput("time_in_force", err.Error())
-		}
-	}
-	if in.Amount.Sign() <= 0 {
-		return invalidInput("amount", "must be positive")
-	}
-	if in.LimitPrice.Sign() <= 0 {
-		return invalidInput("limit_price", "must be positive")
-	}
-	if in.MaxFee.Sign() < 0 {
-		return invalidInput("max_fee", "must be non-negative")
-	}
-	return nil
-}
-
 // PlaceOrder builds, signs and submits an order. Private.
 //
 // The session key signs the action; the resulting signature, signer address,
 // nonce and expiry are embedded in the JSON-RPC params so the matching engine
 // can recompute the EIP-712 hash and verify.
-func (a *API) PlaceOrder(ctx context.Context, in PlaceOrderInput) (types.Order, error) {
+func (a *API) PlaceOrder(ctx context.Context, in types.PlaceOrderInput) (types.Order, error) {
 	if err := a.requireSigner(); err != nil {
 		return types.Order{}, err
 	}
@@ -107,7 +52,7 @@ func (a *API) PlaceOrder(ctx context.Context, in PlaceOrderInput) (types.Order, 
 	}
 
 	tmd := auth.TradeModuleData{
-		Asset:       in.Asset,
+		Asset:       common.Address(in.Asset),
 		SubID:       in.SubID,
 		LimitPrice:  in.LimitPrice.Inner(),
 		Amount:      in.Amount.Inner(),

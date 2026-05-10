@@ -18,10 +18,10 @@ import (
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
-func validPlaceOrderInput() methods.PlaceOrderInput {
-	return methods.PlaceOrderInput{
+func validPlaceOrderInput() types.PlaceOrderInput {
+	return types.PlaceOrderInput{
 		InstrumentName: "BTC-PERP",
-		Asset:          common.HexToAddress("0x1111111111111111111111111111111111111111"),
+		Asset:          types.Address(common.HexToAddress("0x1111111111111111111111111111111111111111")),
 		Direction:      enums.DirectionBuy,
 		OrderType:      enums.OrderTypeLimit,
 		Amount:         types.MustDecimal("1"),
@@ -37,17 +37,17 @@ func TestPlaceOrderInput_Validate_Happy(t *testing.T) {
 func TestPlaceOrderInput_Validate_Rejects(t *testing.T) {
 	cases := []struct {
 		name string
-		mut  func(*methods.PlaceOrderInput)
+		mut  func(*types.PlaceOrderInput)
 		want string
 	}{
-		{"empty instrument", func(in *methods.PlaceOrderInput) { in.InstrumentName = "" }, "instrument_name"},
-		{"zero asset", func(in *methods.PlaceOrderInput) { in.Asset = common.Address{} }, "asset"},
-		{"bad direction", func(in *methods.PlaceOrderInput) { in.Direction = enums.Direction("x") }, "direction"},
-		{"bad order type", func(in *methods.PlaceOrderInput) { in.OrderType = enums.OrderType("x") }, "order_type"},
-		{"bad time-in-force", func(in *methods.PlaceOrderInput) { in.TimeInForce = enums.TimeInForce("x") }, "time_in_force"},
-		{"zero amount", func(in *methods.PlaceOrderInput) { in.Amount = types.MustDecimal("0") }, "amount"},
-		{"zero price", func(in *methods.PlaceOrderInput) { in.LimitPrice = types.MustDecimal("0") }, "limit_price"},
-		{"negative fee", func(in *methods.PlaceOrderInput) { in.MaxFee = types.MustDecimal("-1") }, "max_fee"},
+		{"empty instrument", func(in *types.PlaceOrderInput) { in.InstrumentName = "" }, "instrument_name"},
+		{"zero asset", func(in *types.PlaceOrderInput) { in.Asset = types.Address{} }, "asset"},
+		{"bad direction", func(in *types.PlaceOrderInput) { in.Direction = enums.Direction("x") }, "direction"},
+		{"bad order type", func(in *types.PlaceOrderInput) { in.OrderType = enums.OrderType("x") }, "order_type"},
+		{"bad time-in-force", func(in *types.PlaceOrderInput) { in.TimeInForce = enums.TimeInForce("x") }, "time_in_force"},
+		{"zero amount", func(in *types.PlaceOrderInput) { in.Amount = types.MustDecimal("0") }, "amount"},
+		{"zero price", func(in *types.PlaceOrderInput) { in.LimitPrice = types.MustDecimal("0") }, "limit_price"},
+		{"negative fee", func(in *types.PlaceOrderInput) { in.MaxFee = types.MustDecimal("-1") }, "max_fee"},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -69,13 +69,13 @@ func TestPlaceOrderInput_Validate_AllowsEmptyTimeInForce(t *testing.T) {
 
 func TestPlaceOrder_RequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
-	_, err := api.PlaceOrder(context.Background(), methods.PlaceOrderInput{})
+	_, err := api.PlaceOrder(context.Background(), types.PlaceOrderInput{})
 	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
 }
 
 func TestPlaceOrder_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0) // signer set but subaccount=0
-	_, err := api.PlaceOrder(context.Background(), methods.PlaceOrderInput{})
+	_, err := api.PlaceOrder(context.Background(), types.PlaceOrderInput{})
 	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
 }
 
@@ -97,9 +97,9 @@ func TestPlaceOrder_Success_PopulatesSignatureFields(t *testing.T) {
 		}, nil
 	})
 
-	in := methods.PlaceOrderInput{
+	in := types.PlaceOrderInput{
 		InstrumentName: "BTC-PERP",
-		Asset:          common.HexToAddress("0x1111111111111111111111111111111111111111"),
+		Asset:          types.Address(common.HexToAddress("0x1111111111111111111111111111111111111111")),
 		SubID:          0,
 		Direction:      enums.DirectionBuy,
 		OrderType:      enums.OrderTypeLimit,

@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/amiwrpremium/go-derive/internal/methods"
 	"github.com/amiwrpremium/go-derive/pkg/channels/private"
 	"github.com/amiwrpremium/go-derive/pkg/enums"
 	"github.com/amiwrpremium/go-derive/pkg/types"
@@ -55,9 +54,9 @@ func TestPrivate_PlaceAndCancelOrder_REST(t *testing.T) {
 	tk, err := c.GetTicker(ctx, env.instrument)
 	require.NoError(t, err)
 
-	in := methods.PlaceOrderInput{
+	in := types.PlaceOrderInput{
 		InstrumentName: env.instrument,
-		Asset:          env.baseAsset,
+		Asset:          types.Address(env.baseAsset),
 		SubID:          0,
 		Direction:      enums.DirectionBuy,
 		OrderType:      enums.OrderTypeLimit,
@@ -86,9 +85,9 @@ func TestPrivate_PlaceAndCancelOrder_WS(t *testing.T) {
 	tk, err := c.GetTicker(ctx, env.instrument)
 	require.NoError(t, err)
 
-	in := methods.PlaceOrderInput{
+	in := types.PlaceOrderInput{
 		InstrumentName: env.instrument,
-		Asset:          env.baseAsset,
+		Asset:          types.Address(env.baseAsset),
 		Direction:      enums.DirectionBuy,
 		OrderType:      enums.OrderTypeLimit,
 		TimeInForce:    enums.TimeInForceGTC,
@@ -119,9 +118,9 @@ func TestPrivate_OrderEventsArrive(t *testing.T) {
 	tk, err := c.GetTicker(ctx, env.instrument)
 	require.NoError(t, err)
 
-	in := methods.PlaceOrderInput{
+	in := types.PlaceOrderInput{
 		InstrumentName: env.instrument,
-		Asset:          env.baseAsset,
+		Asset:          types.Address(env.baseAsset),
 		Direction:      enums.DirectionBuy,
 		OrderType:      enums.OrderTypeLimit,
 		TimeInForce:    enums.TimeInForceGTC,
