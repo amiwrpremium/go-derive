@@ -7,6 +7,17 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.6.0](https://github.com/amiwrpremium/go-derive/compare/v0.5.2...v0.6.0) (2026-05-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **types:** move user-facing input DTOs from internal/methods to pkg/types ([#76](https://github.com/amiwrpremium/go-derive/issues/76))
+
+### Features
+
+* **types:** move user-facing input DTOs from internal/methods to pkg/types ([#76](https://github.com/amiwrpremium/go-derive/issues/76)) ([51b9609](https://github.com/amiwrpremium/go-derive/commit/51b9609ceb9309b91d67c92d6a1bc9387513c1a9))
+
 ## [0.5.2](https://github.com/amiwrpremium/go-derive/compare/v0.5.1...v0.5.2) (2026-05-10)
 
 
