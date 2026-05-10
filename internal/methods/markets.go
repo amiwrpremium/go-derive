@@ -280,6 +280,21 @@ func (a *API) GetBridgeBalances(ctx context.Context) ([]types.BridgeBalance, err
 	return resp, nil
 }
 
+// GetStDRVSnapshots returns one wallet's staked-DRV balance snapshots
+// over a time window. Public.
+//
+// Required `params`: `wallet`, `from_sec`, `to_sec`.
+func (a *API) GetStDRVSnapshots(ctx context.Context, params map[string]any) (*types.StDRVSnapshots, error) {
+	if params == nil {
+		params = map[string]any{}
+	}
+	var resp types.StDRVSnapshots
+	if err := a.call(ctx, "public/get_stdrv_snapshots", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
 // GetStatistics returns rolling 24-hour and all-time statistics for
 // one instrument: volume, premium volume, fees, trades count, plus
 // total open interest. Public.
