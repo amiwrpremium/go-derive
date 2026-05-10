@@ -43,6 +43,22 @@ func (a *API) GetMakerProgramScores(ctx context.Context, params map[string]any) 
 	return &resp, nil
 }
 
+// GetDetailedMakerSnapshotHistory returns the per-quote maker
+// snapshots for one program / epoch, paginated. Public.
+//
+// Required `params`: `program_name`, `epoch_start_timestamp`.
+// Optional: `wallet` (filter to one maker), `page`, `page_size`.
+func (a *API) GetDetailedMakerSnapshotHistory(ctx context.Context, params map[string]any) (*types.DetailedMakerSnapshotHistory, error) {
+	if params == nil {
+		params = map[string]any{}
+	}
+	var resp types.DetailedMakerSnapshotHistory
+	if err := a.call(ctx, "public/get_detailed_maker_snapshot_history", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
 // GetReferralPerformance returns the headline referrer performance
 // for one referral code over the requested time window, plus a
 // deeply-nested per-role / per-currency / per-instrument-type
