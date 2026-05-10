@@ -13,8 +13,9 @@ import "encoding/json"
 // wallet-level metadata (subaccount ids, RFQ-maker status, referral
 // code) and the rate-limit and fee schedules attached to the wallet.
 //
-// The shape mirrors `AccountResultSchema` in Derive's v2.2 OpenAPI
-// spec.
+// The shape mirrors `PrivateGetAccountResultSchema` in Derive's v2.2
+// OpenAPI spec — the schema rendered by
+// docs.derive.xyz/reference/private-get_account.
 type AccountResult struct {
 	// SubaccountIDs is every subaccount registered under the wallet.
 	SubaccountIDs []int64 `json:"subaccount_ids"`

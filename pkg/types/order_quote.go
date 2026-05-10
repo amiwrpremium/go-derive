@@ -12,8 +12,9 @@ import "github.com/amiwrpremium/go-derive/pkg/enums"
 // price, fee, and post-trade margin balance — useful for
 // pre-flighting orders against thin books.
 //
-// The shape mirrors `PrivateOrderQuoteResultSchema` in
-// `derivexyz/cockpit/orderbook-types`.
+// The shape mirrors the response documented at
+// docs.derive.xyz/reference/private-order_quote (and shared with
+// the public counterpart at /reference/public-order_quote).
 type OrderQuoteResult struct {
 	// IsValid reports whether the order is expected to clear
 	// margin requirements.

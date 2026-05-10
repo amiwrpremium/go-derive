@@ -14,9 +14,11 @@ import "github.com/amiwrpremium/go-derive/pkg/enums"
 // or below its maintenance-margin floor at the snapshot's
 // `valuation_timestamp`.
 //
-// The shape mirrors `MarginWatchResultSchema` in
-// `derivexyz/cockpit/orderbook-types`. MarginType on this channel
-// is restricted to "PM" or "SM" per the cockpit schema; the Go
+// The shape mirrors the per-event payload documented at
+// docs.derive.xyz/reference/margin-watch (the channel page —
+// distinct from the public/margin_watch RPC, which returns a fuller
+// per-subaccount shape covered by [MarginSnapshot]). MarginType on
+// this channel is restricted to "PM" or "SM"; the Go
 // [enums.MarginType] also includes "PM2" but margin_watch will not
 // emit it.
 type MarginWatch struct {

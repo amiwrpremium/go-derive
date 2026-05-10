@@ -9,8 +9,8 @@ package types
 // bid-impact prices versus spot for one currency over the requested
 // window.
 //
-// The shape mirrors `PublicGetPerpImpactTwapResultSchema` in
-// `derivexyz/cockpit/orderbook-types`.
+// The shape mirrors the response documented at
+// docs.derive.xyz/reference/public-get_perp_impact_twap.
 type PerpImpactTWAP struct {
 	// Currency is the asset symbol (e.g. "BTC").
 	Currency string `json:"currency"`
