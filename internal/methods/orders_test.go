@@ -290,6 +290,99 @@ func TestGetOrderHistory_RequiresSubaccountWhenWalletAbsent(t *testing.T) {
 	assert.True(t, errors.Is(err, derrors.ErrSubaccountRequired))
 }
 
+func TestCancelAlgoOrder_Decode(t *testing.T) {
+	api, ft := newAPI(t, true, 7)
+	ft.HandleResult("private/cancel_algo_order", map[string]any{
+		"order_id": "A1", "subaccount_id": int64(7), "instrument_name": "BTC-PERP",
+		"direction": "buy", "order_type": "limit", "time_in_force": "gtc",
+		"order_status": "cancelled", "amount": "1", "filled_amount": "0.5",
+		"limit_price": "65000", "max_fee": "10", "nonce": int64(1),
+		"signer":             "0x0000000000000000000000000000000000000000",
+		"creation_timestamp": int64(1700000000000), "last_update_timestamp": int64(1700000060000),
+		"algo_type": "twap", "algo_duration_sec": int64(3600), "algo_num_slices": int64(60),
+	})
+	got, err := api.CancelAlgoOrder(context.Background(), "A1")
+	require.NoError(t, err)
+	assert.Equal(t, "A1", got.OrderID)
+	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.Equal(t, "A1", params["order_id"])
+	assert.Equal(t, float64(7), params["subaccount_id"])
+}
+
+func TestCancelAlgoOrder_RequiresSubaccount(t *testing.T) {
+	api, _ := newAPI(t, true, 0)
+	_, err := api.CancelAlgoOrder(context.Background(), "A1")
+	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+}
+
+func TestCancelAllAlgoOrders(t *testing.T) {
+	api, ft := newAPI(t, true, 7)
+	ft.HandleResult("private/cancel_all_algo_orders", "ok")
+	require.NoError(t, api.CancelAllAlgoOrders(context.Background()))
+	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.Equal(t, float64(7), params["subaccount_id"])
+}
+
+func TestCancelAllAlgoOrders_RequiresSubaccount(t *testing.T) {
+	api, _ := newAPI(t, true, 0)
+	err := api.CancelAllAlgoOrders(context.Background())
+	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+}
+
+func TestGetAlgoOrders_Decode(t *testing.T) {
+	api, ft := newAPI(t, true, 7)
+	ft.HandleResult("private/get_algo_orders", []any{
+		map[string]any{
+			"order_id": "A1", "subaccount_id": int64(7), "instrument_name": "BTC-PERP",
+			"direction": "buy", "order_type": "limit", "time_in_force": "gtc",
+			"order_status": "algo_active", "amount": "1", "filled_amount": "0",
+			"limit_price": "65000", "max_fee": "10", "nonce": int64(1),
+			"signer":             "0x0000000000000000000000000000000000000000",
+			"creation_timestamp": int64(1700000000000), "last_update_timestamp": int64(1700000000000),
+		},
+	})
+	orders, err := api.GetAlgoOrders(context.Background())
+	require.NoError(t, err)
+	require.Len(t, orders, 1)
+	assert.Equal(t, "A1", orders[0].OrderID)
+	assert.Equal(t, enums.OrderStatusAlgoActive, orders[0].OrderStatus)
+}
+
+func TestGetAlgoOrders_RequiresSubaccount(t *testing.T) {
+	api, _ := newAPI(t, true, 0)
+	_, err := api.GetAlgoOrders(context.Background())
+	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+}
+
+func TestGetTriggerOrders_Decode(t *testing.T) {
+	api, ft := newAPI(t, true, 7)
+	ft.HandleResult("private/get_trigger_orders", map[string]any{
+		"subaccount_id": int64(7),
+		"orders": []any{
+			map[string]any{
+				"order_id": "T1", "subaccount_id": int64(7), "instrument_name": "BTC-PERP",
+				"direction": "sell", "order_type": "limit", "time_in_force": "gtc",
+				"order_status": "untriggered", "amount": "1", "filled_amount": "0",
+				"limit_price": "60000", "max_fee": "10", "nonce": int64(1),
+				"signer":             "0x0000000000000000000000000000000000000000",
+				"creation_timestamp": int64(1700000000000), "last_update_timestamp": int64(1700000000000),
+				"trigger_price": "59000", "trigger_type": "stoploss",
+			},
+		},
+	})
+	orders, err := api.GetTriggerOrders(context.Background())
+	require.NoError(t, err)
+	require.Len(t, orders, 1)
+	assert.Equal(t, "T1", orders[0].OrderID)
+	assert.Equal(t, enums.OrderStatusUntriggered, orders[0].OrderStatus)
+}
+
+func TestGetTriggerOrders_RequiresSubaccount(t *testing.T) {
+	api, _ := newAPI(t, true, 0)
+	_, err := api.GetTriggerOrders(context.Background())
+	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+}
+
 func TestCancelTriggerOrder_Decode(t *testing.T) {
 	api, ft := newAPI(t, true, 7)
 	ft.HandleResult("private/cancel_trigger_order", map[string]any{
