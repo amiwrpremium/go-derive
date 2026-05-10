@@ -7,6 +7,22 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.8.0](https://github.com/amiwrpremium/go-derive/compare/v0.7.0...v0.8.0) (2026-05-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* re-trigger release-please for the v0.8.0 breaking change ([#83](https://github.com/amiwrpremium/go-derive/issues/83))
+
+### Features
+
+* re-trigger release-please for the v0.8.0 breaking change ([#83](https://github.com/amiwrpremium/go-derive/issues/83)) ([401afac](https://github.com/amiwrpremium/go-derive/commit/401afacafb6b96b01cade1108e911653a9acf2e3))
+
+
+### Miscellaneous
+
+* trigger release-please after pr80 squash-merge ([#81](https://github.com/amiwrpremium/go-derive/issues/81)) ([078d11f](https://github.com/amiwrpremium/go-derive/commit/078d11fa8e952eb2cd3ea909dd03250d507bb5ae))
+
 ## [0.7.0](https://github.com/amiwrpremium/go-derive/compare/v0.6.0...v0.7.0) (2026-05-10)
 
 
