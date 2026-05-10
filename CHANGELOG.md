@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.8.2](https://github.com/amiwrpremium/go-derive/compare/v0.8.1...v0.8.2) (2026-05-10)
+
+
+### Features
+
+* **methods:** add PlaceAlgoOrder and PlaceTriggerOrder ([#86](https://github.com/amiwrpremium/go-derive/issues/86)) ([8a17598](https://github.com/amiwrpremium/go-derive/commit/8a17598da228404ab264f8b75d38183e0a808cc6))
+
 ## [0.8.1](https://github.com/amiwrpremium/go-derive/compare/v0.8.0...v0.8.1) (2026-05-10)
 
 
