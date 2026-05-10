@@ -1,3 +1,9 @@
+// Package types declares the domain types used in REST and WebSocket
+// requests and responses.
+//
+// This file holds the input DTO for `private/set_mmp_config` —
+// previously declared in internal/methods, lifted here so callers
+// only need to import pkg/types for the SDK's domain types.
 package types
 
 // MMPConfig is the input to `private/set_mmp_config` — Market Maker

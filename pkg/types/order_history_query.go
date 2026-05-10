@@ -1,3 +1,9 @@
+// Package types declares the domain types used in REST and WebSocket
+// requests and responses.
+//
+// This file holds the query DTO for `private/get_order_history` —
+// previously declared in internal/methods, lifted here so callers
+// only need to import pkg/types for the SDK's domain types.
 package types
 
 // OrderHistoryQuery narrows a paginated `private/get_order_history`
