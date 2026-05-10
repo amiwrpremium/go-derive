@@ -178,6 +178,61 @@ func TestPlaceAlgoOrder_RequiresSigner(t *testing.T) {
 	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
 }
 
+func TestPlaceTriggerOrder_Success_PopulatesTriggerFields(t *testing.T) {
+	api, ft := newAPI(t, true, 1)
+
+	ft.Handle("private/trigger_order", func(_ json.RawMessage) (any, error) {
+		return map[string]any{
+			"order": map[string]any{
+				"order_id": "T1", "subaccount_id": 1, "instrument_name": "BTC-PERP",
+				"direction": "sell", "order_type": "limit", "time_in_force": "gtc",
+				"order_status": "untriggered", "amount": "1", "filled_amount": "0",
+				"limit_price": "60000", "max_fee": "10", "nonce": 1,
+				"signer":                "0x0000000000000000000000000000000000000000",
+				"creation_timestamp":    1700000000000,
+				"last_update_timestamp": 1700000000000,
+				"trigger_type":          "stoploss",
+				"trigger_price_type":    "mark",
+				"trigger_price":         "59000",
+			},
+		}, nil
+	})
+
+	in := types.TriggerOrderInput{
+		PlaceOrderInput: types.PlaceOrderInput{
+			InstrumentName: "BTC-PERP",
+			Asset:          types.Address(common.HexToAddress("0x1111111111111111111111111111111111111111")),
+			Direction:      enums.DirectionSell,
+			OrderType:      enums.OrderTypeLimit,
+			TimeInForce:    enums.TimeInForceGTC,
+			Amount:         types.MustDecimal("1"),
+			LimitPrice:     types.MustDecimal("60000"),
+			MaxFee:         types.MustDecimal("10"),
+		},
+		TriggerType:      enums.TriggerTypeStopLoss,
+		TriggerPriceType: enums.TriggerPriceTypeMark,
+		TriggerPrice:     types.MustDecimal("59000"),
+	}
+	order, err := api.PlaceTriggerOrder(context.Background(), in)
+	require.NoError(t, err)
+	assert.Equal(t, "T1", order.OrderID)
+	assert.Equal(t, "stoploss", order.TriggerType)
+	assert.Equal(t, "mark", order.TriggerPriceType)
+
+	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.Equal(t, "stoploss", params["trigger_type"])
+	assert.Equal(t, "mark", params["trigger_price_type"])
+	assert.Equal(t, "59000", params["trigger_price"])
+	sig, _ := params["signature"].(string)
+	assert.True(t, strings.HasPrefix(sig, "0x") && len(sig) == 132)
+}
+
+func TestPlaceTriggerOrder_RequiresSigner(t *testing.T) {
+	api, _ := newAPI(t, false, 0)
+	_, err := api.PlaceTriggerOrder(context.Background(), types.TriggerOrderInput{})
+	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
+}
+
 func TestCancelOrder(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleResult("private/cancel", nil)

@@ -146,6 +146,36 @@ func (a *API) PlaceAlgoOrder(ctx context.Context, in types.AlgoOrderInput) (type
 	return resp.Order, nil
 }
 
+// PlaceTriggerOrder builds, signs and submits a stop-loss or
+// take-profit trigger order. Private. Wraps `private/trigger_order`.
+//
+// Signing flow is identical to [API.PlaceOrder]; the trigger-
+// specific fields (trigger_type, trigger_price_type, trigger_price)
+// are added alongside the standard order params and are not part of
+// the EIP-712 signature payload.
+//
+// The order is saved server-side in `untriggered` state until the
+// matching engine sees the watched price cross the trigger level.
+// Cancel ahead of time with [API.CancelTriggerOrder] or
+// [API.CancelAllTriggerOrders].
+func (a *API) PlaceTriggerOrder(ctx context.Context, in types.TriggerOrderInput) (types.Order, error) {
+	params, err := a.signedOrderParams(ctx, in.PlaceOrderInput)
+	if err != nil {
+		return types.Order{}, err
+	}
+	params["trigger_type"] = in.TriggerType
+	params["trigger_price_type"] = in.TriggerPriceType
+	params["trigger_price"] = in.TriggerPrice
+
+	var resp struct {
+		Order types.Order `json:"order"`
+	}
+	if err := a.call(ctx, "private/trigger_order", params, &resp); err != nil {
+		return types.Order{}, err
+	}
+	return resp.Order, nil
+}
+
 // tradeModuleOverride returns the TradeModule address from the ambient
 // netconf.Contracts struct if available. The API struct doesn't carry the
 // full config to keep its size small; we expose it via a setter (see
