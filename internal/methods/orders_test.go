@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/amiwrpremium/go-derive/internal/methods"
 	"github.com/amiwrpremium/go-derive/pkg/enums"
 	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 	"github.com/amiwrpremium/go-derive/pkg/types"
@@ -248,7 +247,7 @@ func TestGetOrderHistory_Decode(t *testing.T) {
 		},
 		"pagination": map[string]any{"num_pages": 1, "count": 1},
 	})
-	orders, page, err := api.GetOrderHistory(context.Background(), types.PageRequest{}, methods.OrderHistoryQuery{
+	orders, page, err := api.GetOrderHistory(context.Background(), types.PageRequest{}, types.OrderHistoryQuery{
 		FromTimestamp: types.MillisTime{T: time.UnixMilli(1700000000000)},
 		ToTimestamp:   types.MillisTime{T: time.UnixMilli(1700000060000)},
 	})
@@ -265,7 +264,7 @@ func TestGetOrderHistory_Decode(t *testing.T) {
 
 func TestGetOrderHistory_RequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
-	_, _, err := api.GetOrderHistory(context.Background(), types.PageRequest{}, methods.OrderHistoryQuery{})
+	_, _, err := api.GetOrderHistory(context.Background(), types.PageRequest{}, types.OrderHistoryQuery{})
 	assert.True(t, errors.Is(err, derrors.ErrUnauthorized))
 }
 
@@ -276,7 +275,7 @@ func TestGetOrderHistory_AcceptsWalletWithoutSubaccount(t *testing.T) {
 		"orders":        []any{},
 		"pagination":    map[string]any{"num_pages": 0, "count": 0},
 	})
-	_, _, err := api.GetOrderHistory(context.Background(), types.PageRequest{}, methods.OrderHistoryQuery{Wallet: "0xabc"})
+	_, _, err := api.GetOrderHistory(context.Background(), types.PageRequest{}, types.OrderHistoryQuery{Wallet: "0xabc"})
 	require.NoError(t, err)
 	params := paramsAsMap(t, ft.LastCall().Params)
 	_, hasSub := params["subaccount_id"]
@@ -286,7 +285,7 @@ func TestGetOrderHistory_AcceptsWalletWithoutSubaccount(t *testing.T) {
 
 func TestGetOrderHistory_RequiresSubaccountWhenWalletAbsent(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	_, _, err := api.GetOrderHistory(context.Background(), types.PageRequest{}, methods.OrderHistoryQuery{})
+	_, _, err := api.GetOrderHistory(context.Background(), types.PageRequest{}, types.OrderHistoryQuery{})
 	assert.True(t, errors.Is(err, derrors.ErrSubaccountRequired))
 }
 

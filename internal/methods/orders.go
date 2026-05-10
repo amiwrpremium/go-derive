@@ -249,18 +249,6 @@ func (a *API) GetOrders(ctx context.Context, page types.PageRequest, filter *typ
 	return resp.Orders, resp.Pagination, nil
 }
 
-// OrderHistoryQuery narrows what [API.GetOrderHistory] returns.
-// FromTimestamp / ToTimestamp form a closed window in milliseconds
-// since the Unix epoch; either side can be zero to defer to the
-// server-side default (0 / current time). Wallet, when non-empty,
-// queries across every subaccount under that wallet — when empty,
-// the configured subaccount is used.
-type OrderHistoryQuery struct {
-	FromTimestamp types.MillisTime
-	ToTimestamp   types.MillisTime
-	Wallet        string
-}
-
 // GetOrderHistory paginates past orders for the configured
 // subaccount or wallet, filtered by a time window. Private.
 //
@@ -268,7 +256,7 @@ type OrderHistoryQuery struct {
 // threaded through when both Wallet is empty and the subaccount is
 // non-zero — supply a Wallet to query across every subaccount the
 // wallet owns.
-func (a *API) GetOrderHistory(ctx context.Context, page types.PageRequest, q OrderHistoryQuery) ([]types.Order, types.Page, error) {
+func (a *API) GetOrderHistory(ctx context.Context, page types.PageRequest, q types.OrderHistoryQuery) ([]types.Order, types.Page, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, types.Page{}, err
 	}
