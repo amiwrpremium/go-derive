@@ -347,8 +347,8 @@ func TestGetStDRVSnapshots_Decode(t *testing.T) {
 			map[string]any{"amount": "1010", "timestamp_sec": int64(1700003600)},
 		},
 	})
-	got, err := api.GetStDRVSnapshots(context.Background(), map[string]any{
-		"wallet": "0x1111111111111111111111111111111111111111",
+	got, err := api.GetStDRVSnapshots(context.Background(), types.STDRVSnapshotsQuery{
+		Wallet: "0x1111111111111111111111111111111111111111",
 	})
 	require.NoError(t, err)
 	require.Len(t, got.Snapshots, 2)

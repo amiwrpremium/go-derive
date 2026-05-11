@@ -2,7 +2,10 @@
 // and prints the most recent few entries.
 package main
 
-import "github.com/amiwrpremium/go-derive/examples/example"
+import (
+	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/types"
+)
 
 func main() {
 	c := example.MustRESTPublic()
@@ -10,8 +13,8 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	history, err := c.GetFundingRateHistory(ctx, map[string]any{
-		"instrument_name": example.Instrument(),
+	history, err := c.GetFundingRateHistory(ctx, types.FundingRateHistoryQuery{
+		InstrumentName: example.Instrument(),
 	})
 	example.Fatal(err)
 

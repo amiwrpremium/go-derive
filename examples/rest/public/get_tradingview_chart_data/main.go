@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -15,14 +16,16 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	end := time.Now().Unix()
-	start := end - 3600
+	end := time.Now()
+	start := end.Add(-time.Hour)
 
-	bars, err := c.GetTradingViewChartData(ctx, map[string]any{
-		"instrument_name": example.Instrument(),
-		"start_timestamp": start,
-		"end_timestamp":   end,
-		"period":          "60",
+	bars, err := c.GetTradingViewChartData(ctx, types.TradingViewChartQuery{
+		HistoryWindow: types.HistoryWindow{
+			StartTimestamp: types.NewMillisTime(start),
+			EndTimestamp:   types.NewMillisTime(end),
+		},
+		InstrumentName: example.Instrument(),
+		PeriodSec:      60,
 	})
 	example.Fatal(err)
 	example.Print("bars", len(bars))

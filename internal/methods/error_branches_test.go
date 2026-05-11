@@ -53,19 +53,19 @@ func TestNoArgWrappers_PropagateError(t *testing.T) {
 	t.Run("GetFundingRateHistory", func(t *testing.T) {
 		api, ft := newAPI(t, true, 0)
 		ft.HandleError("public/get_funding_rate_history", boom)
-		_, err := api.GetFundingRateHistory(context.Background(), nil)
+		_, err := api.GetFundingRateHistory(context.Background(), types.FundingRateHistoryQuery{InstrumentName: "BTC-PERP"})
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 	t.Run("GetSpotFeedHistory", func(t *testing.T) {
 		api, ft := newAPI(t, true, 0)
 		ft.HandleError("public/get_spot_feed_history", boom)
-		_, _, err := api.GetSpotFeedHistory(context.Background(), nil)
+		_, _, err := api.GetSpotFeedHistory(context.Background(), types.SpotFeedHistoryQuery{Currency: "BTC", PeriodSec: 60})
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 	t.Run("GetLatestSignedFeeds", func(t *testing.T) {
 		api, ft := newAPI(t, true, 0)
 		ft.HandleError("public/get_latest_signed_feeds", boom)
-		_, err := api.GetLatestSignedFeeds(context.Background(), nil)
+		_, err := api.GetLatestSignedFeeds(context.Background(), "", 0)
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 	t.Run("GetCurrencies", func(t *testing.T) {
@@ -119,7 +119,7 @@ func TestNoArgWrappers_PropagateError(t *testing.T) {
 	t.Run("GetPerpImpactTWAP", func(t *testing.T) {
 		api, ft := newAPI(t, true, 0)
 		ft.HandleError("public/get_perp_impact_twap", boom)
-		_, err := api.GetPerpImpactTWAP(context.Background(), nil)
+		_, err := api.GetPerpImpactTWAP(context.Background(), "BTC", 0, 1)
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 }

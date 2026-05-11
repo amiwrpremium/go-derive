@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestGetIndexChartData_Decode(t *testing.T) {
@@ -17,8 +19,9 @@ func TestGetIndexChartData_Decode(t *testing.T) {
 			"low_price": "2490", "close_price": "2500",
 		},
 	})
-	got, err := api.GetIndexChartData(context.Background(), map[string]any{
-		"currency": "ETH", "start_timestamp": int64(1700000000), "end_timestamp": int64(1700000300), "period": "60",
+	got, err := api.GetIndexChartData(context.Background(), types.IndexChartQuery{
+		Currency:  "ETH",
+		PeriodSec: 60,
 	})
 	require.NoError(t, err)
 	require.Len(t, got, 1)
@@ -34,9 +37,9 @@ func TestGetTradingViewChartData_Decode(t *testing.T) {
 			"volume_contracts": "10", "volume_usd": "650500",
 		},
 	})
-	got, err := api.GetTradingViewChartData(context.Background(), map[string]any{
-		"instrument_name": "BTC-PERP", "start_timestamp": int64(1700000000),
-		"end_timestamp": int64(1700000300), "period": "60",
+	got, err := api.GetTradingViewChartData(context.Background(), types.TradingViewChartQuery{
+		InstrumentName: "BTC-PERP",
+		PeriodSec:      60,
 	})
 	require.NoError(t, err)
 	require.Len(t, got, 1)
@@ -56,8 +59,9 @@ func TestGetSpotFeedHistoryCandles_Decode(t *testing.T) {
 			},
 		},
 	})
-	currency, candles, err := api.GetSpotFeedHistoryCandles(context.Background(), map[string]any{
-		"currency": "BTC", "start_timestamp": int64(1700000000), "end_timestamp": int64(1700000300), "period": "60",
+	currency, candles, err := api.GetSpotFeedHistoryCandles(context.Background(), types.SpotFeedHistoryCandlesQuery{
+		Currency:  "BTC",
+		PeriodSec: 60,
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "BTC", currency)

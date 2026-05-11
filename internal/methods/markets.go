@@ -283,10 +283,17 @@ func (a *API) GetBridgeBalances(ctx context.Context) ([]types.BridgeBalance, err
 // GetStDRVSnapshots returns one wallet's staked-DRV balance snapshots
 // over a time window. Public.
 //
-// Required `params`: `wallet`, `from_sec`, `to_sec`.
-func (a *API) GetStDRVSnapshots(ctx context.Context, params map[string]any) (types.StDRVSnapshots, error) {
-	if params == nil {
-		params = map[string]any{}
+// Note: timestamps on this endpoint are in seconds, not
+// milliseconds.
+func (a *API) GetStDRVSnapshots(ctx context.Context, q types.STDRVSnapshotsQuery) (types.StDRVSnapshots, error) {
+	params := map[string]any{
+		"wallet": q.Wallet,
+	}
+	if q.FromSec != 0 {
+		params["from_sec"] = q.FromSec
+	}
+	if q.ToSec != 0 {
+		params["to_sec"] = q.ToSec
 	}
 	var resp types.StDRVSnapshots
 	if err := a.call(ctx, "public/get_stdrv_snapshots", params, &resp); err != nil {

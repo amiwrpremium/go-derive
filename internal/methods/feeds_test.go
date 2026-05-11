@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestGetFundingRateHistory_Decode(t *testing.T) {
@@ -15,7 +17,7 @@ func TestGetFundingRateHistory_Decode(t *testing.T) {
 			map[string]any{"timestamp": int64(1700000000000), "funding_rate": "0.0001"},
 		},
 	})
-	got, err := api.GetFundingRateHistory(context.Background(), map[string]any{"instrument_name": "BTC-PERP"})
+	got, err := api.GetFundingRateHistory(context.Background(), types.FundingRateHistoryQuery{InstrumentName: "BTC-PERP"})
 	require.NoError(t, err)
 	require.Len(t, got, 1)
 	assert.Equal(t, "0.0001", got[0].FundingRate.String())
@@ -30,9 +32,9 @@ func TestGetSpotFeedHistory_Decode(t *testing.T) {
 			map[string]any{"timestamp": int64(1700000000000), "timestamp_bucket": int64(1700000000000), "price": "50000"},
 		},
 	})
-	currency, items, err := api.GetSpotFeedHistory(context.Background(), map[string]any{
-		"currency": "BTC", "period": int64(60),
-		"start_timestamp": 0, "end_timestamp": 1,
+	currency, items, err := api.GetSpotFeedHistory(context.Background(), types.SpotFeedHistoryQuery{
+		Currency:  "BTC",
+		PeriodSec: 60,
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "BTC", currency)
@@ -56,7 +58,7 @@ func TestGetLatestSignedFeeds_Decode(t *testing.T) {
 		"rate_data": map[string]any{},
 		"vol_data":  map[string]any{},
 	})
-	feeds, err := api.GetLatestSignedFeeds(context.Background(), nil)
+	feeds, err := api.GetLatestSignedFeeds(context.Background(), "", 0)
 	require.NoError(t, err)
 	require.NotNil(t, feeds)
 	require.Contains(t, feeds.SpotData, "BTC")
@@ -75,9 +77,10 @@ func TestGetInterestRateHistory_Decode(t *testing.T) {
 		},
 		"pagination": map[string]any{"num_pages": 1, "count": 1},
 	})
-	rates, page, err := api.GetInterestRateHistory(context.Background(), map[string]any{
-		"from_timestamp_sec": int64(1700000000), "to_timestamp_sec": int64(1700100000),
-	})
+	rates, page, err := api.GetInterestRateHistory(context.Background(), types.InterestRateHistoryQuery{
+		FromSec: 1700000000,
+		ToSec:   1700100000,
+	}, types.PageRequest{})
 	require.NoError(t, err)
 	require.Len(t, rates, 1)
 	assert.Equal(t, "0.08", rates[0].BorrowAPY.String())
@@ -92,9 +95,7 @@ func TestGetPerpImpactTWAP_Decode(t *testing.T) {
 		"ask_impact_diff_twap": "1.2",
 		"bid_impact_diff_twap": "-0.8",
 	})
-	twap, err := api.GetPerpImpactTWAP(context.Background(), map[string]any{
-		"currency": "BTC", "start_time": 0, "end_time": 1,
-	})
+	twap, err := api.GetPerpImpactTWAP(context.Background(), "BTC", 0, 1)
 	require.NoError(t, err)
 	assert.Equal(t, "BTC", twap.Currency)
 	assert.Equal(t, "0.5", twap.MidPriceDiffTWAP.String())

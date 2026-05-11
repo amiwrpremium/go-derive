@@ -15,7 +15,7 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	feeds, err := c.GetLatestSignedFeeds(ctx, nil)
+	feeds, err := c.GetLatestSignedFeeds(ctx, "", 0)
 	example.Fatal(err)
 
 	example.Print("currencies with feeds", len(feeds.SpotData))

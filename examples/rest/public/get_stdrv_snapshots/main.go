@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -34,10 +35,10 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	res, err := c.GetStDRVSnapshots(ctx, map[string]any{
-		"wallet":   wallet,
-		"from_sec": from,
-		"to_sec":   to,
+	res, err := c.GetStDRVSnapshots(ctx, types.STDRVSnapshotsQuery{
+		Wallet:  wallet,
+		FromSec: from,
+		ToSec:   to,
 	})
 	example.Fatal(err)
 	example.Print("wallet", res.Wallet)
