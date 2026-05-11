@@ -50,13 +50,13 @@ func (a *API) GetNotifications(ctx context.Context, params map[string]any) ([]ty
 // Required `params`: `notification_ids` ([]int) and `status`
 // ("seen" or "hidden"). Optional: `subaccount_id`. Returns the
 // number of notifications updated.
-func (a *API) UpdateNotifications(ctx context.Context, params map[string]any) (*types.UpdateNotificationsResult, error) {
+func (a *API) UpdateNotifications(ctx context.Context, params map[string]any) (types.UpdateNotificationsResult, error) {
 	if err := a.requireSigner(); err != nil {
-		return nil, err
+		return types.UpdateNotificationsResult{}, err
 	}
 	var resp types.UpdateNotificationsResult
 	if err := a.call(ctx, "private/update_notifications", params, &resp); err != nil {
-		return nil, err
+		return types.UpdateNotificationsResult{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }

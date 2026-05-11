@@ -374,18 +374,18 @@ func (a *API) GetOrderHistory(ctx context.Context, page types.PageRequest, q typ
 // The response carries the cancelled order, the (optional)
 // replacement order, the engine's error if the replacement was
 // rejected, and the trades the new order matched.
-func (a *API) Replace(ctx context.Context, params map[string]any) (*types.ReplaceResult, error) {
+func (a *API) Replace(ctx context.Context, params map[string]any) (types.ReplaceResult, error) {
 	if err := a.requireSigner(); err != nil {
-		return nil, err
+		return types.ReplaceResult{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
-		return nil, err
+		return types.ReplaceResult{}, err
 	}
 	var resp types.ReplaceResult
 	if err := a.call(ctx, "private/replace", params, &resp); err != nil {
-		return nil, err
+		return types.ReplaceResult{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // OrderDebug previews an order without submitting it. Private.
@@ -393,18 +393,18 @@ func (a *API) Replace(ctx context.Context, params map[string]any) (*types.Replac
 // `params` mirror PlaceOrder's. The response carries the
 // engine's internal hashing artefacts — useful for validating
 // signatures in CI.
-func (a *API) OrderDebug(ctx context.Context, params map[string]any) (*types.OrderDebugResult, error) {
+func (a *API) OrderDebug(ctx context.Context, params map[string]any) (types.OrderDebugResult, error) {
 	if err := a.requireSigner(); err != nil {
-		return nil, err
+		return types.OrderDebugResult{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
-		return nil, err
+		return types.OrderDebugResult{}, err
 	}
 	var resp types.OrderDebugResult
 	if err := a.call(ctx, "private/order_debug", params, &resp); err != nil {
-		return nil, err
+		return types.OrderDebugResult{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // CancelByNonce cancels an order by the nonce on its signed
@@ -413,12 +413,12 @@ func (a *API) OrderDebug(ctx context.Context, params map[string]any) (*types.Ord
 //
 // Returns the number of orders that matched the (instrument,
 // nonce) tuple and were cancelled.
-func (a *API) CancelByNonce(ctx context.Context, instrument string, nonce uint64) (*types.CancelByNonceResult, error) {
+func (a *API) CancelByNonce(ctx context.Context, instrument string, nonce uint64) (types.CancelByNonceResult, error) {
 	if err := a.requireSigner(); err != nil {
-		return nil, err
+		return types.CancelByNonceResult{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
-		return nil, err
+		return types.CancelByNonceResult{}, err
 	}
 	params := map[string]any{
 		"instrument_name": instrument,
@@ -428,9 +428,9 @@ func (a *API) CancelByNonce(ctx context.Context, instrument string, nonce uint64
 	}
 	var resp types.CancelByNonceResult
 	if err := a.call(ctx, "private/cancel_by_nonce", params, &resp); err != nil {
-		return nil, err
+		return types.CancelByNonceResult{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // CancelAlgoOrder cancels one in-flight algo order by id. Private.

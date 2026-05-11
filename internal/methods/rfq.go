@@ -344,15 +344,15 @@ func (a *API) RFQGetBestQuote(ctx context.Context, params map[string]any) (types
 // uses for the simulation but does not validate); same response
 // type. No signer or subaccount required — useful for pre-flight
 // checks before signing anything.
-func (a *API) OrderQuotePublic(ctx context.Context, params map[string]any) (*types.OrderQuoteResult, error) {
+func (a *API) OrderQuotePublic(ctx context.Context, params map[string]any) (types.OrderQuoteResult, error) {
 	if params == nil {
 		params = map[string]any{}
 	}
 	var resp types.OrderQuoteResult
 	if err := a.call(ctx, "public/order_quote", params, &resp); err != nil {
-		return nil, err
+		return types.OrderQuoteResult{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // OrderQuote runs a hypothetical order through the matching engine
@@ -365,12 +365,12 @@ func (a *API) OrderQuotePublic(ctx context.Context, params map[string]any) (*typ
 //
 // The shape mirrors `PrivateOrderQuoteResultSchema` in
 // `derivexyz/cockpit/orderbook-types`.
-func (a *API) OrderQuote(ctx context.Context, params map[string]any) (*types.OrderQuoteResult, error) {
+func (a *API) OrderQuote(ctx context.Context, params map[string]any) (types.OrderQuoteResult, error) {
 	if err := a.requireSigner(); err != nil {
-		return nil, err
+		return types.OrderQuoteResult{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
-		return nil, err
+		return types.OrderQuoteResult{}, err
 	}
 	if params == nil {
 		params = map[string]any{}
@@ -380,7 +380,7 @@ func (a *API) OrderQuote(ctx context.Context, params map[string]any) (*types.Ord
 	}
 	var resp types.OrderQuoteResult
 	if err := a.call(ctx, "private/order_quote", params, &resp); err != nil {
-		return nil, err
+		return types.OrderQuoteResult{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
