@@ -40,7 +40,7 @@ func (a *API) GetReferralCode(ctx context.Context, wallet string) (string, error
 //
 // Pass an empty `wallet` to default to the configured signer's
 // wallet (if any).
-func (a *API) GetInviteCode(ctx context.Context, wallet string) (*types.InviteCode, error) {
+func (a *API) GetInviteCode(ctx context.Context, wallet string) (types.InviteCode, error) {
 	if wallet == "" && a.Signer != nil {
 		wallet = a.Signer.Owner().Hex()
 	}
@@ -50,9 +50,9 @@ func (a *API) GetInviteCode(ctx context.Context, wallet string) (*types.InviteCo
 	}
 	var resp types.InviteCode
 	if err := a.call(ctx, "public/get_invite_code", params, &resp); err != nil {
-		return nil, err
+		return types.InviteCode{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // ValidateInviteCode checks whether one invite code is valid and
