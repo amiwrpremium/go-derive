@@ -19,7 +19,7 @@ func main() {
 	c := example.MustWSPrivate(ctx)
 	defer c.Close()
 
-	q, err := c.CancelQuote(ctx, map[string]any{"quote_id": quoteID})
+	q, err := c.CancelQuote(ctx, quoteID)
 	example.Fatal(err)
 	example.Print("quote id", q.QuoteID)
 }

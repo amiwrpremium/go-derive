@@ -151,26 +151,23 @@ func (a *API) PollQuotes(ctx context.Context, params map[string]any) ([]types.Qu
 	return resp.Quotes, resp.Pagination, nil
 }
 
-// SendQuote responds to an open RFQ with a maker quote. The signed
-// payload covers the multi-leg quote price and a per-leg side
-// direction. Private.
+// SendQuote responds to an open RFQ with a maker quote. The
+// payload carries the multi-leg priced quote plus the caller's
+// pre-computed EIP-712 signature material. Private.
 //
-// Required `params` include `rfq_id`, the priced `legs`,
-// `direction`, the signing fields (`signature`, `signer`,
-// `signature_expiry_sec`, `nonce`), and `max_fee`.
-func (a *API) SendQuote(ctx context.Context, params map[string]any) (types.Quote, error) {
+// The SDK does not yet sign quote payloads; the caller is
+// responsible for populating [types.SendQuoteInput.Signature],
+// [types.SendQuoteInput.Signer],
+// [types.SendQuoteInput.SignatureExpirySec] and
+// [types.SendQuoteInput.Nonce] before calling.
+func (a *API) SendQuote(ctx context.Context, in types.SendQuoteInput) (types.Quote, error) {
 	if err := a.requireSigner(); err != nil {
 		return types.Quote{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
 		return types.Quote{}, err
 	}
-	if params == nil {
-		params = map[string]any{}
-	}
-	if _, ok := params["subaccount_id"]; !ok {
-		params["subaccount_id"] = a.Subaccount
-	}
+	params := sendQuoteParams(in, a.Subaccount)
 	var resp types.Quote
 	if err := a.call(ctx, "private/send_quote", params, &resp); err != nil {
 		return types.Quote{}, err
@@ -182,20 +179,17 @@ func (a *API) SendQuote(ctx context.Context, params map[string]any) (types.Quote
 // by the taker once `send_rfq` has surfaced acceptable quotes.
 // Private.
 //
+// The SDK does not yet sign quote-execute payloads; the caller is
+// responsible for the signature fields on [types.ExecuteQuoteInput].
 // The response wraps a [types.Quote] and adds `rfq_filled_pct`.
-func (a *API) ExecuteQuote(ctx context.Context, params map[string]any) (types.ExecuteQuoteResult, error) {
+func (a *API) ExecuteQuote(ctx context.Context, in types.ExecuteQuoteInput) (types.ExecuteQuoteResult, error) {
 	if err := a.requireSigner(); err != nil {
 		return types.ExecuteQuoteResult{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
 		return types.ExecuteQuoteResult{}, err
 	}
-	if params == nil {
-		params = map[string]any{}
-	}
-	if _, ok := params["subaccount_id"]; !ok {
-		params["subaccount_id"] = a.Subaccount
-	}
+	params := executeQuoteParams(in, a.Subaccount)
 	var resp types.ExecuteQuoteResult
 	if err := a.call(ctx, "private/execute_quote", params, &resp); err != nil {
 		return types.ExecuteQuoteResult{}, err
@@ -204,18 +198,16 @@ func (a *API) ExecuteQuote(ctx context.Context, params map[string]any) (types.Ex
 }
 
 // CancelQuote cancels one outstanding maker quote by id. Private.
-func (a *API) CancelQuote(ctx context.Context, params map[string]any) (types.Quote, error) {
+func (a *API) CancelQuote(ctx context.Context, quoteID string) (types.Quote, error) {
 	if err := a.requireSigner(); err != nil {
 		return types.Quote{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
 		return types.Quote{}, err
 	}
-	if params == nil {
-		params = map[string]any{}
-	}
-	if _, ok := params["subaccount_id"]; !ok {
-		params["subaccount_id"] = a.Subaccount
+	params := map[string]any{
+		"subaccount_id": a.Subaccount,
+		"quote_id":      quoteID,
 	}
 	var resp types.Quote
 	if err := a.call(ctx, "private/cancel_quote", params, &resp); err != nil {
@@ -228,26 +220,30 @@ func (a *API) CancelQuote(ctx context.Context, params map[string]any) (types.Quo
 // replacement in a single round trip — the maker counterpart to
 // [API.Replace] for orders. Private.
 //
-// `params` should include `quote_id_to_cancel` (or
-// `nonce_to_cancel`) plus the same fields [API.SendQuote] takes for
-// the replacement (`rfq_id`, `direction`, `legs`, `max_fee`, the
-// signing fields). The full param shape is documented at
-// docs.derive.xyz.
+// The replacement carries the same signed-quote shape as
+// [API.SendQuote]; the caller pre-signs and populates the
+// signature fields on [types.SendQuoteInput] embedded in
+// [types.ReplaceQuoteInput]. Exactly one of
+// [types.ReplaceQuoteInput.QuoteIDToCancel] or
+// [types.ReplaceQuoteInput.NonceToCancel] identifies the quote being
+// replaced.
 //
-// The response carries the cancelled quote, the (optional) replacement
-// quote, and the engine's error if the replacement was rejected.
-func (a *API) ReplaceQuote(ctx context.Context, params map[string]any) (types.ReplaceQuoteResult, error) {
+// The response carries the cancelled quote, the (optional)
+// replacement quote, and the engine's error if the replacement was
+// rejected.
+func (a *API) ReplaceQuote(ctx context.Context, in types.ReplaceQuoteInput) (types.ReplaceQuoteResult, error) {
 	if err := a.requireSigner(); err != nil {
 		return types.ReplaceQuoteResult{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
 		return types.ReplaceQuoteResult{}, err
 	}
-	if params == nil {
-		params = map[string]any{}
+	params := sendQuoteParams(in.SendQuoteInput, a.Subaccount)
+	if in.QuoteIDToCancel != "" {
+		params["quote_id_to_cancel"] = in.QuoteIDToCancel
 	}
-	if _, ok := params["subaccount_id"]; !ok {
-		params["subaccount_id"] = a.Subaccount
+	if in.NonceToCancel != 0 {
+		params["nonce_to_cancel"] = in.NonceToCancel
 	}
 	var resp types.ReplaceQuoteResult
 	if err := a.call(ctx, "private/replace_quote", params, &resp); err != nil {
@@ -259,21 +255,15 @@ func (a *API) ReplaceQuote(ctx context.Context, params map[string]any) (types.Re
 // CancelBatchQuotes cancels every quote matching the supplied
 // filters. Private.
 //
-// Optional `params`: `rfq_id`, `quote_id`, `label`, `nonce`. Returns
-// the list of cancelled ids.
-func (a *API) CancelBatchQuotes(ctx context.Context, params map[string]any) (types.CancelBatchResult, error) {
+// All filters AND together. Returns the list of cancelled ids.
+func (a *API) CancelBatchQuotes(ctx context.Context, filter types.CancelBatchInput) (types.CancelBatchResult, error) {
 	if err := a.requireSigner(); err != nil {
 		return types.CancelBatchResult{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
 		return types.CancelBatchResult{}, err
 	}
-	if params == nil {
-		params = map[string]any{}
-	}
-	if _, ok := params["subaccount_id"]; !ok {
-		params["subaccount_id"] = a.Subaccount
-	}
+	params := cancelBatchParams(filter, a.Subaccount, true)
 	var resp types.CancelBatchResult
 	if err := a.call(ctx, "private/cancel_batch_quotes", params, &resp); err != nil {
 		return types.CancelBatchResult{}, err
@@ -284,21 +274,17 @@ func (a *API) CancelBatchQuotes(ctx context.Context, params map[string]any) (typ
 // CancelBatchRFQs cancels every RFQ matching the supplied filters.
 // Private.
 //
-// Optional `params`: `rfq_id`, `label`, `nonce`. Returns the list of
-// cancelled ids.
-func (a *API) CancelBatchRFQs(ctx context.Context, params map[string]any) (types.CancelBatchResult, error) {
+// All filters AND together. The QuoteID field on
+// [types.CancelBatchInput] is ignored by this endpoint. Returns the
+// list of cancelled ids.
+func (a *API) CancelBatchRFQs(ctx context.Context, filter types.CancelBatchInput) (types.CancelBatchResult, error) {
 	if err := a.requireSigner(); err != nil {
 		return types.CancelBatchResult{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
 		return types.CancelBatchResult{}, err
 	}
-	if params == nil {
-		params = map[string]any{}
-	}
-	if _, ok := params["subaccount_id"]; !ok {
-		params["subaccount_id"] = a.Subaccount
-	}
+	params := cancelBatchParams(filter, a.Subaccount, false)
 	var resp types.CancelBatchResult
 	if err := a.call(ctx, "private/cancel_batch_rfqs", params, &resp); err != nil {
 		return types.CancelBatchResult{}, err
@@ -307,31 +293,150 @@ func (a *API) CancelBatchRFQs(ctx context.Context, params map[string]any) (types
 }
 
 // RFQGetBestQuote returns the best quote the engine can match
-// against an RFQ shape, plus margin-impact estimates for the would-be
-// trade. Private.
+// against an RFQ shape, plus margin-impact estimates for the
+// would-be trade. Private.
 //
-// Required `params`: `legs`, `direction`. Optional: `counterparties`,
-// `label`, `client`, `extra_fee`, `max_total_cost`, `min_total_cost`,
-// `partial_fill_step`, `preferred_direction`, `referral_code`,
-// `rfq_id`.
-func (a *API) RFQGetBestQuote(ctx context.Context, params map[string]any) (types.BestQuoteResult, error) {
+// No signing required — the call is a pure lookup that the engine
+// uses to surface the best executable price across whitelisted
+// makers.
+func (a *API) RFQGetBestQuote(ctx context.Context, in types.BestQuoteInput) (types.BestQuoteResult, error) {
 	if err := a.requireSigner(); err != nil {
 		return types.BestQuoteResult{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
 		return types.BestQuoteResult{}, err
 	}
-	if params == nil {
-		params = map[string]any{}
-	}
-	if _, ok := params["subaccount_id"]; !ok {
-		params["subaccount_id"] = a.Subaccount
-	}
+	params := bestQuoteParams(in, a.Subaccount)
 	var resp types.BestQuoteResult
 	if err := a.call(ctx, "private/rfq_get_best_quote", params, &resp); err != nil {
 		return types.BestQuoteResult{}, err
 	}
 	return resp, nil
+}
+
+func sendQuoteParams(in types.SendQuoteInput, defaultSubaccount int64) map[string]any {
+	sub := in.SubaccountID
+	if sub == 0 {
+		sub = defaultSubaccount
+	}
+	params := map[string]any{
+		"subaccount_id":        sub,
+		"rfq_id":               in.RFQID,
+		"direction":            in.Direction,
+		"legs":                 in.Legs,
+		"max_fee":              in.MaxFee,
+		"nonce":                in.Nonce,
+		"signature":            in.Signature,
+		"signer":               in.Signer,
+		"signature_expiry_sec": in.SignatureExpirySec,
+	}
+	if in.Label != "" {
+		params["label"] = in.Label
+	}
+	if in.MMP {
+		params["mmp"] = true
+	}
+	if in.Client != "" {
+		params["client"] = in.Client
+	}
+	return params
+}
+
+func executeQuoteParams(in types.ExecuteQuoteInput, defaultSubaccount int64) map[string]any {
+	sub := in.SubaccountID
+	if sub == 0 {
+		sub = defaultSubaccount
+	}
+	params := map[string]any{
+		"subaccount_id":        sub,
+		"rfq_id":               in.RFQID,
+		"quote_id":             in.QuoteID,
+		"direction":            in.Direction,
+		"legs":                 in.Legs,
+		"max_fee":              in.MaxFee,
+		"nonce":                in.Nonce,
+		"signature":            in.Signature,
+		"signer":               in.Signer,
+		"signature_expiry_sec": in.SignatureExpirySec,
+	}
+	if in.Label != "" {
+		params["label"] = in.Label
+	}
+	if in.EnableTakerProtection {
+		params["enable_taker_protection"] = true
+	}
+	if in.Client != "" {
+		params["client"] = in.Client
+	}
+	return params
+}
+
+func bestQuoteParams(in types.BestQuoteInput, defaultSubaccount int64) map[string]any {
+	sub := in.SubaccountID
+	if sub == 0 {
+		sub = defaultSubaccount
+	}
+	params := map[string]any{
+		"subaccount_id": sub,
+		"legs":          in.Legs,
+	}
+	if in.Direction != "" {
+		params["direction"] = in.Direction
+	}
+	if in.PreferredDirection != "" {
+		params["preferred_direction"] = in.PreferredDirection
+	}
+	if len(in.Counterparties) > 0 {
+		params["counterparties"] = in.Counterparties
+	}
+	if in.Label != "" {
+		params["label"] = in.Label
+	}
+	if in.Client != "" {
+		params["client"] = in.Client
+	}
+	if !in.ExtraFee.IsZero() {
+		params["extra_fee"] = in.ExtraFee
+	}
+	if !in.MaxTotalCost.IsZero() {
+		params["max_total_cost"] = in.MaxTotalCost
+	}
+	if !in.MinTotalCost.IsZero() {
+		params["min_total_cost"] = in.MinTotalCost
+	}
+	if !in.PartialFillStep.IsZero() {
+		params["partial_fill_step"] = in.PartialFillStep
+	}
+	if in.ReferralCode != "" {
+		params["referral_code"] = in.ReferralCode
+	}
+	if in.RFQID != "" {
+		params["rfq_id"] = in.RFQID
+	}
+	return params
+}
+
+func cancelBatchParams(filter types.CancelBatchInput, defaultSubaccount int64, includeQuoteID bool) map[string]any {
+	sub := filter.SubaccountID
+	if sub == 0 {
+		sub = defaultSubaccount
+	}
+	params := map[string]any{
+		"subaccount_id": sub,
+	}
+	if filter.RFQID != "" {
+		params["rfq_id"] = filter.RFQID
+	}
+	if includeQuoteID && filter.QuoteID != "" {
+		params["quote_id"] = filter.QuoteID
+	}
+	if filter.Label != "" {
+		params["label"] = filter.Label
+	}
+	if filter.Nonce != 0 {
+		params["nonce"] = filter.Nonce
+	}
+	return params
 }
 
 // OrderQuotePublic is the unauthenticated counterpart of

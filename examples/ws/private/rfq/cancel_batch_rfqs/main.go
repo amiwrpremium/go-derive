@@ -2,7 +2,10 @@
 // over WebSocket.
 package main
 
-import "github.com/amiwrpremium/go-derive/examples/example"
+import (
+	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/types"
+)
 
 func main() {
 	ctx, cancel := example.Timeout()
@@ -10,7 +13,7 @@ func main() {
 	c := example.MustWSPrivate(ctx)
 	defer c.Close()
 
-	res, err := c.CancelBatchRFQs(ctx, nil)
+	res, err := c.CancelBatchRFQs(ctx, types.CancelBatchInput{})
 	example.Fatal(err)
 	example.Print("cancelled", len(res.CancelledIDs))
 }

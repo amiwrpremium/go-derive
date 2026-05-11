@@ -2,7 +2,10 @@
 // filtered by label / nonce. Returns the list of cancelled quote ids.
 package main
 
-import "github.com/amiwrpremium/go-derive/examples/example"
+import (
+	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/types"
+)
 
 func main() {
 	c := example.MustRESTPrivate()
@@ -10,7 +13,7 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	res, err := c.CancelBatchQuotes(ctx, nil)
+	res, err := c.CancelBatchQuotes(ctx, types.CancelBatchInput{})
 	example.Fatal(err)
 	example.Print("cancelled", len(res.CancelledIDs))
 	for i, id := range res.CancelledIDs {
