@@ -35,6 +35,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	"github.com/amiwrpremium/go-derive/internal/transport"
 )
@@ -66,6 +67,13 @@ import (
 //	    fmt.Println(ob.Bids[0])
 //	}
 //
+// # Lifetime
+//
+// ctx controls the subscription's lifetime: cancelling it tears
+// the subscription down (sends unsubscribe, closes Updates, exits
+// the pump goroutines). Pass [context.Background] to keep the
+// subscription alive until explicit [Subscription.Close].
+//
 // The returned subscription buffers up to 256 events in memory by
 // default; if the caller is slow, the [DropNewest] policy silently
 // drops incoming events (the default). Tune with [WithBufferSize],
@@ -80,15 +88,8 @@ func Subscribe[T any](ctx context.Context, c *Client, channelName string, decode
 	if err != nil {
 		return nil, err
 	}
-	out := &Subscription[T]{
-		raw:       sub,
-		typed:     make(chan T, cfg.bufferSize),
-		channel:   channelName,
-		cfg:       cfg,
-		ownsTyped: true,
-	}
-	go out.pump()
-	go out.drainErrors()
+	out := newSubscription[T](sub, make(chan T, cfg.bufferSize), channelName, cfg, true /* ownsTyped */)
+	out.start(ctx)
 	return out, nil
 }
 
@@ -104,7 +105,8 @@ func Subscribe[T any](ctx context.Context, c *Client, channelName string, decode
 // Apart from buffer ownership the semantics match [Subscribe]:
 // drop policy and error handler still apply via [SubscribeOption].
 // [WithBufferSize] has no effect — the caller's chan determines
-// capacity.
+// capacity. ctx controls the subscription's lifetime (see the
+// "Lifetime" section on [Subscribe]).
 func SubscribeInto[T any](ctx context.Context, c *Client, channelName string, decoder func(json.RawMessage) (T, error), out chan T, opts ...SubscribeOption) (*Subscription[T], error) {
 	cfg := applySubscribeOpts(opts)
 	dec := func(raw json.RawMessage) (any, error) {
@@ -114,15 +116,8 @@ func SubscribeInto[T any](ctx context.Context, c *Client, channelName string, de
 	if err != nil {
 		return nil, err
 	}
-	s := &Subscription[T]{
-		raw:       sub,
-		typed:     out,
-		channel:   channelName,
-		cfg:       cfg,
-		ownsTyped: false,
-	}
-	go s.pump()
-	go s.drainErrors()
+	s := newSubscription[T](sub, out, channelName, cfg, false /* ownsTyped */)
+	s.start(ctx)
 	return s, nil
 }
 
@@ -158,23 +153,55 @@ func SubscribeFunc[T any](ctx context.Context, c *Client, channelName string, de
 // subscription. The zero value is not usable; obtain one from [Subscribe]
 // or [SubscribeInto].
 //
-// Always call [Subscription.Close] to release the channel slot and tell
-// the server to stop sending updates. The Close call is idempotent.
+// The subscription terminates when any of these happens:
+//   - the context passed to Subscribe is cancelled,
+//   - [Subscription.Close] is called explicitly,
+//   - the WebSocket connection drops (with [WithReconnect] disabled).
+//
+// [Subscription.Close] is idempotent.
 type Subscription[T any] struct {
 	raw       transport.Subscription
 	typed     chan T
 	channel   string
 	cfg       subscribeConfig
 	ownsTyped bool // true for Subscribe; false for SubscribeInto (caller owns the chan)
+
+	done     chan struct{} // closed once when the subscription terminates for any reason
+	doneOnce sync.Once
+}
+
+// newSubscription constructs a Subscription[T] with the done-channel
+// machinery wired up. Callers should immediately call start to spawn
+// the pump / drainErrors / watchCtx goroutines.
+func newSubscription[T any](raw transport.Subscription, typed chan T, channel string, cfg subscribeConfig, ownsTyped bool) *Subscription[T] {
+	return &Subscription[T]{
+		raw:       raw,
+		typed:     typed,
+		channel:   channel,
+		cfg:       cfg,
+		ownsTyped: ownsTyped,
+		done:      make(chan struct{}),
+	}
+}
+
+// start spawns the three lifecycle goroutines: pump (typed delivery),
+// drainErrors (decode-error forwarding), and watchCtx (lifetime hook).
+func (s *Subscription[T]) start(ctx context.Context) {
+	go s.pump()
+	go s.drainErrors()
+	go s.watchCtx(ctx)
 }
 
 // Channel returns the dotted server-side channel name (e.g.
 // "orderbook.BTC-PERP.1.10"). Useful for diagnostics and logs.
 func (s *Subscription[T]) Channel() string { return s.channel }
 
-// Updates returns the receive channel of typed events. The channel is
-// closed when the subscription terminates; receivers should select against
-// ctx.Done() to know when to bail.
+// Updates returns the receive channel of typed events. The channel
+// is closed when the subscription terminates — either because the
+// Subscribe ctx was cancelled, [Subscription.Close] was called, or
+// the WebSocket connection dropped. Receivers can still select
+// against ctx.Done() if they want to, but it is no longer strictly
+// necessary: cancelling the Subscribe ctx closes Updates directly.
 //
 // # Multi-subscription gotcha
 //
@@ -197,28 +224,64 @@ func (s *Subscription[T]) Channel() string { return s.channel }
 func (s *Subscription[T]) Updates() <-chan T { return s.typed }
 
 // Err returns the terminal error once [Subscription.Updates] has closed,
-// or nil for a clean shutdown.
+// or nil for a clean shutdown (including a ctx-cancel-driven teardown).
 func (s *Subscription[T]) Err() error { return s.raw.Err() }
 
 // Close ends the subscription, sends an unsubscribe RPC best-effort, and
-// drains the typed channel. Idempotent.
-func (s *Subscription[T]) Close() error { return s.raw.Close() }
+// signals the pump goroutines to exit. Idempotent.
+func (s *Subscription[T]) Close() error {
+	s.markDone()
+	return s.raw.Close()
+}
+
+// markDone closes the done channel exactly once. Safe to call from
+// any goroutine.
+func (s *Subscription[T]) markDone() {
+	s.doneOnce.Do(func() { close(s.done) })
+}
+
+// watchCtx ties the subscription's lifetime to ctx. When ctx is
+// cancelled it calls Close, which tears down the transport
+// subscription and signals every other goroutine to exit. When the
+// subscription terminates for another reason (explicit Close or
+// transport disconnect), done is already closed and the second arm
+// fires, letting this goroutine exit without leaking.
+func (s *Subscription[T]) watchCtx(ctx context.Context) {
+	select {
+	case <-ctx.Done():
+		_ = s.Close()
+	case <-s.done:
+	}
+}
 
 // pump bridges the untyped transport channel to the typed user channel,
 // applying the configured drop policy when the buffer is full. Only
 // closes the typed channel when the SDK owns it ([Subscribe]); for
 // [SubscribeInto] the caller-supplied channel is left alone.
+//
+// Exits on any of: transport closed Updates, [Subscription.Close], or
+// ctx cancellation (via watchCtx → Close → done). All three converge
+// on the done channel.
 func (s *Subscription[T]) pump() {
+	defer s.markDone()
 	if s.ownsTyped {
 		defer close(s.typed)
 	}
-	for v := range s.raw.Updates() {
-		typed, ok := v.(T)
-		if !ok {
-			s.notify(ErrTypeMismatch)
-			continue
+	for {
+		select {
+		case v, ok := <-s.raw.Updates():
+			if !ok {
+				return
+			}
+			typed, ok := v.(T)
+			if !ok {
+				s.notify(ErrTypeMismatch)
+				continue
+			}
+			s.deliver(typed)
+		case <-s.done:
+			return
 		}
-		s.deliver(typed)
 	}
 }
 
@@ -260,15 +323,23 @@ func (s *Subscription[T]) notify(err error) {
 }
 
 // drainErrors forwards transport-level decoder errors to the
-// configured error handler, wrapped with [ErrDecodeFailed]. Runs on
-// its own goroutine and exits when the transport closes the errors
-// channel. When no handler is configured the loop still drains —
-// otherwise the transport's bounded error buffer would back up.
+// configured error handler, wrapped with [ErrDecodeFailed]. Exits
+// when the transport closes its errors channel OR the subscription
+// terminates (signalled via done).
 func (s *Subscription[T]) drainErrors() {
-	for err := range s.raw.Errors() {
-		if s.cfg.errorHandler == nil {
-			continue
+	defer s.markDone()
+	for {
+		select {
+		case err, ok := <-s.raw.Errors():
+			if !ok {
+				return
+			}
+			if s.cfg.errorHandler == nil {
+				continue
+			}
+			s.cfg.errorHandler(fmt.Errorf("%w: %w", ErrDecodeFailed, err))
+		case <-s.done:
+			return
 		}
-		s.cfg.errorHandler(fmt.Errorf("%w: %w", ErrDecodeFailed, err))
 	}
 }

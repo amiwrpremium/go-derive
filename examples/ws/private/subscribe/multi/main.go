@@ -25,6 +25,14 @@
 // with one shared chan. Register WithErrorHandler to observe drops
 // when they happen — wraps as ws.ErrBufferFull.
 //
+// # Cancellation
+//
+// Each c.SubscribeX takes a ctx. Cancelling ctx tears each sub down
+// (sends unsubscribe, closes Updates). Below we share the same ctx
+// across all three subs and the select loop, so one cancel cleans
+// everything up. Per-sub lifetimes are also possible — give each a
+// child ctx and cancel only that one.
+//
 // Requires `DERIVE_SESSION_KEY` (or `DERIVE_OWNER_KEY`) plus
 // `DERIVE_SUBACCOUNT` in the environment; see the `examples/example`
 // helper for the full env-var contract.
