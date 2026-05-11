@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.8.4](https://github.com/amiwrpremium/go-derive/compare/v0.8.3...v0.8.4) (2026-05-11)
+
+
+### Documentation
+
+* **examples:** cover the 25 remaining RPC methods ([#91](https://github.com/amiwrpremium/go-derive/issues/91)) ([b11fdcf](https://github.com/amiwrpremium/go-derive/commit/b11fdcf8822e10f58a5b8ae6aff4ce9a36062388))
+
 ## [0.8.3](https://github.com/amiwrpremium/go-derive/compare/v0.8.2...v0.8.3) (2026-05-11)
 
 
