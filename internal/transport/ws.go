@@ -59,6 +59,7 @@ type wsSub struct {
 	channel string
 	decode  Decoder
 	updates chan any
+	errors  chan error
 	closed  chan struct{}
 	once    sync.Once
 	err     error
@@ -260,6 +261,7 @@ func (t *WSTransport) Subscribe(ctx context.Context, channel string, decode Deco
 		channel: channel,
 		decode:  decode,
 		updates: make(chan any, 256),
+		errors:  make(chan error, 16),
 		closed:  make(chan struct{}),
 	}
 	t.subs[channel] = sub
@@ -283,6 +285,11 @@ func (s *wsSub) Channel() string { return s.channel }
 
 // Updates returns the receive channel of decoded events.
 func (s *wsSub) Updates() <-chan any { return s.updates }
+
+// Errors returns the receive channel of non-fatal decoder errors
+// observed by the transport. Sends are best-effort: the read pump
+// drops on full buffer rather than blocking.
+func (s *wsSub) Errors() <-chan error { return s.errors }
 
 // Err returns the terminal subscription error, if any.
 func (s *wsSub) Err() error {
@@ -309,6 +316,7 @@ func (s *wsSub) finish(err error) {
 	s.once.Do(func() {
 		close(s.closed)
 		close(s.updates)
+		close(s.errors)
 	})
 }
 
@@ -381,15 +389,23 @@ func (t *WSTransport) dispatchNotification(data []byte) {
 	}
 	val, err := sub.decode(p.Data)
 	if err != nil {
+		select {
+		case sub.errors <- err:
+		case <-sub.closed:
+		default:
+			// Errors buffer full — drop. Decoder errors are
+			// observability data, not load-bearing; the read pump
+			// must not block on a stalled error consumer.
+		}
 		return
 	}
 	select {
 	case sub.updates <- val:
 	case <-sub.closed:
 	default:
-		// Buffer full — drop oldest semantics would require a different
-		// design; for now, drop newest. Callers that care about every
-		// update should use a larger buffer or drain faster.
+		// Buffer full — drop newest, matching pkg/ws.DropNewest at
+		// the layer above. Callers that care about every update
+		// should pass a larger buffer or drain faster.
 	}
 }
 
