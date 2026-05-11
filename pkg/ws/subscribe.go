@@ -81,14 +81,49 @@ func Subscribe[T any](ctx context.Context, c *Client, channelName string, decode
 		return nil, err
 	}
 	out := &Subscription[T]{
-		raw:     sub,
-		typed:   make(chan T, cfg.bufferSize),
-		channel: channelName,
-		cfg:     cfg,
+		raw:       sub,
+		typed:     make(chan T, cfg.bufferSize),
+		channel:   channelName,
+		cfg:       cfg,
+		ownsTyped: true,
 	}
 	go out.pump()
 	go out.drainErrors()
 	return out, nil
+}
+
+// SubscribeInto registers a typed subscription that delivers events
+// into the caller-supplied out channel. Use it when fanning multiple
+// subscriptions into one shared consumer loop, or when the caller
+// already owns a sized channel they want filled.
+//
+// The caller owns out: the SDK never closes it. Close the
+// subscription with [Subscription.Close] when done; only after that
+// call returns is it safe for the caller to close out.
+//
+// Apart from buffer ownership the semantics match [Subscribe]:
+// drop policy and error handler still apply via [SubscribeOption].
+// [WithBufferSize] has no effect — the caller's chan determines
+// capacity.
+func SubscribeInto[T any](ctx context.Context, c *Client, channelName string, decoder func(json.RawMessage) (T, error), out chan T, opts ...SubscribeOption) (*Subscription[T], error) {
+	cfg := applySubscribeOpts(opts)
+	dec := func(raw json.RawMessage) (any, error) {
+		return decoder(raw)
+	}
+	sub, err := c.transport().Subscribe(ctx, channelName, dec)
+	if err != nil {
+		return nil, err
+	}
+	s := &Subscription[T]{
+		raw:       sub,
+		typed:     out,
+		channel:   channelName,
+		cfg:       cfg,
+		ownsTyped: false,
+	}
+	go s.pump()
+	go s.drainErrors()
+	return s, nil
 }
 
 // SubscribeFunc is a convenience over [Subscribe] that drives a per-event
@@ -120,15 +155,17 @@ func SubscribeFunc[T any](ctx context.Context, c *Client, channelName string, de
 }
 
 // Subscription is a typed wrapper around the underlying transport-level
-// subscription. The zero value is not usable; obtain one from [Subscribe].
+// subscription. The zero value is not usable; obtain one from [Subscribe]
+// or [SubscribeInto].
 //
 // Always call [Subscription.Close] to release the channel slot and tell
 // the server to stop sending updates. The Close call is idempotent.
 type Subscription[T any] struct {
-	raw     transport.Subscription
-	typed   chan T
-	channel string
-	cfg     subscribeConfig
+	raw       transport.Subscription
+	typed     chan T
+	channel   string
+	cfg       subscribeConfig
+	ownsTyped bool // true for Subscribe; false for SubscribeInto (caller owns the chan)
 }
 
 // Channel returns the dotted server-side channel name (e.g.
@@ -149,9 +186,13 @@ func (s *Subscription[T]) Err() error { return s.raw.Err() }
 func (s *Subscription[T]) Close() error { return s.raw.Close() }
 
 // pump bridges the untyped transport channel to the typed user channel,
-// applying the configured drop policy when the buffer is full.
+// applying the configured drop policy when the buffer is full. Only
+// closes the typed channel when the SDK owns it ([Subscribe]); for
+// [SubscribeInto] the caller-supplied channel is left alone.
 func (s *Subscription[T]) pump() {
-	defer close(s.typed)
+	if s.ownsTyped {
+		defer close(s.typed)
+	}
 	for v := range s.raw.Updates() {
 		typed, ok := v.(T)
 		if !ok {

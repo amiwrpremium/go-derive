@@ -397,3 +397,127 @@ func TestSubscribe_DecodeError_FiresErrorHandler(t *testing.T) {
 		t.Fatal("error handler never fired on decode failure")
 	}
 }
+
+// --- SubscribeInto tests --------------------------------------------
+
+func TestSubscribeInto_DeliversToCallerChan(t *testing.T) {
+	srv := testutil.NewMockWSServer()
+	defer srv.Close()
+	c := newWSClient(t, srv, false)
+	require.NoError(t, c.Connect(context.Background()))
+	defer func() { _ = c.Close() }()
+
+	out := make(chan int, 8)
+	sub, err := ws.SubscribeInto(context.Background(), c, "trades.I1", decodeInt, out)
+	require.NoError(t, err)
+	defer func() { _ = sub.Close() }()
+	require.True(t, srv.WaitSubscribed("trades.I1", time.Second))
+
+	srv.Notify("trades.I1", 7)
+	select {
+	case v := <-out:
+		assert.Equal(t, 7, v)
+	case <-time.After(1 * time.Second):
+		t.Fatal("event never reached caller's chan")
+	}
+}
+
+func TestSubscribeInto_DoesNotCloseCallerChan(t *testing.T) {
+	srv := testutil.NewMockWSServer()
+	defer srv.Close()
+	c := newWSClient(t, srv, false)
+	require.NoError(t, c.Connect(context.Background()))
+	defer func() { _ = c.Close() }()
+
+	out := make(chan int, 4)
+	sub, err := ws.SubscribeInto(context.Background(), c, "trades.I2", decodeInt, out)
+	require.NoError(t, err)
+	require.True(t, srv.WaitSubscribed("trades.I2", time.Second))
+
+	require.NoError(t, sub.Close())
+
+	// Caller's chan must still be open (writable, not closed).
+	// We try a non-blocking send — if out were closed, this would panic.
+	select {
+	case out <- 99:
+		// expected — chan still open
+	default:
+		t.Fatal("caller's chan unexpectedly full at send-after-close")
+	}
+}
+
+func TestSubscribeInto_MultiplexTwoChannels(t *testing.T) {
+	srv := testutil.NewMockWSServer()
+	defer srv.Close()
+	c := newWSClient(t, srv, false)
+	require.NoError(t, c.Connect(context.Background()))
+	defer func() { _ = c.Close() }()
+
+	out := make(chan int, 8)
+	sub1, err := ws.SubscribeInto(context.Background(), c, "trades.A", decodeInt, out)
+	require.NoError(t, err)
+	defer func() { _ = sub1.Close() }()
+	sub2, err := ws.SubscribeInto(context.Background(), c, "trades.B", decodeInt, out)
+	require.NoError(t, err)
+	defer func() { _ = sub2.Close() }()
+
+	require.True(t, srv.WaitSubscribed("trades.A", time.Second))
+	require.True(t, srv.WaitSubscribed("trades.B", time.Second))
+
+	srv.Notify("trades.A", 1)
+	srv.Notify("trades.B", 2)
+
+	got := map[int]bool{}
+	for len(got) < 2 {
+		select {
+		case v := <-out:
+			got[v] = true
+		case <-time.After(1 * time.Second):
+			t.Fatalf("only saw %v on the shared chan", got)
+		}
+	}
+	assert.True(t, got[1])
+	assert.True(t, got[2])
+}
+
+func TestSubscribeInto_RespectsDropPolicy(t *testing.T) {
+	srv := testutil.NewMockWSServer()
+	defer srv.Close()
+	c := newWSClient(t, srv, false)
+	require.NoError(t, c.Connect(context.Background()))
+	defer func() { _ = c.Close() }()
+
+	out := make(chan int, 2)
+	dropped := make(chan struct{}, 8)
+	sub, err := ws.SubscribeInto(context.Background(), c, "trades.D2", decodeInt, out,
+		ws.WithDropPolicy(ws.DropNewest),
+		ws.WithErrorHandler(func(err error) {
+			if errors.Is(err, ws.ErrBufferFull) {
+				select {
+				case dropped <- struct{}{}:
+				default:
+				}
+			}
+		}),
+	)
+	require.NoError(t, err)
+	defer func() { _ = sub.Close() }()
+	require.True(t, srv.WaitSubscribed("trades.D2", time.Second))
+
+	for _, n := range []int{1, 2, 3, 4} {
+		srv.Notify("trades.D2", n)
+	}
+	time.Sleep(100 * time.Millisecond)
+
+	// First two delivered.
+	a := <-out
+	b := <-out
+	assert.Equal(t, 1, a)
+	assert.Equal(t, 2, b)
+	// Drops surfaced.
+	select {
+	case <-dropped:
+	case <-time.After(150 * time.Millisecond):
+		t.Fatal("expected at least one buffer-full drop on caller-supplied chan")
+	}
+}
