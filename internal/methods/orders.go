@@ -438,9 +438,9 @@ func (a *API) CancelByNonce(ctx context.Context, instrument string, nonce uint64
 // Returns the cancelled order (in `algo_active` -> `cancelled`
 // state). Counterpart to [API.CancelTriggerOrder] for algo orders
 // (e.g. TWAP) that have started slicing into the market.
-func (a *API) CancelAlgoOrder(ctx context.Context, orderID string) (*types.Order, error) {
+func (a *API) CancelAlgoOrder(ctx context.Context, orderID string) (types.Order, error) {
 	if err := a.requireSubaccount(); err != nil {
-		return nil, err
+		return types.Order{}, err
 	}
 	params := map[string]any{
 		"subaccount_id": a.Subaccount,
@@ -448,9 +448,9 @@ func (a *API) CancelAlgoOrder(ctx context.Context, orderID string) (*types.Order
 	}
 	var resp types.Order
 	if err := a.call(ctx, "private/cancel_algo_order", params, &resp); err != nil {
-		return nil, err
+		return types.Order{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // CancelAllAlgoOrders cancels every in-flight algo order on the
@@ -511,9 +511,9 @@ func (a *API) GetTriggerOrders(ctx context.Context) ([]types.Order, error) {
 // Returns the cancelled order (in `untriggered` -> `cancelled`
 // state). Counterpart to [API.CancelOrder] for trigger orders that
 // have not yet fired.
-func (a *API) CancelTriggerOrder(ctx context.Context, orderID string) (*types.Order, error) {
+func (a *API) CancelTriggerOrder(ctx context.Context, orderID string) (types.Order, error) {
 	if err := a.requireSubaccount(); err != nil {
-		return nil, err
+		return types.Order{}, err
 	}
 	params := map[string]any{
 		"subaccount_id": a.Subaccount,
@@ -521,9 +521,9 @@ func (a *API) CancelTriggerOrder(ctx context.Context, orderID string) (*types.Or
 	}
 	var resp types.Order
 	if err := a.call(ctx, "private/cancel_trigger_order", params, &resp); err != nil {
-		return nil, err
+		return types.Order{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // CancelAllTriggerOrders cancels every untriggered trigger order on
