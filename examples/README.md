@@ -57,6 +57,9 @@ examples/
       get_vault_pools/                c.GetVaultPools
       get_vault_rates/                c.GetVaultRates (DERIVE_VAULT_TYPE)
       order_quote/                    c.OrderQuotePublic
+      get_margin/                     c.GetPublicMargin (DERIVE_SUBACCOUNT)
+      get_spot_feed_history/          c.GetSpotFeedHistory (DERIVE_CURRENCY)
+      get_option_settlement_history/  c.GetPublicOptionSettlementHistory (DERIVE_CURRENCY)
       margin_watch/                   c.MarginWatch (DERIVE_SUBACCOUNT)
       all_statistics/                 c.GetAllStatistics
       all_user_statistics/            c.GetAllUserStatistics
@@ -91,6 +94,18 @@ examples/
       get_liquidator_history/ c.GetLiquidatorHistory
       get_algo_orders/        c.GetAlgoOrders
       get_trigger_orders/     c.GetTriggerOrders
+      get_erc20_transfer_history/   c.GetERC20TransferHistory
+      get_interest_history/         c.GetInterestHistory
+      get_option_settlement_history/  c.GetOptionSettlementHistory
+      get_subaccount_value_history/   c.GetSubaccountValueHistory
+      get_transaction/              c.GetTransaction (DERIVE_TX_ID)
+      expired_and_cancelled_history/  c.ExpiredAndCancelledHistory
+      get_margin/                   c.GetMargin
+      order_quote/                  c.OrderQuote
+      change_subaccount_label/      c.ChangeSubaccountLabel (DERIVE_LABEL)
+      notifications/
+        get/                 c.GetNotifications
+        update/              c.UpdateNotifications
       orders/
         place/                       c.PlaceOrder (DERIVE_RUN_LIVE_ORDERS=1)
         place_algo/                  c.PlaceAlgoOrder (DERIVE_RUN_LIVE_ORDERS=1)
@@ -103,6 +118,7 @@ examples/
         cancel_all_trigger_orders/   c.CancelAllTriggerOrders (DERIVE_RUN_LIVE_ORDERS=1)
         cancel_algo_order/           c.CancelAlgoOrder (DERIVE_ORDER_ID)
         cancel_all_algo_orders/      c.CancelAllAlgoOrders (DERIVE_RUN_LIVE_ORDERS=1)
+        cancel_by_nonce/             c.CancelByNonce (DERIVE_INSTRUMENT, DERIVE_NONCE)
       contact_info/
         create/              c.CreateContactInfo (DERIVE_CONTACT_TYPE, DERIVE_CONTACT_VALUE)
         get/                 c.GetContactInfo (optional DERIVE_CONTACT_TYPE)
@@ -113,9 +129,19 @@ examples/
         poll/                c.PollRFQs
         cancel/              c.CancelRFQ (DERIVE_RFQ_ID)
         replace_quote/       c.ReplaceQuote (DERIVE_RUN_LIVE_ORDERS=1)
+        send_quote/          c.SendQuote (DERIVE_RFQ_ID, DERIVE_RUN_LIVE_ORDERS=1)
+        cancel_quote/        c.CancelQuote (DERIVE_QUOTE_ID)
+        cancel_batch_quotes/ c.CancelBatchQuotes
+        cancel_batch_rfqs/   c.CancelBatchRFQs
+        get_quotes/          c.GetQuotes
+        get_rfqs/            c.GetRFQs
+        poll_quotes/         c.PollQuotes (DERIVE_RFQ_ID)
+        execute_quote/       c.ExecuteQuote (DERIVE_QUOTE_ID, DERIVE_RUN_LIVE_ORDERS=1)
+        get_best_quote/      c.RFQGetBestQuote
       mmp/
         set/                 c.SetMMPConfig
         reset/               c.ResetMMP
+        get/                 c.GetMMPConfig
 
   ws/
     public/
@@ -134,9 +160,14 @@ examples/
     private/
       login/                public/login RPC
       get_subaccount/ ... get_withdrawal_history/   private RPC set
-      orders/               place / cancel / cancel_all / cancel_by_label / cancel_by_instrument
-      rfq/                  send / poll / cancel
-      mmp/                  set / reset
+      get_erc20_transfer_history, get_interest_history,
+      get_option_settlement_history, get_subaccount_value_history,
+      get_transaction, expired_and_cancelled_history,
+      get_margin, order_quote, change_subaccount_label    over WS
+      notifications/        get / update
+      orders/               place / cancel / cancel_all / cancel_by_label / cancel_by_instrument / cancel_by_nonce
+      rfq/                  send / poll / cancel + send_quote / cancel_quote / cancel_batch_quotes / cancel_batch_rfqs / get_quotes / get_rfqs / poll_quotes / execute_quote / get_best_quote
+      mmp/                  set / reset / get
       subscribe/            subaccount channels
         orders/             c.SubscribeOrders
         balances/           c.SubscribeBalances
