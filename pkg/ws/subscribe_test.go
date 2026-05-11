@@ -665,3 +665,161 @@ func TestSubscribeInto_CtxCancel_DoesNotCloseCallerChan(t *testing.T) {
 	// And the sub is closed for real.
 	require.NoError(t, sub.Close()) // idempotent
 }
+
+// --- All() iter.Seq2 tests ------------------------------------------
+
+func TestSubscriptionAll_Delivers(t *testing.T) {
+	srv := testutil.NewMockWSServer()
+	defer srv.Close()
+	c := newWSClient(t, srv, false)
+	require.NoError(t, c.Connect(context.Background()))
+	defer func() { _ = c.Close() }()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	sub, err := ws.Subscribe(ctx, c, "trades.A1", decodeInt)
+	require.NoError(t, err)
+	require.True(t, srv.WaitSubscribed("trades.A1", time.Second))
+
+	go func() {
+		for _, n := range []int{1, 2, 3} {
+			srv.Notify("trades.A1", n)
+		}
+		time.Sleep(100 * time.Millisecond)
+		cancel() // end the iterator cleanly
+	}()
+
+	got := []int{}
+	for v, ierr := range sub.All() {
+		if ierr != nil {
+			t.Fatalf("unexpected terminal err: %v", ierr)
+		}
+		got = append(got, v)
+	}
+	assert.Equal(t, []int{1, 2, 3}, got)
+}
+
+func TestSubscriptionAll_BreakStops(t *testing.T) {
+	srv := testutil.NewMockWSServer()
+	defer srv.Close()
+	c := newWSClient(t, srv, false)
+	require.NoError(t, c.Connect(context.Background()))
+	defer func() { _ = c.Close() }()
+
+	sub, err := ws.Subscribe(context.Background(), c, "trades.A2", decodeInt)
+	require.NoError(t, err)
+	require.True(t, srv.WaitSubscribed("trades.A2", time.Second))
+
+	go func() {
+		for _, n := range []int{10, 20, 30} {
+			srv.Notify("trades.A2", n)
+		}
+	}()
+
+	seen := 0
+	for v := range sub.All() {
+		_ = v
+		seen++
+		if seen == 1 {
+			break
+		}
+	}
+	assert.Equal(t, 1, seen, "break should exit after one event")
+
+	// Sub still open — calling Close is the explicit teardown.
+	require.NoError(t, sub.Close())
+}
+
+func TestSubscriptionAll_CtxCancelEndsClean(t *testing.T) {
+	srv := testutil.NewMockWSServer()
+	defer srv.Close()
+	c := newWSClient(t, srv, false)
+	require.NoError(t, c.Connect(context.Background()))
+	defer func() { _ = c.Close() }()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	sub, err := ws.Subscribe(ctx, c, "trades.A3", decodeInt)
+	require.NoError(t, err)
+	require.True(t, srv.WaitSubscribed("trades.A3", time.Second))
+
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		cancel()
+	}()
+
+	terminalErrSeen := false
+	for v, ierr := range sub.All() {
+		if ierr != nil {
+			terminalErrSeen = true
+			t.Errorf("ctx-cancel should NOT yield terminal err, got: %v", ierr)
+			break
+		}
+		_ = v
+	}
+	assert.False(t, terminalErrSeen, "ctx-cancel is a clean teardown")
+	assert.NoError(t, sub.Err())
+}
+
+func TestSubscriptionAll_DrainBufferThenClose(t *testing.T) {
+	srv := testutil.NewMockWSServer()
+	defer srv.Close()
+	c := newWSClient(t, srv, false)
+	require.NoError(t, c.Connect(context.Background()))
+	defer func() { _ = c.Close() }()
+
+	sub, err := ws.Subscribe(context.Background(), c, "trades.A4", decodeInt,
+		ws.WithBufferSize(8))
+	require.NoError(t, err)
+	require.True(t, srv.WaitSubscribed("trades.A4", time.Second))
+
+	// Push events into the buffer before starting the range.
+	for _, n := range []int{1, 2, 3, 4, 5} {
+		srv.Notify("trades.A4", n)
+	}
+	time.Sleep(100 * time.Millisecond)
+
+	// Close before iteration. The five buffered events should still
+	// flow through the iterator before it exits.
+	require.NoError(t, sub.Close())
+
+	got := []int{}
+	for v, ierr := range sub.All() {
+		if ierr != nil {
+			t.Fatalf("unexpected terminal err: %v", ierr)
+		}
+		got = append(got, v)
+	}
+	assert.Equal(t, []int{1, 2, 3, 4, 5}, got, "buffered events must drain after Close")
+}
+
+func TestSubscriptionAll_OnSubscribeInto(t *testing.T) {
+	srv := testutil.NewMockWSServer()
+	defer srv.Close()
+	c := newWSClient(t, srv, false)
+	require.NoError(t, c.Connect(context.Background()))
+	defer func() { _ = c.Close() }()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	out := make(chan int, 8)
+	sub, err := ws.SubscribeInto(ctx, c, "trades.A5", decodeInt, out)
+	require.NoError(t, err)
+	require.True(t, srv.WaitSubscribed("trades.A5", time.Second))
+
+	go func() {
+		for _, n := range []int{7, 8, 9} {
+			srv.Notify("trades.A5", n)
+		}
+		time.Sleep(100 * time.Millisecond)
+		cancel()
+	}()
+
+	got := []int{}
+	for v, ierr := range sub.All() {
+		if ierr != nil {
+			t.Fatalf("unexpected terminal err: %v", ierr)
+		}
+		got = append(got, v)
+	}
+	assert.Equal(t, []int{7, 8, 9}, got)
+}
