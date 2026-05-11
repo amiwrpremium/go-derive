@@ -521,3 +521,147 @@ func TestSubscribeInto_RespectsDropPolicy(t *testing.T) {
 		t.Fatal("expected at least one buffer-full drop on caller-supplied chan")
 	}
 }
+
+// --- Lifetime / ctx tests -------------------------------------------
+
+func TestSubscribe_CtxCancel_ClosesUpdates(t *testing.T) {
+	srv := testutil.NewMockWSServer()
+	defer srv.Close()
+	c := newWSClient(t, srv, false)
+	require.NoError(t, c.Connect(context.Background()))
+	defer func() { _ = c.Close() }()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	sub, err := ws.Subscribe(ctx, c, "trades.L1", decodeInt)
+	require.NoError(t, err)
+	require.True(t, srv.WaitSubscribed("trades.L1", time.Second))
+
+	cancel()
+
+	// Updates() must close as a result of the ctx-cancel.
+	select {
+	case _, ok := <-sub.Updates():
+		assert.False(t, ok, "Updates should close after ctx cancel")
+	case <-time.After(1 * time.Second):
+		t.Fatal("Updates did not close after ctx cancel")
+	}
+	// Clean shutdown — sub.Err() is nil (ctx-cancel is not a transport fault).
+	assert.NoError(t, sub.Err())
+}
+
+func TestSubscribe_CtxCancel_StopsDelivery(t *testing.T) {
+	srv := testutil.NewMockWSServer()
+	defer srv.Close()
+	c := newWSClient(t, srv, false)
+	require.NoError(t, c.Connect(context.Background()))
+	defer func() { _ = c.Close() }()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	sub, err := ws.Subscribe(ctx, c, "trades.L2", decodeInt)
+	require.NoError(t, err)
+	require.True(t, srv.WaitSubscribed("trades.L2", time.Second))
+
+	cancel()
+	// Wait for the pump to actually exit before pushing.
+	select {
+	case <-sub.Updates():
+	case <-time.After(1 * time.Second):
+		t.Fatal("pump didn't exit after ctx cancel")
+	}
+
+	// Post-cancel event must not arrive.
+	srv.Notify("trades.L2", 42)
+	select {
+	case v, ok := <-sub.Updates():
+		if ok {
+			t.Fatalf("event %d delivered after ctx cancel", v)
+		}
+		// channel closed — expected
+	case <-time.After(150 * time.Millisecond):
+		// expected — no more deliveries
+	}
+}
+
+func TestSubscribe_BackgroundCtx_RequiresExplicitClose(t *testing.T) {
+	srv := testutil.NewMockWSServer()
+	defer srv.Close()
+	c := newWSClient(t, srv, false)
+	require.NoError(t, c.Connect(context.Background()))
+	defer func() { _ = c.Close() }()
+
+	sub, err := ws.Subscribe(context.Background(), c, "trades.L3", decodeInt)
+	require.NoError(t, err)
+	require.True(t, srv.WaitSubscribed("trades.L3", time.Second))
+
+	srv.Notify("trades.L3", 7)
+	select {
+	case v := <-sub.Updates():
+		assert.Equal(t, 7, v)
+	case <-time.After(1 * time.Second):
+		t.Fatal("background-ctx sub didn't deliver")
+	}
+
+	// Background ctx never fires; explicit Close is required.
+	require.NoError(t, sub.Close())
+
+	select {
+	case _, ok := <-sub.Updates():
+		assert.False(t, ok, "Updates should close after explicit Close")
+	case <-time.After(1 * time.Second):
+		t.Fatal("Updates did not close after explicit Close — possible goroutine leak")
+	}
+}
+
+func TestSubscribe_ExplicitClose_ClosesUpdates(t *testing.T) {
+	// Regression for the pre-existing goroutine leak where Close
+	// didn't propagate to the typed-channel close path.
+	srv := testutil.NewMockWSServer()
+	defer srv.Close()
+	c := newWSClient(t, srv, false)
+	require.NoError(t, c.Connect(context.Background()))
+	defer func() { _ = c.Close() }()
+
+	sub, err := ws.Subscribe(context.Background(), c, "trades.L4", decodeInt)
+	require.NoError(t, err)
+	require.True(t, srv.WaitSubscribed("trades.L4", time.Second))
+
+	require.NoError(t, sub.Close())
+
+	select {
+	case _, ok := <-sub.Updates():
+		assert.False(t, ok, "Updates should close after Close")
+	case <-time.After(500 * time.Millisecond):
+		t.Fatal("Updates didn't close after Close — pump goroutine likely leaked")
+	}
+}
+
+func TestSubscribeInto_CtxCancel_DoesNotCloseCallerChan(t *testing.T) {
+	// SubscribeInto must NOT close the caller's chan even when the
+	// ctx-cancel teardown path fires — caller still owns the chan.
+	srv := testutil.NewMockWSServer()
+	defer srv.Close()
+	c := newWSClient(t, srv, false)
+	require.NoError(t, c.Connect(context.Background()))
+	defer func() { _ = c.Close() }()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	out := make(chan int, 4)
+	sub, err := ws.SubscribeInto(ctx, c, "trades.L5", decodeInt, out)
+	require.NoError(t, err)
+	require.True(t, srv.WaitSubscribed("trades.L5", time.Second))
+
+	cancel()
+	// Give the pump a moment to exit.
+	time.Sleep(100 * time.Millisecond)
+
+	// out must still be open: caller owns it.
+	select {
+	case out <- 1:
+		// expected — still writable
+	default:
+		t.Fatal("out chan unexpectedly closed after ctx cancel on SubscribeInto")
+	}
+
+	// And the sub is closed for real.
+	require.NoError(t, sub.Close()) // idempotent
+}
