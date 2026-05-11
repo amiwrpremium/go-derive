@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.8.6](https://github.com/amiwrpremium/go-derive/compare/v0.8.5...v0.8.6) (2026-05-11)
+
+
+### Features
+
+* **ws:** surface decoder errors and add SubscribeInto ([#96](https://github.com/amiwrpremium/go-derive/issues/96)) ([02dd720](https://github.com/amiwrpremium/go-derive/commit/02dd720ee68eeb81f4957123468bf205726faa91))
+
 ## [0.8.5](https://github.com/amiwrpremium/go-derive/compare/v0.8.4...v0.8.5) (2026-05-11)
 
 
