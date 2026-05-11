@@ -34,6 +34,7 @@ package ws
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/amiwrpremium/go-derive/internal/transport"
 )
@@ -86,6 +87,7 @@ func Subscribe[T any](ctx context.Context, c *Client, channelName string, decode
 		cfg:     cfg,
 	}
 	go out.pump()
+	go out.drainErrors()
 	return out, nil
 }
 
@@ -194,5 +196,19 @@ func (s *Subscription[T]) deliver(v T) {
 func (s *Subscription[T]) notify(err error) {
 	if s.cfg.errorHandler != nil {
 		s.cfg.errorHandler(err)
+	}
+}
+
+// drainErrors forwards transport-level decoder errors to the
+// configured error handler, wrapped with [ErrDecodeFailed]. Runs on
+// its own goroutine and exits when the transport closes the errors
+// channel. When no handler is configured the loop still drains —
+// otherwise the transport's bounded error buffer would back up.
+func (s *Subscription[T]) drainErrors() {
+	for err := range s.raw.Errors() {
+		if s.cfg.errorHandler == nil {
+			continue
+		}
+		s.cfg.errorHandler(fmt.Errorf("%w: %w", ErrDecodeFailed, err))
 	}
 }

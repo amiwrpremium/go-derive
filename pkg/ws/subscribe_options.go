@@ -44,6 +44,17 @@ var ErrBufferFull = errors.New("ws: subscription buffer full; event dropped")
 // channel) or a docs/wire schema drift.
 var ErrTypeMismatch = errors.New("ws: subscription type mismatch; event dropped")
 
+// ErrDecodeFailed is reported to [WithErrorHandler] when the
+// decoder supplied to [Subscribe] returned a non-nil error for
+// one event. Both this sentinel and the original decoder error
+// are joined via fmt.Errorf "%w: %w" — use
+// errors.Is(err, ws.ErrDecodeFailed) to detect the category and
+// errors.Is(err, yourOwnSentinel) to detect the underlying cause.
+//
+// Usually surfaces JSON unmarshal failures on malformed payloads
+// or a server-side schema that has drifted on the wire.
+var ErrDecodeFailed = errors.New("ws: subscription decoder failed; event dropped")
+
 // SubscribeOption tunes a single Subscribe / SubscribeFunc call. The
 // zero default is bufferSize=256, dropPolicy=DropNewest, no error
 // handler.

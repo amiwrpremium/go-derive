@@ -364,3 +364,36 @@ func TestSubscribe_DefaultBufferAndPolicy(t *testing.T) {
 		t.Fatal("default subscribe lost the event")
 	}
 }
+
+func TestSubscribe_DecodeError_FiresErrorHandler(t *testing.T) {
+	srv := testutil.NewMockWSServer()
+	defer srv.Close()
+	c := newWSClient(t, srv, false)
+	require.NoError(t, c.Connect(context.Background()))
+	defer func() { _ = c.Close() }()
+
+	errCh := make(chan error, 4)
+	// Decoder expects int; push an object payload to force a
+	// json.Unmarshal error.
+	sub, err := ws.Subscribe(context.Background(), c, "trades.D", decodeInt,
+		ws.WithErrorHandler(func(err error) {
+			select {
+			case errCh <- err:
+			default:
+			}
+		}),
+	)
+	require.NoError(t, err)
+	defer func() { _ = sub.Close() }()
+	require.True(t, srv.WaitSubscribed("trades.D", time.Second))
+
+	srv.Notify("trades.D", map[string]any{"not": "an int"})
+
+	select {
+	case err := <-errCh:
+		assert.True(t, errors.Is(err, ws.ErrDecodeFailed),
+			"handler should fire with ErrDecodeFailed, got: %v", err)
+	case <-time.After(1 * time.Second):
+		t.Fatal("error handler never fired on decode failure")
+	}
+}
