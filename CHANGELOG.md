@@ -7,6 +7,18 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.8.5](https://github.com/amiwrpremium/go-derive/compare/v0.8.4...v0.8.5) (2026-05-11)
+
+
+### Features
+
+* **ws:** add SubscribeOption -- buffer size, drop policy, error handler ([#93](https://github.com/amiwrpremium/go-derive/issues/93)) ([c4e0880](https://github.com/amiwrpremium/go-derive/commit/c4e088065e79b70e4bd6850ae08bd87c5a863486))
+
+
+### Miscellaneous
+
+* retrigger release-please after transient failure ([#94](https://github.com/amiwrpremium/go-derive/issues/94)) ([9aec357](https://github.com/amiwrpremium/go-derive/commit/9aec3570872491d7f9547db297bcc8914f7049d3))
+
 ## [0.8.4](https://github.com/amiwrpremium/go-derive/compare/v0.8.3...v0.8.4) (2026-05-11)
 
 
