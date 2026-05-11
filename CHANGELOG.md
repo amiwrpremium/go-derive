@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.8.7](https://github.com/amiwrpremium/go-derive/compare/v0.8.6...v0.8.7) (2026-05-11)
+
+
+### Documentation
+
+* **ws:** warn about cross-sub drop semantics in multi-arm select ([#98](https://github.com/amiwrpremium/go-derive/issues/98)) ([57931eb](https://github.com/amiwrpremium/go-derive/commit/57931eb99ca7925feadb80077f7972cab950b88e))
+
 ## [0.8.6](https://github.com/amiwrpremium/go-derive/compare/v0.8.5...v0.8.6) (2026-05-11)
 
 
