@@ -7,6 +7,17 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.10.0](https://github.com/amiwrpremium/go-derive/compare/v0.9.1...v0.10.0) (2026-05-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* **methods:** return data records by value instead of pointer ([#104](https://github.com/amiwrpremium/go-derive/issues/104))
+
+### Features
+
+* **methods:** return data records by value instead of pointer ([#104](https://github.com/amiwrpremium/go-derive/issues/104)) ([75bb531](https://github.com/amiwrpremium/go-derive/commit/75bb531d61192317088c5b7661822a6dce38fd08))
+
 ## [0.9.1](https://github.com/amiwrpremium/go-derive/compare/v0.9.0...v0.9.1) (2026-05-11)
 
 
