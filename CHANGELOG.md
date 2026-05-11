@@ -7,6 +7,17 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.9.0](https://github.com/amiwrpremium/go-derive/compare/v0.8.7...v0.9.0) (2026-05-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* **ws:** tie subscription lifetime to the subscribe context ([#100](https://github.com/amiwrpremium/go-derive/issues/100))
+
+### Features
+
+* **ws:** tie subscription lifetime to the subscribe context ([#100](https://github.com/amiwrpremium/go-derive/issues/100)) ([b192a22](https://github.com/amiwrpremium/go-derive/commit/b192a223a4a23707da0f55a007cc5b36e410f533))
+
 ## [0.8.7](https://github.com/amiwrpremium/go-derive/compare/v0.8.6...v0.8.7) (2026-05-11)
 
 
