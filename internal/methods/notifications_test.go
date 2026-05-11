@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestGetNotifications_Decode(t *testing.T) {
@@ -28,7 +29,7 @@ func TestGetNotifications_Decode(t *testing.T) {
 		},
 		"pagination": map[string]any{"count": 1, "num_pages": 1},
 	})
-	notifs, page, err := api.GetNotifications(context.Background(), nil)
+	notifs, page, err := api.GetNotifications(context.Background(), types.NotificationsQuery{}, types.PageRequest{})
 	require.NoError(t, err)
 	require.Len(t, notifs, 1)
 	assert.Equal(t, "deposit_completed", notifs[0].Event)
@@ -40,23 +41,23 @@ func TestGetNotifications_Decode(t *testing.T) {
 
 func TestGetNotifications_RequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
-	_, _, err := api.GetNotifications(context.Background(), nil)
+	_, _, err := api.GetNotifications(context.Background(), types.NotificationsQuery{}, types.PageRequest{})
 	assert.True(t, errors.Is(err, derrors.ErrUnauthorized))
 }
 
 func TestGetNotifications_PropagatesAPIError(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleError("private/get_notifications", boom)
-	_, _, err := api.GetNotifications(context.Background(), nil)
+	_, _, err := api.GetNotifications(context.Background(), types.NotificationsQuery{}, types.PageRequest{})
 	assert.ErrorAs(t, err, new(*derrors.APIError))
 }
 
 func TestUpdateNotifications_Decode(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleResult("private/update_notifications", map[string]any{"updated_count": int64(3)})
-	got, err := api.UpdateNotifications(context.Background(), map[string]any{
-		"notification_ids": []int{1, 2, 3},
-		"status":           "seen",
+	got, err := api.UpdateNotifications(context.Background(), types.UpdateNotificationsInput{
+		NotificationIDs: []int64{1, 2, 3},
+		Status:          "seen",
 	})
 	require.NoError(t, err)
 	require.NotNil(t, got)
@@ -65,13 +66,13 @@ func TestUpdateNotifications_Decode(t *testing.T) {
 
 func TestUpdateNotifications_RequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
-	_, err := api.UpdateNotifications(context.Background(), nil)
+	_, err := api.UpdateNotifications(context.Background(), types.UpdateNotificationsInput{})
 	assert.True(t, errors.Is(err, derrors.ErrUnauthorized))
 }
 
 func TestUpdateNotifications_PropagatesAPIError(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleError("private/update_notifications", boom)
-	_, err := api.UpdateNotifications(context.Background(), nil)
+	_, err := api.UpdateNotifications(context.Background(), types.UpdateNotificationsInput{})
 	assert.ErrorAs(t, err, new(*derrors.APIError))
 }

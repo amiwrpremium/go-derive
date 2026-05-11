@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -19,7 +20,7 @@ func main() {
 	c := example.MustWSPrivate(ctx)
 	defer c.Close()
 
-	quotes, _, err := c.PollQuotes(ctx, map[string]any{"rfq_id": rfqID})
+	quotes, _, err := c.PollQuotes(ctx, types.PollQuotesQuery{RFQID: rfqID}, types.PageRequest{})
 	example.Fatal(err)
 	example.Print("quotes", len(quotes))
 }

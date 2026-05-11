@@ -46,12 +46,15 @@ func (a *API) GetMakerProgramScores(ctx context.Context, params map[string]any) 
 // GetDetailedMakerSnapshotHistory returns the per-quote maker
 // snapshots for one program / epoch, paginated. Public.
 //
-// Required `params`: `program_name`, `epoch_start_timestamp`.
-// Optional: `wallet` (filter to one maker), `page`, `page_size`.
-func (a *API) GetDetailedMakerSnapshotHistory(ctx context.Context, params map[string]any) (types.DetailedMakerSnapshotHistory, error) {
-	if params == nil {
-		params = map[string]any{}
+// Per the engine docs, [types.DetailedMakerSnapshotHistoryQuery.Wallet]
+// is required — the endpoint scopes results to one maker per call.
+func (a *API) GetDetailedMakerSnapshotHistory(ctx context.Context, q types.DetailedMakerSnapshotHistoryQuery, page types.PageRequest) (types.DetailedMakerSnapshotHistory, error) {
+	params := map[string]any{
+		"program_name":          q.ProgramName,
+		"epoch_start_timestamp": q.EpochStartTimestamp,
+		"wallet":                q.Wallet,
 	}
+	addPaging(params, page)
 	var resp types.DetailedMakerSnapshotHistory
 	if err := a.call(ctx, "public/get_detailed_maker_snapshot_history", params, &resp); err != nil {
 		return types.DetailedMakerSnapshotHistory{}, err
@@ -63,10 +66,17 @@ func (a *API) GetDetailedMakerSnapshotHistory(ctx context.Context, params map[st
 // for one referral code over the requested time window, plus a
 // deeply-nested per-role / per-currency / per-instrument-type
 // breakdown. Public.
-//
-// Required `params`: `start_ms`, `end_ms`. Optional: `referral_code`,
-// `wallet`.
-func (a *API) GetReferralPerformance(ctx context.Context, params map[string]any) (types.ReferralPerformance, error) {
+func (a *API) GetReferralPerformance(ctx context.Context, q types.ReferralPerformanceQuery) (types.ReferralPerformance, error) {
+	params := map[string]any{
+		"start_ms": q.StartMs,
+		"end_ms":   q.EndMs,
+	}
+	if q.ReferralCode != "" {
+		params["referral_code"] = q.ReferralCode
+	}
+	if q.Wallet != "" {
+		params["wallet"] = q.Wallet
+	}
 	var resp types.ReferralPerformance
 	if err := a.call(ctx, "public/get_referral_performance", params, &resp); err != nil {
 		return types.ReferralPerformance{}, err

@@ -33,10 +33,16 @@ func (a *API) GetVaultBalances(ctx context.Context, params map[string]any) ([]ty
 // GetVaultShare returns per-block snapshots of one vault token's
 // price-per-share over the requested window. Public.
 //
-// Required `params`: `vault_name`, `from_timestamp_sec`,
-// `to_timestamp_sec`. Optional: `page`, `page_size`. Paginated; the
+// Timestamps on this endpoint are in seconds, not milliseconds —
+// match the field names on [types.VaultShareQuery]. Paginated; the
 // second return value carries the totals.
-func (a *API) GetVaultShare(ctx context.Context, params map[string]any) ([]types.VaultShare, types.Page, error) {
+func (a *API) GetVaultShare(ctx context.Context, q types.VaultShareQuery, page types.PageRequest) ([]types.VaultShare, types.Page, error) {
+	params := map[string]any{
+		"vault_name":         q.VaultName,
+		"from_timestamp_sec": q.FromSec,
+		"to_timestamp_sec":   q.ToSec,
+	}
+	addPaging(params, page)
 	var resp struct {
 		VaultShares []types.VaultShare `json:"vault_shares"`
 		Pagination  types.Page         `json:"pagination"`

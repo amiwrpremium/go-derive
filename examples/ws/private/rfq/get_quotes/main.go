@@ -1,7 +1,10 @@
 // Paginates the configured subaccount's quotes over WebSocket.
 package main
 
-import "github.com/amiwrpremium/go-derive/examples/example"
+import (
+	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/types"
+)
 
 func main() {
 	ctx, cancel := example.Timeout()
@@ -9,7 +12,7 @@ func main() {
 	c := example.MustWSPrivate(ctx)
 	defer c.Close()
 
-	quotes, _, err := c.GetQuotes(ctx, map[string]any{"page_size": 10})
+	quotes, _, err := c.GetQuotes(ctx, types.QuotesQuery{}, types.PageRequest{PageSize: 10})
 	example.Fatal(err)
 	example.Print("count", len(quotes))
 }

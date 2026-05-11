@@ -68,22 +68,27 @@ func (a *API) CancelRFQ(ctx context.Context, rfqID string) error {
 // GetRFQs returns RFQs that match the supplied filters (open / done /
 // status / time window / pagination). Private.
 //
-// Optional `params`: `rfq_id`, `status`, `from_timestamp`,
-// `to_timestamp`, `page`, `page_size`. The configured subaccount is
-// threaded through automatically.
-func (a *API) GetRFQs(ctx context.Context, params map[string]any) ([]types.RFQ, types.Page, error) {
+// The configured subaccount is threaded through automatically. The
+// query's `[FromTimestamp, ToTimestamp]` window filters on each
+// RFQ's `last_update_timestamp`.
+func (a *API) GetRFQs(ctx context.Context, q types.RFQsQuery, page types.PageRequest) ([]types.RFQ, types.Page, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, types.Page{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
 		return nil, types.Page{}, err
 	}
-	if params == nil {
-		params = map[string]any{}
+	params := map[string]any{
+		"subaccount_id": a.Subaccount,
 	}
-	if _, ok := params["subaccount_id"]; !ok {
-		params["subaccount_id"] = a.Subaccount
+	if q.RFQID != "" {
+		params["rfq_id"] = q.RFQID
 	}
+	if q.Status != "" {
+		params["status"] = q.Status
+	}
+	addRFQWindow(params, q.HistoryWindow)
+	addPaging(params, page)
 	var resp struct {
 		RFQs       []types.RFQ `json:"rfqs"`
 		Pagination types.Page  `json:"pagination"`
@@ -96,22 +101,15 @@ func (a *API) GetRFQs(ctx context.Context, params map[string]any) ([]types.RFQ, 
 
 // GetQuotes returns the maker-side full view of quotes the
 // configured subaccount has issued or received. Private.
-//
-// Optional `params`: `rfq_id`, `quote_id`, `status`, `from_ts`,
-// `to_ts`, `page`, `page_size`.
-func (a *API) GetQuotes(ctx context.Context, params map[string]any) ([]types.Quote, types.Page, error) {
+func (a *API) GetQuotes(ctx context.Context, q types.QuotesQuery, page types.PageRequest) ([]types.Quote, types.Page, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, types.Page{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
 		return nil, types.Page{}, err
 	}
-	if params == nil {
-		params = map[string]any{}
-	}
-	if _, ok := params["subaccount_id"]; !ok {
-		params["subaccount_id"] = a.Subaccount
-	}
+	params := quotesQueryParams(q, a.Subaccount)
+	addPaging(params, page)
 	var resp struct {
 		Quotes     []types.Quote `json:"quotes"`
 		Pagination types.Page    `json:"pagination"`
@@ -126,21 +124,17 @@ func (a *API) GetQuotes(ctx context.Context, params map[string]any) ([]types.Quo
 // taker-public view of quotes, suitable for makers / takers without
 // access to the full signer-side body. Private.
 //
-// Same `params` shape as [GetQuotes]; only the response shape differs
+// Same query shape as [GetQuotes]; only the response shape differs
 // (`QuotePublic` instead of `Quote`).
-func (a *API) PollQuotes(ctx context.Context, params map[string]any) ([]types.QuotePublic, types.Page, error) {
+func (a *API) PollQuotes(ctx context.Context, q types.PollQuotesQuery, page types.PageRequest) ([]types.QuotePublic, types.Page, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, types.Page{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
 		return nil, types.Page{}, err
 	}
-	if params == nil {
-		params = map[string]any{}
-	}
-	if _, ok := params["subaccount_id"]; !ok {
-		params["subaccount_id"] = a.Subaccount
-	}
+	params := quotesQueryParams(q, a.Subaccount)
+	addPaging(params, page)
 	var resp struct {
 		Quotes     []types.QuotePublic `json:"quotes"`
 		Pagination types.Page          `json:"pagination"`
@@ -149,6 +143,32 @@ func (a *API) PollQuotes(ctx context.Context, params map[string]any) ([]types.Qu
 		return nil, types.Page{}, err
 	}
 	return resp.Quotes, resp.Pagination, nil
+}
+
+func addRFQWindow(params map[string]any, w types.HistoryWindow) {
+	if !w.StartTimestamp.Time().IsZero() {
+		params["from_timestamp"] = w.StartTimestamp.Millis()
+	}
+	if !w.EndTimestamp.Time().IsZero() {
+		params["to_timestamp"] = w.EndTimestamp.Millis()
+	}
+}
+
+func quotesQueryParams(q types.QuotesQuery, defaultSubaccount int64) map[string]any {
+	params := map[string]any{
+		"subaccount_id": defaultSubaccount,
+	}
+	if q.RFQID != "" {
+		params["rfq_id"] = q.RFQID
+	}
+	if q.QuoteID != "" {
+		params["quote_id"] = q.QuoteID
+	}
+	if q.Status != "" {
+		params["status"] = q.Status
+	}
+	addRFQWindow(params, q.HistoryWindow)
+	return params
 }
 
 // SendQuote responds to an open RFQ with a maker quote. The

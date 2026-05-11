@@ -79,7 +79,7 @@ func TestGetRFQs_Decode(t *testing.T) {
 		},
 		"pagination": map[string]any{"count": 1, "num_pages": 1},
 	})
-	rfqs, page, err := api.GetRFQs(context.Background(), nil)
+	rfqs, page, err := api.GetRFQs(context.Background(), types.RFQsQuery{}, types.PageRequest{})
 	require.NoError(t, err)
 	require.Len(t, rfqs, 1)
 	assert.Equal(t, "R1", rfqs[0].RFQID)
@@ -88,7 +88,7 @@ func TestGetRFQs_Decode(t *testing.T) {
 
 func TestGetRFQs_RequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
-	_, _, err := api.GetRFQs(context.Background(), nil)
+	_, _, err := api.GetRFQs(context.Background(), types.RFQsQuery{}, types.PageRequest{})
 	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
 }
 
@@ -98,7 +98,7 @@ func TestGetQuotes_Decode(t *testing.T) {
 		"quotes":     []any{},
 		"pagination": map[string]any{"count": 0, "num_pages": 0},
 	})
-	got, page, err := api.GetQuotes(context.Background(), nil)
+	got, page, err := api.GetQuotes(context.Background(), types.QuotesQuery{}, types.PageRequest{})
 	require.NoError(t, err)
 	assert.Empty(t, got)
 	assert.Equal(t, 0, page.NumPages)
@@ -110,7 +110,7 @@ func TestPollQuotes_Decode(t *testing.T) {
 		"quotes":     []any{},
 		"pagination": map[string]any{"count": 0, "num_pages": 0},
 	})
-	got, _, err := api.PollQuotes(context.Background(), nil)
+	got, _, err := api.PollQuotes(context.Background(), types.PollQuotesQuery{}, types.PageRequest{})
 	require.NoError(t, err)
 	assert.Empty(t, got)
 }

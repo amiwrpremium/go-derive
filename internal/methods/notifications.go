@@ -16,24 +16,27 @@ import (
 
 // GetNotifications returns the wallet's notification feed. Private.
 //
-// Optional `params`: `status` ("unseen" / "seen" / "hidden"),
-// `type` ([]string), `page`, `page_size`. The configured
-// subaccount is threaded through automatically when set and not
-// already present in `params`.
-//
 // Each [types.Notification.EventDetails] field is open-shaped per
 // the OAS — decode against the concrete event type at the call
 // site if you need it.
-func (a *API) GetNotifications(ctx context.Context, params map[string]any) ([]types.Notification, types.Page, error) {
+func (a *API) GetNotifications(ctx context.Context, q types.NotificationsQuery, page types.PageRequest) ([]types.Notification, types.Page, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, types.Page{}, err
 	}
-	if params == nil {
-		params = map[string]any{}
-	}
-	if _, ok := params["subaccount_id"]; !ok && a.Subaccount != 0 {
+	params := map[string]any{}
+	if a.Subaccount != 0 {
 		params["subaccount_id"] = a.Subaccount
 	}
+	if q.Wallet != "" {
+		params["wallet"] = q.Wallet
+	}
+	if q.Status != "" {
+		params["status"] = q.Status
+	}
+	if len(q.Types) > 0 {
+		params["type"] = q.Types
+	}
+	addPaging(params, page)
 	var resp struct {
 		Notifications []types.Notification `json:"notifications"`
 		Pagination    types.Page           `json:"pagination"`
@@ -45,14 +48,21 @@ func (a *API) GetNotifications(ctx context.Context, params map[string]any) ([]ty
 }
 
 // UpdateNotifications marks one or more notifications as seen or
-// hidden. Private.
-//
-// Required `params`: `notification_ids` ([]int) and `status`
-// ("seen" or "hidden"). Optional: `subaccount_id`. Returns the
-// number of notifications updated.
-func (a *API) UpdateNotifications(ctx context.Context, params map[string]any) (types.UpdateNotificationsResult, error) {
+// hidden. Private. Returns the number of notifications updated.
+func (a *API) UpdateNotifications(ctx context.Context, in types.UpdateNotificationsInput) (types.UpdateNotificationsResult, error) {
 	if err := a.requireSigner(); err != nil {
 		return types.UpdateNotificationsResult{}, err
+	}
+	sub := in.SubaccountID
+	if sub == 0 {
+		sub = a.Subaccount
+	}
+	params := map[string]any{
+		"subaccount_id":    sub,
+		"notification_ids": in.NotificationIDs,
+	}
+	if in.Status != "" {
+		params["status"] = in.Status
 	}
 	var resp types.UpdateNotificationsResult
 	if err := a.call(ctx, "private/update_notifications", params, &resp); err != nil {

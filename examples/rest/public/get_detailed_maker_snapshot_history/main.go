@@ -1,6 +1,7 @@
 // Per-quote maker-snapshot rows for one program / epoch.
 //
-// Required env: DERIVE_PROGRAM_NAME and DERIVE_EPOCH_START.
+// Required env: DERIVE_PROGRAM_NAME, DERIVE_EPOCH_START (Unix
+// milliseconds), DERIVE_WALLET (the maker to scope to).
 package main
 
 import (
@@ -9,6 +10,7 @@ import (
 	"strconv"
 
 	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -18,11 +20,15 @@ func main() {
 	}
 	epochStr := os.Getenv("DERIVE_EPOCH_START")
 	if epochStr == "" {
-		log.Fatal("DERIVE_EPOCH_START required (Unix seconds)")
+		log.Fatal("DERIVE_EPOCH_START required (Unix ms)")
 	}
 	epoch, err := strconv.ParseInt(epochStr, 10, 64)
 	if err != nil {
 		log.Fatalf("DERIVE_EPOCH_START=%q: %v", epochStr, err)
+	}
+	wallet := os.Getenv("DERIVE_WALLET")
+	if wallet == "" {
+		log.Fatal("DERIVE_WALLET required")
 	}
 
 	c := example.MustRESTPublic()
@@ -30,10 +36,11 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	res, err := c.GetDetailedMakerSnapshotHistory(ctx, map[string]any{
-		"program_name":          name,
-		"epoch_start_timestamp": epoch,
-	})
+	res, err := c.GetDetailedMakerSnapshotHistory(ctx, types.DetailedMakerSnapshotHistoryQuery{
+		ProgramName:         name,
+		EpochStartTimestamp: epoch,
+		Wallet:              wallet,
+	}, types.PageRequest{})
 	example.Fatal(err)
 	example.Print("program", res.Program.Name)
 	example.Print("snapshots", len(res.Snapshots))
