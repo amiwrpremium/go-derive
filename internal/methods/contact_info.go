@@ -40,9 +40,9 @@ func (a *API) GetContactInfo(ctx context.Context, contactType string) ([]types.C
 // UpdateContactInfo updates the value of an existing contact-info
 // record. The `contact_type` itself is immutable on update —
 // to change it, delete and re-create.
-func (a *API) UpdateContactInfo(ctx context.Context, contactID int64, newValue string) (*types.Contact, error) {
+func (a *API) UpdateContactInfo(ctx context.Context, contactID int64, newValue string) (types.Contact, error) {
 	if err := a.requireSigner(); err != nil {
-		return nil, err
+		return types.Contact{}, err
 	}
 	params := map[string]any{
 		"wallet":        a.Signer.Owner().Hex(),
@@ -53,9 +53,9 @@ func (a *API) UpdateContactInfo(ctx context.Context, contactID int64, newValue s
 		ContactInfo types.Contact `json:"contact_info"`
 	}
 	if err := a.call(ctx, "private/update_contact_info", params, &resp); err != nil {
-		return nil, err
+		return types.Contact{}, err
 	}
-	return &resp.ContactInfo, nil
+	return resp.ContactInfo, nil
 }
 
 // DeleteContactInfo removes a contact-info record by id. Returns
@@ -84,9 +84,9 @@ func (a *API) DeleteContactInfo(ctx context.Context, contactID int64) (deletedCo
 // The wallet param is sourced from the configured signer; pass the
 // new contact's `contact_type` (e.g. "email", "telegram") and
 // `contact_value`.
-func (a *API) CreateContactInfo(ctx context.Context, contactType, contactValue string) (*types.Contact, error) {
+func (a *API) CreateContactInfo(ctx context.Context, contactType, contactValue string) (types.Contact, error) {
 	if err := a.requireSigner(); err != nil {
-		return nil, err
+		return types.Contact{}, err
 	}
 	params := map[string]any{
 		"wallet":        a.Signer.Owner().Hex(),
@@ -97,7 +97,7 @@ func (a *API) CreateContactInfo(ctx context.Context, contactType, contactValue s
 		ContactInfo types.Contact `json:"contact_info"`
 	}
 	if err := a.call(ctx, "private/create_contact_info", params, &resp); err != nil {
-		return nil, err
+		return types.Contact{}, err
 	}
-	return &resp.ContactInfo, nil
+	return resp.ContactInfo, nil
 }
