@@ -65,11 +65,13 @@ import (
 //	    fmt.Println(ob.Bids[0])
 //	}
 //
-// The returned subscription buffers up to 256 events in memory; if the
-// caller is slow, newer events are dropped (best-effort fan-out, not a
-// reliable queue). Use [SubscribeFunc] when you want to be sure every event
-// is processed.
-func Subscribe[T any](ctx context.Context, c *Client, channelName string, decoder func(json.RawMessage) (T, error)) (*Subscription[T], error) {
+// The returned subscription buffers up to 256 events in memory by
+// default; if the caller is slow, the [DropNewest] policy silently
+// drops incoming events (the default). Tune with [WithBufferSize],
+// [WithDropPolicy], and [WithErrorHandler]. Use [SubscribeFunc] when
+// you want to drive a callback that back-pressures naturally.
+func Subscribe[T any](ctx context.Context, c *Client, channelName string, decoder func(json.RawMessage) (T, error), opts ...SubscribeOption) (*Subscription[T], error) {
+	cfg := applySubscribeOpts(opts)
 	dec := func(raw json.RawMessage) (any, error) {
 		return decoder(raw)
 	}
@@ -79,8 +81,9 @@ func Subscribe[T any](ctx context.Context, c *Client, channelName string, decode
 	}
 	out := &Subscription[T]{
 		raw:     sub,
-		typed:   make(chan T, 256),
+		typed:   make(chan T, cfg.bufferSize),
 		channel: channelName,
+		cfg:     cfg,
 	}
 	go out.pump()
 	return out, nil
@@ -95,8 +98,8 @@ func Subscribe[T any](ctx context.Context, c *Client, channelName string, decode
 // channel-receive loop, or when you want to guarantee every event is
 // processed (the callback runs synchronously, so back-pressure on the
 // caller is back-pressure on the subscription).
-func SubscribeFunc[T any](ctx context.Context, c *Client, channelName string, decoder func(json.RawMessage) (T, error), fn func(T)) error {
-	sub, err := Subscribe[T](ctx, c, channelName, decoder)
+func SubscribeFunc[T any](ctx context.Context, c *Client, channelName string, decoder func(json.RawMessage) (T, error), fn func(T), opts ...SubscribeOption) error {
+	sub, err := Subscribe[T](ctx, c, channelName, decoder, opts...)
 	if err != nil {
 		return err
 	}
@@ -123,6 +126,7 @@ type Subscription[T any] struct {
 	raw     transport.Subscription
 	typed   chan T
 	channel string
+	cfg     subscribeConfig
 }
 
 // Channel returns the dotted server-side channel name (e.g.
@@ -142,16 +146,53 @@ func (s *Subscription[T]) Err() error { return s.raw.Err() }
 // drains the typed channel. Idempotent.
 func (s *Subscription[T]) Close() error { return s.raw.Close() }
 
-// pump bridges the untyped transport channel to the typed user channel.
-// Type-mismatched events are dropped (Subscribe returns an error if T
-// can't accept the descriptor's output, but we still defend at runtime).
+// pump bridges the untyped transport channel to the typed user channel,
+// applying the configured drop policy when the buffer is full.
 func (s *Subscription[T]) pump() {
 	defer close(s.typed)
 	for v := range s.raw.Updates() {
 		typed, ok := v.(T)
 		if !ok {
+			s.notify(ErrTypeMismatch)
 			continue
 		}
-		s.typed <- typed
+		s.deliver(typed)
+	}
+}
+
+// deliver pushes one event onto the typed channel honoring the
+// configured drop policy.
+func (s *Subscription[T]) deliver(v T) {
+	switch s.cfg.dropPolicy {
+	case DropOldest:
+		select {
+		case s.typed <- v:
+		default:
+			select {
+			case <-s.typed: // pop oldest, best-effort
+			default:
+			}
+			select {
+			case s.typed <- v:
+			default:
+				s.notify(ErrBufferFull)
+			}
+		}
+	case Block:
+		s.typed <- v
+	default: // DropNewest
+		select {
+		case s.typed <- v:
+		default:
+			s.notify(ErrBufferFull)
+		}
+	}
+}
+
+// notify invokes the user-supplied error handler if any. Runs on the
+// pump goroutine — handlers should be non-blocking.
+func (s *Subscription[T]) notify(err error) {
+	if s.cfg.errorHandler != nil {
+		s.cfg.errorHandler(err)
 	}
 }
