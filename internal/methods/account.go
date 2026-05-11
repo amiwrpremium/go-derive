@@ -20,16 +20,16 @@ import (
 // Reports the wallet's subaccount ids, the kill-switch state, the
 // per-WS-budget TPS limits, the fee schedule, and the wallet's
 // referral code.
-func (a *API) GetAccount(ctx context.Context) (*types.AccountResult, error) {
+func (a *API) GetAccount(ctx context.Context) (types.AccountResult, error) {
 	if err := a.requireSigner(); err != nil {
-		return nil, err
+		return types.AccountResult{}, err
 	}
 	params := map[string]any{"wallet": a.Signer.Owner().Hex()}
 	var resp types.AccountResult
 	if err := a.call(ctx, "private/get_account", params, &resp); err != nil {
-		return nil, err
+		return types.AccountResult{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // GetAllPortfolios returns the per-subaccount portfolio snapshot for
@@ -58,18 +58,18 @@ func (a *API) GetAllPortfolios(ctx context.Context) ([]types.Portfolio, error) {
 // Pre/post-margin values report the impact of the simulated trade
 // implied by `private/get_margin`'s `simulated_*` parameters; with
 // no simulation the pre and post columns are equal.
-func (a *API) GetMargin(ctx context.Context) (*types.MarginResult, error) {
+func (a *API) GetMargin(ctx context.Context) (types.MarginResult, error) {
 	if err := a.requireSigner(); err != nil {
-		return nil, err
+		return types.MarginResult{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
-		return nil, err
+		return types.MarginResult{}, err
 	}
 	var resp types.MarginResult
 	if err := a.call(ctx, "private/get_margin", map[string]any{"subaccount_id": a.Subaccount}, &resp); err != nil {
-		return nil, err
+		return types.MarginResult{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // GetPublicMargin runs Derive's risk-engine margin calculation
@@ -80,10 +80,10 @@ func (a *API) GetMargin(ctx context.Context) (*types.MarginResult, error) {
 // Required keys per the OAS: `margin_type` ("PM" / "PM2" / "SM"),
 // `market`, `simulated_collaterals`, `simulated_positions`. Optional:
 // `simulated_collateral_changes`, `simulated_position_changes`.
-func (a *API) GetPublicMargin(ctx context.Context, params map[string]any) (*types.MarginResult, error) {
+func (a *API) GetPublicMargin(ctx context.Context, params map[string]any) (types.MarginResult, error) {
 	var resp types.MarginResult
 	if err := a.call(ctx, "public/get_margin", params, &resp); err != nil {
-		return nil, err
+		return types.MarginResult{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }

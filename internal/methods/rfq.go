@@ -158,12 +158,12 @@ func (a *API) PollQuotes(ctx context.Context, params map[string]any) ([]types.Qu
 // Required `params` include `rfq_id`, the priced `legs`,
 // `direction`, the signing fields (`signature`, `signer`,
 // `signature_expiry_sec`, `nonce`), and `max_fee`.
-func (a *API) SendQuote(ctx context.Context, params map[string]any) (*types.Quote, error) {
+func (a *API) SendQuote(ctx context.Context, params map[string]any) (types.Quote, error) {
 	if err := a.requireSigner(); err != nil {
-		return nil, err
+		return types.Quote{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
-		return nil, err
+		return types.Quote{}, err
 	}
 	if params == nil {
 		params = map[string]any{}
@@ -173,9 +173,9 @@ func (a *API) SendQuote(ctx context.Context, params map[string]any) (*types.Quot
 	}
 	var resp types.Quote
 	if err := a.call(ctx, "private/send_quote", params, &resp); err != nil {
-		return nil, err
+		return types.Quote{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // ExecuteQuote picks one quote response and trades against it. Used
@@ -183,12 +183,12 @@ func (a *API) SendQuote(ctx context.Context, params map[string]any) (*types.Quot
 // Private.
 //
 // The response wraps a [types.Quote] and adds `rfq_filled_pct`.
-func (a *API) ExecuteQuote(ctx context.Context, params map[string]any) (*types.ExecuteQuoteResult, error) {
+func (a *API) ExecuteQuote(ctx context.Context, params map[string]any) (types.ExecuteQuoteResult, error) {
 	if err := a.requireSigner(); err != nil {
-		return nil, err
+		return types.ExecuteQuoteResult{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
-		return nil, err
+		return types.ExecuteQuoteResult{}, err
 	}
 	if params == nil {
 		params = map[string]any{}
@@ -198,18 +198,18 @@ func (a *API) ExecuteQuote(ctx context.Context, params map[string]any) (*types.E
 	}
 	var resp types.ExecuteQuoteResult
 	if err := a.call(ctx, "private/execute_quote", params, &resp); err != nil {
-		return nil, err
+		return types.ExecuteQuoteResult{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // CancelQuote cancels one outstanding maker quote by id. Private.
-func (a *API) CancelQuote(ctx context.Context, params map[string]any) (*types.Quote, error) {
+func (a *API) CancelQuote(ctx context.Context, params map[string]any) (types.Quote, error) {
 	if err := a.requireSigner(); err != nil {
-		return nil, err
+		return types.Quote{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
-		return nil, err
+		return types.Quote{}, err
 	}
 	if params == nil {
 		params = map[string]any{}
@@ -219,9 +219,9 @@ func (a *API) CancelQuote(ctx context.Context, params map[string]any) (*types.Qu
 	}
 	var resp types.Quote
 	if err := a.call(ctx, "private/cancel_quote", params, &resp); err != nil {
-		return nil, err
+		return types.Quote{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // ReplaceQuote cancels one outstanding maker quote and submits a
@@ -236,12 +236,12 @@ func (a *API) CancelQuote(ctx context.Context, params map[string]any) (*types.Qu
 //
 // The response carries the cancelled quote, the (optional) replacement
 // quote, and the engine's error if the replacement was rejected.
-func (a *API) ReplaceQuote(ctx context.Context, params map[string]any) (*types.ReplaceQuoteResult, error) {
+func (a *API) ReplaceQuote(ctx context.Context, params map[string]any) (types.ReplaceQuoteResult, error) {
 	if err := a.requireSigner(); err != nil {
-		return nil, err
+		return types.ReplaceQuoteResult{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
-		return nil, err
+		return types.ReplaceQuoteResult{}, err
 	}
 	if params == nil {
 		params = map[string]any{}
@@ -251,9 +251,9 @@ func (a *API) ReplaceQuote(ctx context.Context, params map[string]any) (*types.R
 	}
 	var resp types.ReplaceQuoteResult
 	if err := a.call(ctx, "private/replace_quote", params, &resp); err != nil {
-		return nil, err
+		return types.ReplaceQuoteResult{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // CancelBatchQuotes cancels every quote matching the supplied
@@ -261,12 +261,12 @@ func (a *API) ReplaceQuote(ctx context.Context, params map[string]any) (*types.R
 //
 // Optional `params`: `rfq_id`, `quote_id`, `label`, `nonce`. Returns
 // the list of cancelled ids.
-func (a *API) CancelBatchQuotes(ctx context.Context, params map[string]any) (*types.CancelBatchResult, error) {
+func (a *API) CancelBatchQuotes(ctx context.Context, params map[string]any) (types.CancelBatchResult, error) {
 	if err := a.requireSigner(); err != nil {
-		return nil, err
+		return types.CancelBatchResult{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
-		return nil, err
+		return types.CancelBatchResult{}, err
 	}
 	if params == nil {
 		params = map[string]any{}
@@ -276,9 +276,9 @@ func (a *API) CancelBatchQuotes(ctx context.Context, params map[string]any) (*ty
 	}
 	var resp types.CancelBatchResult
 	if err := a.call(ctx, "private/cancel_batch_quotes", params, &resp); err != nil {
-		return nil, err
+		return types.CancelBatchResult{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // CancelBatchRFQs cancels every RFQ matching the supplied filters.
@@ -286,12 +286,12 @@ func (a *API) CancelBatchQuotes(ctx context.Context, params map[string]any) (*ty
 //
 // Optional `params`: `rfq_id`, `label`, `nonce`. Returns the list of
 // cancelled ids.
-func (a *API) CancelBatchRFQs(ctx context.Context, params map[string]any) (*types.CancelBatchResult, error) {
+func (a *API) CancelBatchRFQs(ctx context.Context, params map[string]any) (types.CancelBatchResult, error) {
 	if err := a.requireSigner(); err != nil {
-		return nil, err
+		return types.CancelBatchResult{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
-		return nil, err
+		return types.CancelBatchResult{}, err
 	}
 	if params == nil {
 		params = map[string]any{}
@@ -301,9 +301,9 @@ func (a *API) CancelBatchRFQs(ctx context.Context, params map[string]any) (*type
 	}
 	var resp types.CancelBatchResult
 	if err := a.call(ctx, "private/cancel_batch_rfqs", params, &resp); err != nil {
-		return nil, err
+		return types.CancelBatchResult{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // RFQGetBestQuote returns the best quote the engine can match
@@ -314,12 +314,12 @@ func (a *API) CancelBatchRFQs(ctx context.Context, params map[string]any) (*type
 // `label`, `client`, `extra_fee`, `max_total_cost`, `min_total_cost`,
 // `partial_fill_step`, `preferred_direction`, `referral_code`,
 // `rfq_id`.
-func (a *API) RFQGetBestQuote(ctx context.Context, params map[string]any) (*types.BestQuoteResult, error) {
+func (a *API) RFQGetBestQuote(ctx context.Context, params map[string]any) (types.BestQuoteResult, error) {
 	if err := a.requireSigner(); err != nil {
-		return nil, err
+		return types.BestQuoteResult{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
-		return nil, err
+		return types.BestQuoteResult{}, err
 	}
 	if params == nil {
 		params = map[string]any{}
@@ -329,9 +329,9 @@ func (a *API) RFQGetBestQuote(ctx context.Context, params map[string]any) (*type
 	}
 	var resp types.BestQuoteResult
 	if err := a.call(ctx, "private/rfq_get_best_quote", params, &resp); err != nil {
-		return nil, err
+		return types.BestQuoteResult{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // OrderQuotePublic is the unauthenticated counterpart of
@@ -344,15 +344,15 @@ func (a *API) RFQGetBestQuote(ctx context.Context, params map[string]any) (*type
 // uses for the simulation but does not validate); same response
 // type. No signer or subaccount required — useful for pre-flight
 // checks before signing anything.
-func (a *API) OrderQuotePublic(ctx context.Context, params map[string]any) (*types.OrderQuoteResult, error) {
+func (a *API) OrderQuotePublic(ctx context.Context, params map[string]any) (types.OrderQuoteResult, error) {
 	if params == nil {
 		params = map[string]any{}
 	}
 	var resp types.OrderQuoteResult
 	if err := a.call(ctx, "public/order_quote", params, &resp); err != nil {
-		return nil, err
+		return types.OrderQuoteResult{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // OrderQuote runs a hypothetical order through the matching engine
@@ -365,12 +365,12 @@ func (a *API) OrderQuotePublic(ctx context.Context, params map[string]any) (*typ
 //
 // The shape mirrors `PrivateOrderQuoteResultSchema` in
 // `derivexyz/cockpit/orderbook-types`.
-func (a *API) OrderQuote(ctx context.Context, params map[string]any) (*types.OrderQuoteResult, error) {
+func (a *API) OrderQuote(ctx context.Context, params map[string]any) (types.OrderQuoteResult, error) {
 	if err := a.requireSigner(); err != nil {
-		return nil, err
+		return types.OrderQuoteResult{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
-		return nil, err
+		return types.OrderQuoteResult{}, err
 	}
 	if params == nil {
 		params = map[string]any{}
@@ -380,7 +380,7 @@ func (a *API) OrderQuote(ctx context.Context, params map[string]any) (*types.Ord
 	}
 	var resp types.OrderQuoteResult
 	if err := a.call(ctx, "private/order_quote", params, &resp); err != nil {
-		return nil, err
+		return types.OrderQuoteResult{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }

@@ -35,12 +35,12 @@ func (a *API) GetMakerPrograms(ctx context.Context) ([]types.MakerProgram, error
 // Required `params`: `program_name`, `epoch_start_timestamp`. The
 // response carries the program metadata alongside the per-wallet
 // breakdown and the program-wide totals.
-func (a *API) GetMakerProgramScores(ctx context.Context, params map[string]any) (*types.MakerProgramScore, error) {
+func (a *API) GetMakerProgramScores(ctx context.Context, params map[string]any) (types.MakerProgramScore, error) {
 	var resp types.MakerProgramScore
 	if err := a.call(ctx, "public/get_maker_program_scores", params, &resp); err != nil {
-		return nil, err
+		return types.MakerProgramScore{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // GetDetailedMakerSnapshotHistory returns the per-quote maker
@@ -48,15 +48,15 @@ func (a *API) GetMakerProgramScores(ctx context.Context, params map[string]any) 
 //
 // Required `params`: `program_name`, `epoch_start_timestamp`.
 // Optional: `wallet` (filter to one maker), `page`, `page_size`.
-func (a *API) GetDetailedMakerSnapshotHistory(ctx context.Context, params map[string]any) (*types.DetailedMakerSnapshotHistory, error) {
+func (a *API) GetDetailedMakerSnapshotHistory(ctx context.Context, params map[string]any) (types.DetailedMakerSnapshotHistory, error) {
 	if params == nil {
 		params = map[string]any{}
 	}
 	var resp types.DetailedMakerSnapshotHistory
 	if err := a.call(ctx, "public/get_detailed_maker_snapshot_history", params, &resp); err != nil {
-		return nil, err
+		return types.DetailedMakerSnapshotHistory{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // GetReferralPerformance returns the headline referrer performance
@@ -66,10 +66,10 @@ func (a *API) GetDetailedMakerSnapshotHistory(ctx context.Context, params map[st
 //
 // Required `params`: `start_ms`, `end_ms`. Optional: `referral_code`,
 // `wallet`.
-func (a *API) GetReferralPerformance(ctx context.Context, params map[string]any) (*types.ReferralPerformance, error) {
+func (a *API) GetReferralPerformance(ctx context.Context, params map[string]any) (types.ReferralPerformance, error) {
 	var resp types.ReferralPerformance
 	if err := a.call(ctx, "public/get_referral_performance", params, &resp); err != nil {
-		return nil, err
+		return types.ReferralPerformance{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
