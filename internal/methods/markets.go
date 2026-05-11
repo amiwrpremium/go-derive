@@ -100,12 +100,12 @@ func (a *API) GetCurrencies(ctx context.Context) ([]string, error) {
 //
 // Counterpart to the plural [API.GetCurrencies] (which returns just
 // the currency names).
-func (a *API) GetCurrency(ctx context.Context, currency string) (*types.Currency, error) {
+func (a *API) GetCurrency(ctx context.Context, currency string) (types.Currency, error) {
 	var c types.Currency
 	if err := a.call(ctx, "public/get_currency", map[string]any{"currency": currency}, &c); err != nil {
-		return nil, err
+		return types.Currency{}, err
 	}
-	return &c, nil
+	return c, nil
 }
 
 // GetAllInstruments lists every instrument matching the supplied
@@ -230,15 +230,15 @@ func (a *API) GetAllUserStatistics(ctx context.Context, params map[string]any) (
 //
 // Required `params`: `wallet`. Optional: `currency`, `end_time`,
 // `instrument_name`, `is_rfq`, `start_time`.
-func (a *API) GetUserStatistics(ctx context.Context, params map[string]any) (*types.UserStatistics, error) {
+func (a *API) GetUserStatistics(ctx context.Context, params map[string]any) (types.UserStatistics, error) {
 	if params == nil {
 		params = map[string]any{}
 	}
 	var resp types.UserStatistics
 	if err := a.call(ctx, "public/user_statistics", params, &resp); err != nil {
-		return nil, err
+		return types.UserStatistics{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // GetAsset fetches one Asset record by name. Public.
@@ -246,12 +246,12 @@ func (a *API) GetUserStatistics(ctx context.Context, params map[string]any) (*ty
 // Distinct from [API.GetInstrument]: an asset is the on-chain
 // ERC-1155 entity (token id, decimals, address); an instrument adds
 // the orderbook / pricing surface.
-func (a *API) GetAsset(ctx context.Context, name string) (*types.Asset, error) {
+func (a *API) GetAsset(ctx context.Context, name string) (types.Asset, error) {
 	var resp types.Asset
 	if err := a.call(ctx, "public/get_asset", map[string]any{"asset_name": name}, &resp); err != nil {
-		return nil, err
+		return types.Asset{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // GetAssets lists Asset records matching the supplied filter.
@@ -335,24 +335,24 @@ func (a *API) GetTreeRoots(ctx context.Context) (*types.TreeRoots, error) {
 // `margin_watch` WebSocket channel. The RPC returns a single
 // snapshot for one subaccount; the channel emits a stream of
 // at-risk subaccounts engine-wide.
-func (a *API) MarginWatch(ctx context.Context, params map[string]any) (*types.MarginSnapshot, error) {
+func (a *API) MarginWatch(ctx context.Context, params map[string]any) (types.MarginSnapshot, error) {
 	if params == nil {
 		params = map[string]any{}
 	}
 	var resp types.MarginSnapshot
 	if err := a.call(ctx, "public/margin_watch", params, &resp); err != nil {
-		return nil, err
+		return types.MarginSnapshot{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // GetStatistics returns rolling 24-hour and all-time statistics for
 // one instrument: volume, premium volume, fees, trades count, plus
 // total open interest. Public.
-func (a *API) GetStatistics(ctx context.Context, instrument string) (*types.Statistics, error) {
+func (a *API) GetStatistics(ctx context.Context, instrument string) (types.Statistics, error) {
 	var resp types.Statistics
 	if err := a.call(ctx, "public/statistics", map[string]any{"instrument_name": instrument}, &resp); err != nil {
-		return nil, err
+		return types.Statistics{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }

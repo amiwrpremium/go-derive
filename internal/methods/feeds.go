@@ -87,10 +87,10 @@ func (a *API) GetInterestRateHistory(ctx context.Context, params map[string]any)
 //
 // The shape mirrors `PublicGetPerpImpactTwapResultSchema` in
 // `derivexyz/cockpit/orderbook-types`.
-func (a *API) GetPerpImpactTWAP(ctx context.Context, params map[string]any) (*types.PerpImpactTWAP, error) {
+func (a *API) GetPerpImpactTWAP(ctx context.Context, params map[string]any) (types.PerpImpactTWAP, error) {
 	var resp types.PerpImpactTWAP
 	if err := a.call(ctx, "public/get_perp_impact_twap", params, &resp); err != nil {
-		return nil, err
+		return types.PerpImpactTWAP{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
