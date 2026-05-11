@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.9.1](https://github.com/amiwrpremium/go-derive/compare/v0.9.0...v0.9.1) (2026-05-11)
+
+
+### Features
+
+* **ws:** add Subscription All for Go 1.23+ range-over-func ([#102](https://github.com/amiwrpremium/go-derive/issues/102)) ([a0081e5](https://github.com/amiwrpremium/go-derive/commit/a0081e5aa1426d09b07eb2d36a87339548941979))
+
 ## [0.9.0](https://github.com/amiwrpremium/go-derive/compare/v0.8.7...v0.9.0) (2026-05-11)
 
 
