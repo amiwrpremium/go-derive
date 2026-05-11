@@ -300,14 +300,14 @@ func (a *API) GetStDRVSnapshots(ctx context.Context, params map[string]any) (typ
 //
 // The `Descendants` field is preserved as raw JSON because the wire
 // shape is recursive; decode further at the call site.
-func (a *API) GetDescendantTree(ctx context.Context, walletOrInviteCode string) (*types.DescendantTree, error) {
+func (a *API) GetDescendantTree(ctx context.Context, walletOrInviteCode string) (types.DescendantTree, error) {
 	var resp types.DescendantTree
 	if err := a.call(ctx, "public/get_descendant_tree", map[string]any{
 		"wallet_or_invite_code": walletOrInviteCode,
 	}, &resp); err != nil {
-		return nil, err
+		return types.DescendantTree{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // GetTreeRoots returns every root wallet (top-of-tree referrer) the
@@ -315,12 +315,12 @@ func (a *API) GetDescendantTree(ctx context.Context, walletOrInviteCode string) 
 //
 // The `Roots` field is preserved as raw JSON because the inner
 // shape varies per program.
-func (a *API) GetTreeRoots(ctx context.Context) (*types.TreeRoots, error) {
+func (a *API) GetTreeRoots(ctx context.Context) (types.TreeRoots, error) {
 	var resp types.TreeRoots
 	if err := a.call(ctx, "public/get_tree_roots", map[string]any{}, &resp); err != nil {
-		return nil, err
+		return types.TreeRoots{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // MarginWatch calculates the mark-to-market and maintenance-margin

@@ -51,15 +51,15 @@ func (a *API) GetSpotFeedHistory(ctx context.Context, params map[string]any) (cu
 //
 // Optional `params`: `currency`. Pass nil to get every currency the
 // venue publishes.
-func (a *API) GetLatestSignedFeeds(ctx context.Context, params map[string]any) (*types.SignedFeeds, error) {
+func (a *API) GetLatestSignedFeeds(ctx context.Context, params map[string]any) (types.SignedFeeds, error) {
 	if params == nil {
 		params = map[string]any{}
 	}
 	var resp types.SignedFeeds
 	if err := a.call(ctx, "public/get_latest_signed_feeds", params, &resp); err != nil {
-		return nil, err
+		return types.SignedFeeds{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // GetInterestRateHistory returns historical USDC borrow / supply

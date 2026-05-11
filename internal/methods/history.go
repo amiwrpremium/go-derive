@@ -263,12 +263,12 @@ func (a *API) GetInterestHistory(ctx context.Context, params map[string]any) ([]
 // Required `params`: `start_timestamp`, `end_timestamp`, `expiry`.
 // The response carries pre-signed S3 URLs the caller can download
 // directly to retrieve the archived records.
-func (a *API) ExpiredAndCancelledHistory(ctx context.Context, params map[string]any) (*types.ExpiredAndCancelledExport, error) {
+func (a *API) ExpiredAndCancelledHistory(ctx context.Context, params map[string]any) (types.ExpiredAndCancelledExport, error) {
 	if err := a.requireSigner(); err != nil {
-		return nil, err
+		return types.ExpiredAndCancelledExport{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
-		return nil, err
+		return types.ExpiredAndCancelledExport{}, err
 	}
 	if params == nil {
 		params = map[string]any{}
@@ -278,7 +278,7 @@ func (a *API) ExpiredAndCancelledHistory(ctx context.Context, params map[string]
 	}
 	var resp types.ExpiredAndCancelledExport
 	if err := a.call(ctx, "private/expired_and_cancelled_history", params, &resp); err != nil {
-		return nil, err
+		return types.ExpiredAndCancelledExport{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
