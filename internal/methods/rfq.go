@@ -339,14 +339,14 @@ func (a *API) RFQGetBestQuote(ctx context.Context, params map[string]any) (types
 // matching engine without submitting and returns the engine's
 // estimates for fill price, fee, and post-trade margin balance.
 //
-// Wraps `public/order_quote`. Same `params` shape as
-// [API.OrderQuote] (plus the same signing fields, which the engine
-// uses for the simulation but does not validate); same response
-// type. No signer or subaccount required — useful for pre-flight
-// checks before signing anything.
-func (a *API) OrderQuotePublic(ctx context.Context, params map[string]any) (types.OrderQuoteResult, error) {
-	if params == nil {
-		params = map[string]any{}
+// Wraps `public/order_quote`. The endpoint still requires a fully
+// signed order body (the connection is unauthenticated but the
+// payload is not), so the SDK signs with the configured signer
+// before sending. Same input and result shape as [API.OrderQuote].
+func (a *API) OrderQuotePublic(ctx context.Context, in types.PlaceOrderInput) (types.OrderQuoteResult, error) {
+	params, err := a.signedOrderParams(ctx, in)
+	if err != nil {
+		return types.OrderQuoteResult{}, err
 	}
 	var resp types.OrderQuoteResult
 	if err := a.call(ctx, "public/order_quote", params, &resp); err != nil {
@@ -361,22 +361,16 @@ func (a *API) OrderQuotePublic(ctx context.Context, params map[string]any) (type
 // pre-flighting orders against thin books where the user wants to
 // know whether they'll clear margin before signing. Private.
 //
-// `params` mirror the shape `private/order` accepts.
+// Input mirrors [types.PlaceOrderInput] — the shape `private/order`
+// accepts. The SDK fills in subaccount id, nonce, signature, signer
+// and expiry, exactly as for [API.PlaceOrder].
 //
-// The shape mirrors `PrivateOrderQuoteResultSchema` in
+// The result shape mirrors `PrivateOrderQuoteResultSchema` in
 // `derivexyz/cockpit/orderbook-types`.
-func (a *API) OrderQuote(ctx context.Context, params map[string]any) (types.OrderQuoteResult, error) {
-	if err := a.requireSigner(); err != nil {
+func (a *API) OrderQuote(ctx context.Context, in types.PlaceOrderInput) (types.OrderQuoteResult, error) {
+	params, err := a.signedOrderParams(ctx, in)
+	if err != nil {
 		return types.OrderQuoteResult{}, err
-	}
-	if err := a.requireSubaccount(); err != nil {
-		return types.OrderQuoteResult{}, err
-	}
-	if params == nil {
-		params = map[string]any{}
-	}
-	if _, ok := params["subaccount_id"]; !ok {
-		params["subaccount_id"] = a.Subaccount
 	}
 	var resp types.OrderQuoteResult
 	if err := a.call(ctx, "private/order_quote", params, &resp); err != nil {

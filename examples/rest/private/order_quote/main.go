@@ -6,6 +6,8 @@ package main
 
 import (
 	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/enums"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -14,14 +16,15 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	res, err := c.OrderQuote(ctx, map[string]any{
-		"instrument_name": example.Instrument(),
-		"direction":       "buy",
-		"order_type":      "limit",
-		"time_in_force":   "gtc",
-		"amount":          "0.01",
-		"limit_price":     "50000",
-		"max_fee":         "10",
+	res, err := c.OrderQuote(ctx, types.PlaceOrderInput{
+		InstrumentName: example.Instrument(),
+		Asset:          types.Address(example.BaseAsset()),
+		Direction:      enums.DirectionBuy,
+		OrderType:      enums.OrderTypeLimit,
+		TimeInForce:    enums.TimeInForceGTC,
+		Amount:         types.MustDecimal("0.01"),
+		LimitPrice:     types.MustDecimal("50000"),
+		MaxFee:         types.MustDecimal("10"),
 	})
 	example.Fatal(err)
 	example.Print("is_valid", res.IsValid)

@@ -574,7 +574,10 @@ func TestReplace_Decode(t *testing.T) {
 		},
 		"trades": []any{},
 	})
-	res, err := api.Replace(context.Background(), map[string]any{"order_id_to_cancel": "old"})
+	res, err := api.Replace(context.Background(), types.ReplaceOrderInput{
+		PlaceOrderInput: validPlaceOrderInput(),
+		OrderIDToCancel: "old",
+	})
 	require.NoError(t, err)
 	assert.Equal(t, "old", res.CancelledOrder.OrderID)
 	require.NotNil(t, res.Order)
@@ -585,13 +588,16 @@ func TestReplace_Decode(t *testing.T) {
 func TestReplace_PropagatesAPIError(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleError("private/replace", boom)
-	_, err := api.Replace(context.Background(), nil)
+	_, err := api.Replace(context.Background(), types.ReplaceOrderInput{
+		PlaceOrderInput: validPlaceOrderInput(),
+		OrderIDToCancel: "old",
+	})
 	assert.ErrorAs(t, err, new(*derrors.APIError))
 }
 
 func TestReplace_RequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
-	_, err := api.Replace(context.Background(), nil)
+	_, err := api.Replace(context.Background(), types.ReplaceOrderInput{})
 	assert.True(t, errors.Is(err, derrors.ErrUnauthorized))
 }
 
@@ -614,7 +620,7 @@ func TestOrderDebug_Decode(t *testing.T) {
 			"subaccount_id":     int64(7),
 		},
 	})
-	dbg, err := api.OrderDebug(context.Background(), map[string]any{"instrument_name": "BTC-PERP"})
+	dbg, err := api.OrderDebug(context.Background(), validPlaceOrderInput())
 	require.NoError(t, err)
 	assert.Equal(t, "0xdd", dbg.TypedDataHash)
 	assert.Equal(t, int64(42), dbg.RawData.Nonce)
@@ -624,7 +630,7 @@ func TestOrderDebug_Decode(t *testing.T) {
 func TestOrderDebug_PropagatesAPIError(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleError("private/order_debug", boom)
-	_, err := api.OrderDebug(context.Background(), nil)
+	_, err := api.OrderDebug(context.Background(), validPlaceOrderInput())
 	assert.ErrorAs(t, err, new(*derrors.APIError))
 }
 

@@ -113,7 +113,7 @@ func TestNoArgWrappers_PropagateError(t *testing.T) {
 	t.Run("OrderQuote", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/order_quote", boom)
-		_, err := api.OrderQuote(context.Background(), nil)
+		_, err := api.OrderQuote(context.Background(), validPlaceOrderInput())
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 	t.Run("GetPerpImpactTWAP", func(t *testing.T) {
