@@ -65,6 +65,14 @@ type Subscription interface {
 	// to learn the terminal error (or nil for a clean close).
 	Updates() <-chan any
 
+	// Errors returns a receive-only channel of non-fatal decoder
+	// errors observed while the subscription was running. The
+	// transport sends here when [Decoder] returns a non-nil error;
+	// the channel is closed when the subscription terminates.
+	// Sends are best-effort: if the consumer is slow the error may
+	// be dropped rather than blocking the read pump.
+	Errors() <-chan error
+
 	// Close terminates the subscription and best-effort sends an
 	// unsubscribe RPC to the server.
 	Close() error
