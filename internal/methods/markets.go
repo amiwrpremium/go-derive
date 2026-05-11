@@ -284,15 +284,15 @@ func (a *API) GetBridgeBalances(ctx context.Context) ([]types.BridgeBalance, err
 // over a time window. Public.
 //
 // Required `params`: `wallet`, `from_sec`, `to_sec`.
-func (a *API) GetStDRVSnapshots(ctx context.Context, params map[string]any) (*types.StDRVSnapshots, error) {
+func (a *API) GetStDRVSnapshots(ctx context.Context, params map[string]any) (types.StDRVSnapshots, error) {
 	if params == nil {
 		params = map[string]any{}
 	}
 	var resp types.StDRVSnapshots
 	if err := a.call(ctx, "public/get_stdrv_snapshots", params, &resp); err != nil {
-		return nil, err
+		return types.StDRVSnapshots{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // GetDescendantTree returns the referee tree rooted at one wallet

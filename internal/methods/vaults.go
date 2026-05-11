@@ -72,16 +72,16 @@ func (a *API) GetVaultPools(ctx context.Context) ([]types.VaultPool, error) {
 // the per-leg balances. Public.
 //
 // Required `vaultType`: documented values are `lbtc` and `weeth`.
-func (a *API) GetVaultRates(ctx context.Context, vaultType string) (*types.VaultRates, error) {
+func (a *API) GetVaultRates(ctx context.Context, vaultType string) (types.VaultRates, error) {
 	params := map[string]any{}
 	if vaultType != "" {
 		params["vault_type"] = vaultType
 	}
 	var resp types.VaultRates
 	if err := a.call(ctx, "public/get_vault_rates", params, &resp); err != nil {
-		return nil, err
+		return types.VaultRates{}, err
 	}
-	return &resp, nil
+	return resp, nil
 }
 
 // GetVaultStatistics returns a summary snapshot for every Derive
