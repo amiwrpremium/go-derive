@@ -20,17 +20,17 @@ import (
 // schema-faithful per-subaccount snapshot returned by
 // `private/get_all_portfolios`, so the response decodes into the
 // existing [types.Portfolio] type.
-func (a *API) GetSubaccount(ctx context.Context) (*types.Portfolio, error) {
+func (a *API) GetSubaccount(ctx context.Context) (types.Portfolio, error) {
 	if err := a.requireSubaccount(); err != nil {
-		return nil, err
+		return types.Portfolio{}, err
 	}
 	var p types.Portfolio
 	if err := a.call(ctx, "private/get_subaccount", map[string]any{
 		"subaccount_id": a.Subaccount,
 	}, &p); err != nil {
-		return nil, err
+		return types.Portfolio{}, err
 	}
-	return &p, nil
+	return p, nil
 }
 
 // GetSubaccounts lists every subaccount owned by the wallet. Private.
