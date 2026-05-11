@@ -7,6 +7,14 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.8.3](https://github.com/amiwrpremium/go-derive/compare/v0.8.2...v0.8.3) (2026-05-11)
+
+
+### Dependencies
+
+* **deps:** update actions/dependency-review-action action to v5 ([#89](https://github.com/amiwrpremium/go-derive/issues/89)) ([671ed70](https://github.com/amiwrpremium/go-derive/commit/671ed70a356347e3e62593ff6ecd26f6539e300f))
+* **deps:** update crate-ci/typos action to v1.46.1 ([#88](https://github.com/amiwrpremium/go-derive/issues/88)) ([0278010](https://github.com/amiwrpremium/go-derive/commit/0278010fb47e8ed7e9579180e2176b581814eb80))
+
 ## [0.8.2](https://github.com/amiwrpremium/go-derive/compare/v0.8.1...v0.8.2) (2026-05-10)
 
 
