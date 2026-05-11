@@ -196,10 +196,12 @@ func (s *Subscription[T]) start(ctx context.Context) {
 // "orderbook.BTC-PERP.1.10"). Useful for diagnostics and logs.
 func (s *Subscription[T]) Channel() string { return s.channel }
 
-// Updates returns the receive channel of typed events. The channel is
-// closed when the subscription terminates; receivers can select against
-// ctx.Done() too but it is no longer strictly necessary — cancelling
-// the Subscribe ctx closes Updates directly.
+// Updates returns the receive channel of typed events. The channel
+// is closed when the subscription terminates — either because the
+// Subscribe ctx was cancelled, [Subscription.Close] was called, or
+// the WebSocket connection dropped. Receivers can still select
+// against ctx.Done() if they want to, but it is no longer strictly
+// necessary: cancelling the Subscribe ctx closes Updates directly.
 //
 // # Multi-subscription gotcha
 //
