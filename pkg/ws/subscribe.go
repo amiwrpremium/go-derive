@@ -175,6 +175,25 @@ func (s *Subscription[T]) Channel() string { return s.channel }
 // Updates returns the receive channel of typed events. The channel is
 // closed when the subscription terminates; receivers should select against
 // ctx.Done() to know when to bail.
+//
+// # Multi-subscription gotcha
+//
+// Each Subscription has its own buffer and drop policy, independent of
+// every other Subscription on the same Client. When you select across
+// multiple Subscriptions in one goroutine and one handler arm is slow,
+// the other subs' buffers keep filling while you're blocked — and
+// once full, those other subs start dropping per their configured
+// DropPolicy. The drop happens on the SLOW path's neighbours, not the
+// slow path itself.
+//
+// Three ways out:
+//
+//   - spawn a goroutine per Subscription so each handler runs
+//     independently (the simplest and usually right answer);
+//   - register [WithErrorHandler] so [ErrBufferFull] is observable
+//     when it happens;
+//   - or fan-in via [SubscribeInto] with one shared chan when
+//     shared back-pressure across subs is what you actually want.
 func (s *Subscription[T]) Updates() <-chan T { return s.typed }
 
 // Err returns the terminal error once [Subscription.Updates] has closed,

@@ -11,6 +11,20 @@
 // `private/get_positions` (REST or WS RPC) when you need it, or
 // derive it from the trades feed.
 //
+// # Drop trade-off
+//
+// Each sub has its own buffer (default 256, see WithBufferSize) and
+// its own drop policy (default DropNewest). If you do heavy work in
+// one select arm, the OTHER subs' buffers keep filling while you're
+// blocked — and once full, those other subs start dropping events.
+// The drop happens on the slow path's NEIGHBOURS, not the slow path
+// itself.
+//
+// For heavy handlers, either spawn one goroutine per Subscription
+// (so each handler runs independently) or fan-in via SubscribeInto
+// with one shared chan. Register WithErrorHandler to observe drops
+// when they happen — wraps as ws.ErrBufferFull.
+//
 // Requires `DERIVE_SESSION_KEY` (or `DERIVE_OWNER_KEY`) plus
 // `DERIVE_SUBACCOUNT` in the environment; see the `examples/example`
 // helper for the full env-var contract.
