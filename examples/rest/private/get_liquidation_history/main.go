@@ -1,7 +1,10 @@
 // Fetches the configured subaccount's past liquidation events.
 package main
 
-import "github.com/amiwrpremium/go-derive/examples/example"
+import (
+	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/types"
+)
 
 func main() {
 	c := example.MustRESTPrivate()
@@ -9,7 +12,7 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	auctions, err := c.GetLiquidationHistory(ctx, nil)
+	auctions, err := c.GetLiquidationHistory(ctx, types.LiquidationHistoryQuery{})
 	example.Fatal(err)
 	example.Print("auction count", len(auctions))
 	if len(auctions) > 0 {

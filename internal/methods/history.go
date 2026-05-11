@@ -17,25 +17,26 @@ import (
 // GetFundingHistory returns funding payments received / paid by the
 // configured subaccount over the requested window. Private.
 //
-// Optional `params`: `start_timestamp`, `end_timestamp`,
-// `instrument_name`, `page`, `page_size`. The configured subaccount
-// is threaded through automatically when not present in `params`.
-//
 // The response is paginated; the second return value carries the
 // total counts.
-func (a *API) GetFundingHistory(ctx context.Context, params map[string]any) ([]types.FundingPayment, types.Page, error) {
+func (a *API) GetFundingHistory(ctx context.Context, q types.FundingHistoryQuery, page types.PageRequest) ([]types.FundingPayment, types.Page, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, types.Page{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
 		return nil, types.Page{}, err
 	}
-	if params == nil {
-		params = map[string]any{}
+	params := map[string]any{
+		"subaccount_id": a.Subaccount,
 	}
-	if _, ok := params["subaccount_id"]; !ok {
-		params["subaccount_id"] = a.Subaccount
+	if q.InstrumentName != "" {
+		params["instrument_name"] = q.InstrumentName
 	}
+	if q.Wallet != "" {
+		params["wallet"] = q.Wallet
+	}
+	addHistoryWindow(params, q.HistoryWindow)
+	addPaging(params, page)
 	var resp struct {
 		Events     []types.FundingPayment `json:"events"`
 		Pagination types.Page             `json:"pagination"`
@@ -49,21 +50,24 @@ func (a *API) GetFundingHistory(ctx context.Context, params map[string]any) ([]t
 // GetLiquidationHistory returns the configured subaccount's past
 // liquidation events. Private.
 //
-// Optional `params`: `start_timestamp`, `end_timestamp`. The
-// endpoint returns a bare array — there's no pagination wrapper.
-func (a *API) GetLiquidationHistory(ctx context.Context, params map[string]any) ([]types.LiquidationAuction, error) {
+// The endpoint returns a bare array — there's no pagination wrapper.
+// When [types.LiquidationHistoryQuery.Wallet] is set the engine
+// queries across all of its subaccounts and ignores
+// `subaccount_id`.
+func (a *API) GetLiquidationHistory(ctx context.Context, q types.LiquidationHistoryQuery) ([]types.LiquidationAuction, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
 	if err := a.requireSubaccount(); err != nil {
 		return nil, err
 	}
-	if params == nil {
-		params = map[string]any{}
+	params := map[string]any{
+		"subaccount_id": a.Subaccount,
 	}
-	if _, ok := params["subaccount_id"]; !ok {
-		params["subaccount_id"] = a.Subaccount
+	if q.Wallet != "" {
+		params["wallet"] = q.Wallet
 	}
+	addHistoryWindow(params, q.HistoryWindow)
 	var resp []types.LiquidationAuction
 	if err := a.call(ctx, "private/get_liquidation_history", params, &resp); err != nil {
 		return nil, err
@@ -74,23 +78,20 @@ func (a *API) GetLiquidationHistory(ctx context.Context, params map[string]any) 
 // GetLiquidatorHistory returns auction bids placed by the configured
 // subaccount as a liquidator. Private.
 //
-// The configured subaccount is threaded through automatically when
-// `subaccount_id` is not present in `params`. Optional `params`:
-// `start_timestamp`, `end_timestamp`, `page`, `page_size`. The
-// response is paginated; the second return value carries the totals.
-func (a *API) GetLiquidatorHistory(ctx context.Context, params map[string]any) ([]types.AuctionBid, types.Page, error) {
+// The response is paginated; the second return value carries the
+// totals.
+func (a *API) GetLiquidatorHistory(ctx context.Context, q types.LiquidatorHistoryQuery, page types.PageRequest) ([]types.AuctionBid, types.Page, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, types.Page{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
 		return nil, types.Page{}, err
 	}
-	if params == nil {
-		params = map[string]any{}
+	params := map[string]any{
+		"subaccount_id": a.Subaccount,
 	}
-	if _, ok := params["subaccount_id"]; !ok {
-		params["subaccount_id"] = a.Subaccount
-	}
+	addHistoryWindow(params, q.HistoryWindow)
+	addPaging(params, page)
 	var resp struct {
 		Bids       []types.AuctionBid `json:"bids"`
 		Pagination types.Page         `json:"pagination"`
@@ -104,21 +105,21 @@ func (a *API) GetLiquidatorHistory(ctx context.Context, params map[string]any) (
 // GetOptionSettlementHistory returns the configured subaccount's
 // past option-settlement events. Private.
 //
-// Optional `params`: `start_timestamp`, `end_timestamp`. The
-// response is wrapped in a `settlements` array and is not
+// The endpoint takes no time window — query by account identity
+// only. The response is wrapped in a `settlements` array and is not
 // paginated.
-func (a *API) GetOptionSettlementHistory(ctx context.Context, params map[string]any) ([]types.OptionSettlement, error) {
+func (a *API) GetOptionSettlementHistory(ctx context.Context, q types.OptionSettlementHistoryQuery) ([]types.OptionSettlement, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
 	if err := a.requireSubaccount(); err != nil {
 		return nil, err
 	}
-	if params == nil {
-		params = map[string]any{}
+	params := map[string]any{
+		"subaccount_id": a.Subaccount,
 	}
-	if _, ok := params["subaccount_id"]; !ok {
-		params["subaccount_id"] = a.Subaccount
+	if q.Wallet != "" {
+		params["wallet"] = q.Wallet
 	}
 	var resp struct {
 		Settlements []types.OptionSettlement `json:"settlements"`
@@ -132,18 +133,17 @@ func (a *API) GetOptionSettlementHistory(ctx context.Context, params map[string]
 // GetPublicLiquidationHistory returns the network-wide liquidation
 // history. Public — no signer required.
 //
-// Optional `params`: `subaccount_id` (filter to one subaccount),
-// `start_timestamp`, `end_timestamp`, `page`, `page_size`. The
-// response is paginated; the second return value carries the totals.
-//
 // Counterpart to the private [API.GetLiquidationHistory] (configured
 // subaccount only). The wire schemas differ in their wrapper field
 // name — public uses `auctions`, private uses a bare array — but
 // the per-record shape ([types.LiquidationAuction]) is the same.
-func (a *API) GetPublicLiquidationHistory(ctx context.Context, params map[string]any) ([]types.LiquidationAuction, types.Page, error) {
-	if params == nil {
-		params = map[string]any{}
+func (a *API) GetPublicLiquidationHistory(ctx context.Context, q types.LiquidationHistoryQuery, page types.PageRequest) ([]types.LiquidationAuction, types.Page, error) {
+	params := map[string]any{}
+	if q.Wallet != "" {
+		params["wallet"] = q.Wallet
 	}
+	addHistoryWindow(params, q.HistoryWindow)
+	addPaging(params, page)
 	var resp struct {
 		Auctions   []types.LiquidationAuction `json:"auctions"`
 		Pagination types.Page                 `json:"pagination"`
@@ -157,12 +157,14 @@ func (a *API) GetPublicLiquidationHistory(ctx context.Context, params map[string
 // GetPublicOptionSettlementHistory returns the network-wide option
 // settlement history. Public — no signer required.
 //
-// The endpoint paginates. The second return value carries the
-// totals.
-func (a *API) GetPublicOptionSettlementHistory(ctx context.Context, params map[string]any) ([]types.OptionSettlement, types.Page, error) {
-	if params == nil {
-		params = map[string]any{}
+// The endpoint takes no time window. The response is paginated;
+// the second return value carries the totals.
+func (a *API) GetPublicOptionSettlementHistory(ctx context.Context, q types.OptionSettlementHistoryQuery, page types.PageRequest) ([]types.OptionSettlement, types.Page, error) {
+	params := map[string]any{}
+	if q.Wallet != "" {
+		params["wallet"] = q.Wallet
 	}
+	addPaging(params, page)
 	var resp struct {
 		Settlements []types.OptionSettlement `json:"settlements"`
 		Pagination  types.Page               `json:"pagination"`
@@ -176,22 +178,20 @@ func (a *API) GetPublicOptionSettlementHistory(ctx context.Context, params map[s
 // GetSubaccountValueHistory returns the equity-curve series for the
 // configured subaccount. Private.
 //
-// Required `params`: `period`, `start_timestamp`, `end_timestamp`.
-// Returns the subaccount id the engine echoed back (always present
-// per the OAS) alongside the per-bucket samples; the response is not
-// paginated.
-func (a *API) GetSubaccountValueHistory(ctx context.Context, params map[string]any) (subaccountID int64, history []types.SubaccountValueRecord, err error) {
+// Returns the subaccount id the engine echoed back alongside the
+// per-bucket samples; the response is not paginated.
+func (a *API) GetSubaccountValueHistory(ctx context.Context, q types.SubaccountValueHistoryQuery) (subaccountID int64, history []types.SubaccountValueRecord, err error) {
 	if err := a.requireSigner(); err != nil {
 		return 0, nil, err
 	}
 	if err := a.requireSubaccount(); err != nil {
 		return 0, nil, err
 	}
-	if params == nil {
-		params = map[string]any{}
-	}
-	if _, ok := params["subaccount_id"]; !ok {
-		params["subaccount_id"] = a.Subaccount
+	params := map[string]any{
+		"subaccount_id":   a.Subaccount,
+		"period":          q.PeriodSec,
+		"start_timestamp": q.StartTimestamp.Millis(),
+		"end_timestamp":   q.EndTimestamp.Millis(),
 	}
 	var resp struct {
 		SubaccountID           int64                         `json:"subaccount_id"`
@@ -206,21 +206,21 @@ func (a *API) GetSubaccountValueHistory(ctx context.Context, params map[string]a
 // GetERC20TransferHistory returns deposit / withdrawal-style ERC-20
 // transfers attributed to the configured subaccount. Private.
 //
-// Optional `params`: `start_timestamp`, `end_timestamp`. The
-// response is wrapped in `events` and is not paginated.
-func (a *API) GetERC20TransferHistory(ctx context.Context, params map[string]any) ([]types.ERC20Transfer, error) {
+// The response is wrapped in `events` and is not paginated.
+func (a *API) GetERC20TransferHistory(ctx context.Context, q types.ERC20TransferHistoryQuery) ([]types.ERC20Transfer, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
 	if err := a.requireSubaccount(); err != nil {
 		return nil, err
 	}
-	if params == nil {
-		params = map[string]any{}
+	params := map[string]any{
+		"subaccount_id": a.Subaccount,
 	}
-	if _, ok := params["subaccount_id"]; !ok {
-		params["subaccount_id"] = a.Subaccount
+	if q.Wallet != "" {
+		params["wallet"] = q.Wallet
 	}
+	addHistoryWindow(params, q.HistoryWindow)
 	var resp struct {
 		Events []types.ERC20Transfer `json:"events"`
 	}
@@ -233,21 +233,21 @@ func (a *API) GetERC20TransferHistory(ctx context.Context, params map[string]any
 // GetInterestHistory returns the configured subaccount's interest
 // charges and rebates. Private.
 //
-// Optional `params`: `start_timestamp`, `end_timestamp`. The
-// response is wrapped in `events` and is not paginated.
-func (a *API) GetInterestHistory(ctx context.Context, params map[string]any) ([]types.InterestPayment, error) {
+// The response is wrapped in `events` and is not paginated.
+func (a *API) GetInterestHistory(ctx context.Context, q types.InterestHistoryQuery) ([]types.InterestPayment, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
 	if err := a.requireSubaccount(); err != nil {
 		return nil, err
 	}
-	if params == nil {
-		params = map[string]any{}
+	params := map[string]any{
+		"subaccount_id": a.Subaccount,
 	}
-	if _, ok := params["subaccount_id"]; !ok {
-		params["subaccount_id"] = a.Subaccount
+	if q.Wallet != "" {
+		params["wallet"] = q.Wallet
 	}
+	addHistoryWindow(params, q.HistoryWindow)
 	var resp struct {
 		Events []types.InterestPayment `json:"events"`
 	}
@@ -260,25 +260,47 @@ func (a *API) GetInterestHistory(ctx context.Context, params map[string]any) ([]
 // ExpiredAndCancelledHistory triggers an archive export of the
 // configured subaccount's expired and cancelled orders. Private.
 //
-// Required `params`: `start_timestamp`, `end_timestamp`, `expiry`.
 // The response carries pre-signed S3 URLs the caller can download
 // directly to retrieve the archived records.
-func (a *API) ExpiredAndCancelledHistory(ctx context.Context, params map[string]any) (types.ExpiredAndCancelledExport, error) {
+func (a *API) ExpiredAndCancelledHistory(ctx context.Context, in types.ExpiredAndCancelledHistoryInput) (types.ExpiredAndCancelledExport, error) {
 	if err := a.requireSigner(); err != nil {
 		return types.ExpiredAndCancelledExport{}, err
 	}
 	if err := a.requireSubaccount(); err != nil {
 		return types.ExpiredAndCancelledExport{}, err
 	}
-	if params == nil {
-		params = map[string]any{}
+	sub := in.SubaccountID
+	if sub == 0 {
+		sub = a.Subaccount
 	}
-	if _, ok := params["subaccount_id"]; !ok {
-		params["subaccount_id"] = a.Subaccount
+	params := map[string]any{
+		"subaccount_id":   sub,
+		"wallet":          in.Wallet,
+		"start_timestamp": in.StartTimestamp.Millis(),
+		"end_timestamp":   in.EndTimestamp.Millis(),
+		"expiry":          in.ExpirySec,
 	}
 	var resp types.ExpiredAndCancelledExport
 	if err := a.call(ctx, "private/expired_and_cancelled_history", params, &resp); err != nil {
 		return types.ExpiredAndCancelledExport{}, err
 	}
 	return resp, nil
+}
+
+func addHistoryWindow(params map[string]any, w types.HistoryWindow) {
+	if !w.StartTimestamp.Time().IsZero() {
+		params["start_timestamp"] = w.StartTimestamp.Millis()
+	}
+	if !w.EndTimestamp.Time().IsZero() {
+		params["end_timestamp"] = w.EndTimestamp.Millis()
+	}
+}
+
+func addPaging(params map[string]any, p types.PageRequest) {
+	if p.Page > 0 {
+		params["page"] = p.Page
+	}
+	if p.PageSize > 0 {
+		params["page_size"] = p.PageSize
+	}
 }

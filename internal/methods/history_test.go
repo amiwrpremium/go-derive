@@ -11,6 +11,7 @@ import (
 
 	"github.com/amiwrpremium/go-derive/pkg/enums"
 	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestGetFundingHistory_Decode(t *testing.T) {
@@ -21,7 +22,7 @@ func TestGetFundingHistory_Decode(t *testing.T) {
 		},
 		"pagination": map[string]any{"count": 1, "num_pages": 1},
 	})
-	events, page, err := api.GetFundingHistory(context.Background(), nil)
+	events, page, err := api.GetFundingHistory(context.Background(), types.FundingHistoryQuery{}, types.PageRequest{})
 	require.NoError(t, err)
 	require.Len(t, events, 1)
 	assert.Equal(t, "BTC-PERP", events[0].InstrumentName)
@@ -32,20 +33,20 @@ func TestGetFundingHistory_Decode(t *testing.T) {
 
 func TestGetFundingHistory_RequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
-	_, _, err := api.GetFundingHistory(context.Background(), nil)
+	_, _, err := api.GetFundingHistory(context.Background(), types.FundingHistoryQuery{}, types.PageRequest{})
 	assert.True(t, errors.Is(err, derrors.ErrUnauthorized))
 }
 
 func TestGetFundingHistory_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	_, _, err := api.GetFundingHistory(context.Background(), nil)
+	_, _, err := api.GetFundingHistory(context.Background(), types.FundingHistoryQuery{}, types.PageRequest{})
 	assert.True(t, errors.Is(err, derrors.ErrSubaccountRequired))
 }
 
 func TestGetFundingHistory_PropagatesAPIError(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleError("private/get_funding_history", boom)
-	_, _, err := api.GetFundingHistory(context.Background(), nil)
+	_, _, err := api.GetFundingHistory(context.Background(), types.FundingHistoryQuery{}, types.PageRequest{})
 	assert.ErrorAs(t, err, new(*derrors.APIError))
 }
 
@@ -62,7 +63,7 @@ func TestGetPublicLiquidationHistory_Decode(t *testing.T) {
 		},
 		"pagination": map[string]any{"num_pages": 1, "count": 1},
 	})
-	auctions, page, err := api.GetPublicLiquidationHistory(context.Background(), nil)
+	auctions, page, err := api.GetPublicLiquidationHistory(context.Background(), types.LiquidationHistoryQuery{}, types.PageRequest{})
 	require.NoError(t, err)
 	require.Len(t, auctions, 1)
 	assert.Equal(t, enums.AuctionTypeInsolvent, auctions[0].AuctionType)
@@ -88,7 +89,7 @@ func TestGetLiquidatorHistory_Decode(t *testing.T) {
 		},
 		"pagination": map[string]any{"count": 1, "num_pages": 1},
 	})
-	bids, page, err := api.GetLiquidatorHistory(context.Background(), nil)
+	bids, page, err := api.GetLiquidatorHistory(context.Background(), types.LiquidatorHistoryQuery{}, types.PageRequest{})
 	require.NoError(t, err)
 	require.Len(t, bids, 1)
 	assert.Equal(t, "100", bids[0].CashReceived.String())
@@ -97,13 +98,13 @@ func TestGetLiquidatorHistory_Decode(t *testing.T) {
 
 func TestGetLiquidatorHistory_RequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
-	_, _, err := api.GetLiquidatorHistory(context.Background(), nil)
+	_, _, err := api.GetLiquidatorHistory(context.Background(), types.LiquidatorHistoryQuery{}, types.PageRequest{})
 	assert.True(t, errors.Is(err, derrors.ErrUnauthorized))
 }
 
 func TestGetLiquidatorHistory_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	_, _, err := api.GetLiquidatorHistory(context.Background(), nil)
+	_, _, err := api.GetLiquidatorHistory(context.Background(), types.LiquidatorHistoryQuery{}, types.PageRequest{})
 	assert.True(t, errors.Is(err, derrors.ErrSubaccountRequired))
 }
 
@@ -117,7 +118,7 @@ func TestGetLiquidationHistory_Decode(t *testing.T) {
 			"bids": []any{},
 		},
 	})
-	got, err := api.GetLiquidationHistory(context.Background(), nil)
+	got, err := api.GetLiquidationHistory(context.Background(), types.LiquidationHistoryQuery{})
 	require.NoError(t, err)
 	require.Len(t, got, 1)
 	assert.Equal(t, "auc-1", got[0].AuctionID)
@@ -127,7 +128,7 @@ func TestGetLiquidationHistory_Decode(t *testing.T) {
 func TestGetLiquidationHistory_PropagatesAPIError(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleError("private/get_liquidation_history", boom)
-	_, err := api.GetLiquidationHistory(context.Background(), nil)
+	_, err := api.GetLiquidationHistory(context.Background(), types.LiquidationHistoryQuery{})
 	assert.ErrorAs(t, err, new(*derrors.APIError))
 }
 
@@ -142,7 +143,7 @@ func TestGetOptionSettlementHistory_Decode(t *testing.T) {
 			},
 		},
 	})
-	got, err := api.GetOptionSettlementHistory(context.Background(), nil)
+	got, err := api.GetOptionSettlementHistory(context.Background(), types.OptionSettlementHistoryQuery{})
 	require.NoError(t, err)
 	require.Len(t, got, 1)
 	assert.Equal(t, int64(1704067200), got[0].Expiry)
@@ -160,7 +161,7 @@ func TestGetPublicOptionSettlementHistory_Decode(t *testing.T) {
 		},
 		"pagination": map[string]any{"count": 1, "num_pages": 1},
 	})
-	got, page, err := api.GetPublicOptionSettlementHistory(context.Background(), nil)
+	got, page, err := api.GetPublicOptionSettlementHistory(context.Background(), types.OptionSettlementHistoryQuery{}, types.PageRequest{})
 	require.NoError(t, err)
 	require.Len(t, got, 1)
 	assert.Equal(t, 1, page.Count)
@@ -178,9 +179,7 @@ func TestGetSubaccountValueHistory_Decode(t *testing.T) {
 			},
 		},
 	})
-	subaccountID, got, err := api.GetSubaccountValueHistory(context.Background(), map[string]any{
-		"period": int64(86400), "start_timestamp": 0, "end_timestamp": 1,
-	})
+	subaccountID, got, err := api.GetSubaccountValueHistory(context.Background(), types.SubaccountValueHistoryQuery{PeriodSec: 86400})
 	require.NoError(t, err)
 	assert.Equal(t, int64(9), subaccountID)
 	require.Len(t, got, 1)
@@ -200,7 +199,7 @@ func TestGetERC20TransferHistory_Decode(t *testing.T) {
 			},
 		},
 	})
-	got, err := api.GetERC20TransferHistory(context.Background(), nil)
+	got, err := api.GetERC20TransferHistory(context.Background(), types.ERC20TransferHistoryQuery{})
 	require.NoError(t, err)
 	require.Len(t, got, 1)
 	assert.True(t, got[0].IsOutgoing)
@@ -214,7 +213,7 @@ func TestGetInterestHistory_Decode(t *testing.T) {
 			map[string]any{"subaccount_id": int64(1), "timestamp": int64(1700000000000), "interest": "0.5"},
 		},
 	})
-	got, err := api.GetInterestHistory(context.Background(), nil)
+	got, err := api.GetInterestHistory(context.Background(), types.InterestHistoryQuery{})
 	require.NoError(t, err)
 	require.Len(t, got, 1)
 	assert.Equal(t, "0.5", got[0].Interest.String())
@@ -225,8 +224,9 @@ func TestExpiredAndCancelledHistory_Decode(t *testing.T) {
 	ft.HandleResult("private/expired_and_cancelled_history", map[string]any{
 		"presigned_urls": []any{"https://s3.example/a", "https://s3.example/b"},
 	})
-	got, err := api.ExpiredAndCancelledHistory(context.Background(), map[string]any{
-		"start_timestamp": 0, "end_timestamp": 1, "expiry": int64(1704067200),
+	got, err := api.ExpiredAndCancelledHistory(context.Background(), types.ExpiredAndCancelledHistoryInput{
+		Wallet:    "0xabc",
+		ExpirySec: 1704067200,
 	})
 	require.NoError(t, err)
 	require.Equal(t, []string{"https://s3.example/a", "https://s3.example/b"}, got.PresignedURLs)
@@ -235,6 +235,6 @@ func TestExpiredAndCancelledHistory_Decode(t *testing.T) {
 func TestExpiredAndCancelledHistory_PropagatesAPIError(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleError("private/expired_and_cancelled_history", boom)
-	_, err := api.ExpiredAndCancelledHistory(context.Background(), nil)
+	_, err := api.ExpiredAndCancelledHistory(context.Background(), types.ExpiredAndCancelledHistoryInput{Wallet: "0xabc", ExpirySec: 60})
 	assert.ErrorAs(t, err, new(*derrors.APIError))
 }
