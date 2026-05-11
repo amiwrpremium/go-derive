@@ -35,6 +35,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"iter"
 	"sync"
 
 	"github.com/amiwrpremium/go-derive/internal/transport"
@@ -226,6 +227,84 @@ func (s *Subscription[T]) Updates() <-chan T { return s.typed }
 // Err returns the terminal error once [Subscription.Updates] has closed,
 // or nil for a clean shutdown (including a ctx-cancel-driven teardown).
 func (s *Subscription[T]) Err() error { return s.raw.Err() }
+
+// All returns an [iter.Seq2] over the subscription's events suitable
+// for use with Go 1.23+ range-over-func:
+//
+//	for ev, err := range sub.All() {
+//	    if err != nil {
+//	        return err
+//	    }
+//	    handle(ev)
+//	}
+//
+// The first value is the typed event; the second is non-nil only on
+// the final terminal yield if the subscription ended in error.
+// Clean shutdowns (ctx-cancel, explicit [Subscription.Close]) end
+// the iterator without yielding a terminal error.
+//
+// The iterator stops when the loop body breaks (yield returns false),
+// the subscription terminates, or the buffer is drained after
+// termination.
+//
+// Decode errors during the subscription do NOT come through this
+// iterator — they are routed through [WithErrorHandler] as
+// [ErrDecodeFailed]. Only terminal errors (transport fault) are
+// yielded here.
+func (s *Subscription[T]) All() iter.Seq2[T, error] {
+	if s.ownsTyped {
+		// Subscribe path: pump closes typed on exit. A range loop
+		// naturally drains any buffered events then signals
+		// termination via ok=false, so we don't need to select on
+		// done here. Doing so would race — Go picks ready cases
+		// at random, so a closed-done arm could win against a
+		// non-empty typed buffer and skip events.
+		return func(yield func(T, error) bool) {
+			for ev := range s.typed {
+				if !yield(ev, nil) {
+					return
+				}
+			}
+			s.yieldTerminalErr(yield)
+		}
+	}
+	// SubscribeInto path: caller owns typed and the SDK never
+	// closes it. Use done as the termination signal, but prefer
+	// draining typed first so buffered events aren't lost to the
+	// select-arm coin-flip when both arms are ready.
+	return func(yield func(T, error) bool) {
+		for {
+			select {
+			case ev := <-s.typed:
+				if !yield(ev, nil) {
+					return
+				}
+				continue
+			default:
+			}
+			// typed empty; wait for the next event or termination.
+			select {
+			case ev := <-s.typed:
+				if !yield(ev, nil) {
+					return
+				}
+			case <-s.done:
+				s.yieldTerminalErr(yield)
+				return
+			}
+		}
+	}
+}
+
+// yieldTerminalErr emits one final (zero, err) pair if the
+// subscription ended in a non-nil error. Used by [Subscription.All]
+// at iterator-exit time.
+func (s *Subscription[T]) yieldTerminalErr(yield func(T, error) bool) {
+	if err := s.Err(); err != nil {
+		var zero T
+		yield(zero, err)
+	}
+}
 
 // Close ends the subscription, sends an unsubscribe RPC best-effort, and
 // signals the pump goroutines to exit. Idempotent.
