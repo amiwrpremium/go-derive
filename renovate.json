@@ -14,7 +14,9 @@
     "helpers:pinGitHubActionDigestsToSemver"
   ],
   "labels": ["dependencies"],
-  "baseBranches": ["master"],
+  "baseBranchPatterns": [
+    "master"
+  ],
   "rangeStrategy": "bump",
   "postUpdateOptions": ["gomodTidy", "gomodUpdateImportPaths"],
   "lockFileMaintenance": {
