@@ -7,25 +7,40 @@
 package main
 
 import (
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
 	"github.com/amiwrpremium/go-derive/pkg/enums"
+	"github.com/amiwrpremium/go-derive/pkg/rest"
 )
 
 func main() {
-	c := example.MustRESTPublic()
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
 	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	insts, err := c.GetInstruments(ctx, "BTC", enums.InstrumentTypePerp)
-	example.Fatal(err)
-	example.Print("BTC perp count", len(insts))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "BTC perp count:", len(insts))
 	for i, in := range insts {
 		if i >= 3 {
 			break
 		}
-		example.Print(in.Name+" tick", in.TickSize)
-		example.Print(in.Name+" min", in.MinimumAmount)
-		example.Print(in.Name+" active", in.IsActive)
+		fmt.Printf("%-30s %v\n", in.Name+" tick:", in.TickSize)
+		fmt.Printf("%-30s %v\n", in.Name+" min:", in.MinimumAmount)
+		fmt.Printf("%-30s %v\n", in.Name+" active:", in.IsActive)
 	}
 }

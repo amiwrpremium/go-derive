@@ -3,30 +3,43 @@
 package main
 
 import (
+	"context"
+	"fmt"
+	"log"
 	"os"
+	"time"
 
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/rest"
 )
 
 func main() {
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
+	defer c.Close()
 	currency := os.Getenv("DERIVE_CURRENCY")
 	if currency == "" {
 		currency = "BTC"
 	}
-	c := example.MustRESTPublic()
-	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	prices, err := c.GetOptionSettlementPrices(ctx, currency)
-	example.Fatal(err)
-	example.Print("expiry count", len(prices))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "expiry count:", len(prices))
 	for i, p := range prices {
 		if i >= 5 {
 			break
 		}
-		example.Print("expiry", p.ExpiryDate)
-		example.Print("  utc_expiry_sec", p.UTCExpirySec)
-		example.Print("  price", p.Price.String())
+		fmt.Printf("%-30s %v\n", "expiry:", p.ExpiryDate)
+		fmt.Printf("%-30s %v\n", "  utc_expiry_sec:", p.UTCExpirySec)
+		fmt.Printf("%-30s %v\n", "  price:", p.Price.String())
 	}
 }

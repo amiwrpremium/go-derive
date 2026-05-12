@@ -2,22 +2,39 @@
 // wallet (or omits the wallet param when no signer is configured).
 package main
 
-import "github.com/amiwrpremium/go-derive/examples/example"
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/amiwrpremium/go-derive/pkg/rest"
+)
 
 func main() {
-	c := example.MustRESTPublic()
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
 	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	codes, err := c.GetAllReferralCodes(ctx)
-	example.Fatal(err)
-	example.Print("codes", len(codes))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "codes:", len(codes))
 	for i, r := range codes {
 		if i >= 3 {
 			break
 		}
-		example.Print("code", r.ReferralCode)
-		example.Print("  wallet", r.Wallet)
+		fmt.Printf("%-30s %v\n", "code:", r.ReferralCode)
+		fmt.Printf("%-30s %v\n", "  wallet:", r.Wallet)
 	}
 }

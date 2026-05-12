@@ -4,25 +4,40 @@
 package main
 
 import (
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
 	"github.com/amiwrpremium/go-derive/pkg/enums"
+	"github.com/amiwrpremium/go-derive/pkg/rest"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
-	c := example.MustRESTPublic()
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
 	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	insts, page, err := c.GetAllInstruments(ctx, enums.InstrumentTypePerp, false, types.PageRequest{PageSize: 50})
-	example.Fatal(err)
-	example.Print("instrument count", len(insts))
-	example.Print("total pages", page.NumPages)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "instrument count:", len(insts))
+	fmt.Printf("%-30s %v\n", "total pages:", page.NumPages)
 	for i, in := range insts {
 		if i >= 5 {
 			break
 		}
-		example.Print("instrument", in.Name)
+		fmt.Printf("%-30s %v\n", "instrument:", in.Name)
 	}
 }

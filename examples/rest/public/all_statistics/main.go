@@ -2,23 +2,40 @@
 // instrument.
 package main
 
-import "github.com/amiwrpremium/go-derive/examples/example"
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/amiwrpremium/go-derive/pkg/rest"
+)
 
 func main() {
-	c := example.MustRESTPublic()
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
 	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	stats, err := c.GetAllStatistics(ctx, 0)
-	example.Fatal(err)
-	example.Print("rows", len(stats))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "rows:", len(stats))
 	for i, s := range stats {
 		if i >= 5 {
 			break
 		}
-		example.Print("tuple", s.Currency+"/"+s.InstrumentType)
-		example.Print("  daily_notional_volume", s.DailyNotionalVolume.String())
-		example.Print("  open_interest", s.OpenInterest.String())
+		fmt.Printf("%-30s %v\n", "tuple:", s.Currency+"/"+s.InstrumentType)
+		fmt.Printf("%-30s %v\n", "  daily_notional_volume:", s.DailyNotionalVolume.String())
+		fmt.Printf("%-30s %v\n", "  open_interest:", s.OpenInterest.String())
 	}
 }

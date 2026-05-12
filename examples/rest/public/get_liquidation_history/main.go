@@ -3,26 +3,41 @@
 package main
 
 import (
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/amiwrpremium/go-derive/pkg/rest"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
-	c := example.MustRESTPublic()
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
 	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	auctions, page, err := c.GetPublicLiquidationHistory(ctx, types.LiquidationHistoryQuery{}, types.PageRequest{})
-	example.Fatal(err)
-	example.Print("auctions", len(auctions))
-	example.Print("total pages", page.NumPages)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "auctions:", len(auctions))
+	fmt.Printf("%-30s %v\n", "total pages:", page.NumPages)
 	for i, a := range auctions {
 		if i >= 3 {
 			break
 		}
-		example.Print("auction", a.AuctionID)
-		example.Print("  type", string(a.AuctionType))
-		example.Print("  subaccount", a.SubaccountID)
+		fmt.Printf("%-30s %v\n", "auction:", a.AuctionID)
+		fmt.Printf("%-30s %v\n", "  type:", string(a.AuctionType))
+		fmt.Printf("%-30s %v\n", "  subaccount:", a.SubaccountID)
 	}
 }

@@ -4,14 +4,26 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
+	"time"
 
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/rest"
 )
 
 func main() {
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
+	defer c.Close()
 	idStr := os.Getenv("DERIVE_SUBACCOUNT")
 	if idStr == "" {
 		log.Fatal("DERIVE_SUBACCOUNT required")
@@ -20,17 +32,17 @@ func main() {
 	if err != nil {
 		log.Fatalf("DERIVE_SUBACCOUNT=%q: %v", idStr, err)
 	}
-	c := example.MustRESTPublic()
-	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	snap, err := c.MarginWatch(ctx, id, false, false)
-	example.Fatal(err)
-	example.Print("subaccount_id", snap.SubaccountID)
-	example.Print("margin_type", snap.MarginType)
-	example.Print("subaccount_value", snap.SubaccountValue.String())
-	example.Print("maintenance_margin", snap.MaintenanceMargin.String())
-	example.Print("collaterals", len(snap.Collaterals))
-	example.Print("positions", len(snap.Positions))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "subaccount_id:", snap.SubaccountID)
+	fmt.Printf("%-30s %v\n", "margin_type:", snap.MarginType)
+	fmt.Printf("%-30s %v\n", "subaccount_value:", snap.SubaccountValue.String())
+	fmt.Printf("%-30s %v\n", "maintenance_margin:", snap.MaintenanceMargin.String())
+	fmt.Printf("%-30s %v\n", "collaterals:", len(snap.Collaterals))
+	fmt.Printf("%-30s %v\n", "positions:", len(snap.Positions))
 }

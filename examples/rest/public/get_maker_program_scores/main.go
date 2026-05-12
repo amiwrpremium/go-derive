@@ -7,14 +7,26 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
+	"time"
 
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/rest"
 )
 
 func main() {
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
+	defer c.Close()
 	name := os.Getenv("DERIVE_PROGRAM_NAME")
 	if name == "" {
 		log.Fatal("DERIVE_PROGRAM_NAME required (run get_maker_programs to discover names)")
@@ -27,23 +39,22 @@ func main() {
 	if err != nil {
 		log.Fatalf("DERIVE_EPOCH_START=%q: %v", epochStr, err)
 	}
-
-	c := example.MustRESTPublic()
-	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	res, err := c.GetMakerProgramScores(ctx, name, epoch)
-	example.Fatal(err)
-	example.Print("program", res.Program.Name)
-	example.Print("total_score", res.TotalScore.String())
-	example.Print("total_volume", res.TotalVolume.String())
-	example.Print("score count", len(res.Scores))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "program:", res.Program.Name)
+	fmt.Printf("%-30s %v\n", "total_score:", res.TotalScore.String())
+	fmt.Printf("%-30s %v\n", "total_volume:", res.TotalVolume.String())
+	fmt.Printf("%-30s %v\n", "score count:", len(res.Scores))
 	for i, s := range res.Scores {
 		if i >= 3 {
 			break
 		}
-		example.Print("wallet", s.Wallet.String())
-		example.Print("  total_score", s.TotalScore.String())
+		fmt.Printf("%-30s %v\n", "wallet:", s.Wallet.String())
+		fmt.Printf("%-30s %v\n", "  total_score:", s.TotalScore.String())
 	}
 }

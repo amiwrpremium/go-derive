@@ -2,23 +2,40 @@
 // supplied filters.
 package main
 
-import "github.com/amiwrpremium/go-derive/examples/example"
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/amiwrpremium/go-derive/pkg/rest"
+)
 
 func main() {
-	c := example.MustRESTPublic()
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
 	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	stats, err := c.GetAllUserStatistics(ctx, 0)
-	example.Fatal(err)
-	example.Print("rows", len(stats))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "rows:", len(stats))
 	for i, s := range stats {
 		if i >= 5 {
 			break
 		}
-		example.Print("wallet", s.Wallet)
-		example.Print("  total_fees", s.TotalFees.String())
-		example.Print("  total_trades", s.TotalTrades)
+		fmt.Printf("%-30s %v\n", "wallet:", s.Wallet)
+		fmt.Printf("%-30s %v\n", "  total_fees:", s.TotalFees.String())
+		fmt.Printf("%-30s %v\n", "  total_trades:", s.TotalTrades)
 	}
 }

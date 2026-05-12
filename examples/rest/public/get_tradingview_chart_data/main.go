@@ -4,16 +4,32 @@
 package main
 
 import (
+	"context"
+	"fmt"
+	"log"
+	"os"
 	"time"
 
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/rest"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
-	c := example.MustRESTPublic()
+	instrument := os.Getenv("DERIVE_INSTRUMENT")
+	if instrument == "" {
+		instrument = "BTC-PERP"
+	}
+
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
 	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	end := time.Now()
@@ -24,18 +40,19 @@ func main() {
 			StartTimestamp: types.NewMillisTime(start),
 			EndTimestamp:   types.NewMillisTime(end),
 		},
-		InstrumentName: example.Instrument(),
+		InstrumentName: instrument,
 		PeriodSec:      60,
 	})
-	example.Fatal(err)
-	example.Print("bars", len(bars))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "bars:", len(bars))
 	for i, b := range bars {
 		if i >= 3 {
 			break
 		}
-		example.Print("at ms", b.Timestamp.Millis())
-		example.Print("  ohlc",
-			b.OpenPrice.String()+" "+b.HighPrice.String()+" "+b.LowPrice.String()+" "+b.ClosePrice.String())
-		example.Print("  volume_usd", b.VolumeUSD.String())
+		fmt.Printf("%-30s %v\n", "at ms:", b.Timestamp.Millis())
+		fmt.Printf("%-30s %v\n", "  ohlc:", b.OpenPrice.String()+" "+b.HighPrice.String()+" "+b.LowPrice.String()+" "+b.ClosePrice.String())
+		fmt.Printf("%-30s %v\n", "  volume_usd:", b.VolumeUSD.String())
 	}
 }

@@ -6,23 +6,31 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"os"
 	"time"
 
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/rest"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
+	defer c.Close()
 	name := os.Getenv("DERIVE_VAULT_NAME")
 	if name == "" {
 		log.Fatal("DERIVE_VAULT_NAME required (run get_vault_statistics to discover names)")
 	}
-
-	c := example.MustRESTPublic()
-	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	end := time.Now().Unix()
@@ -33,15 +41,17 @@ func main() {
 		FromSec:   start,
 		ToSec:     end,
 	}, types.PageRequest{})
-	example.Fatal(err)
-	example.Print("snapshot count", len(shares))
-	example.Print("total pages", page.NumPages)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "snapshot count:", len(shares))
+	fmt.Printf("%-30s %v\n", "total pages:", page.NumPages)
 	for i, s := range shares {
 		if i >= 3 {
 			break
 		}
-		example.Print("block", s.BlockNumber)
-		example.Print("  usd_value", s.USDValue.String())
-		example.Print("  base_value", s.BaseValue.String())
+		fmt.Printf("%-30s %v\n", "block:", s.BlockNumber)
+		fmt.Printf("%-30s %v\n", "  usd_value:", s.USDValue.String())
+		fmt.Printf("%-30s %v\n", "  base_value:", s.BaseValue.String())
 	}
 }

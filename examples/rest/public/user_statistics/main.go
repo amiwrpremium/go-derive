@@ -2,27 +2,39 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"os"
+	"time"
 
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/rest"
 )
 
 func main() {
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
+	defer c.Close()
 	wallet := os.Getenv("DERIVE_WALLET")
 	if wallet == "" {
 		log.Fatal("DERIVE_WALLET required")
 	}
-	c := example.MustRESTPublic()
-	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	s, err := c.GetUserStatistics(ctx, wallet)
-	example.Fatal(err)
-	example.Print("total_fees", s.TotalFees.String())
-	example.Print("total_trades", s.TotalTrades)
-	example.Print("total_notional_volume", s.TotalNotionalVolume.String())
-	example.Print("first_trade_ms", s.FirstTradeTimestamp.Millis())
-	example.Print("last_trade_ms", s.LastTradeTimestamp.Millis())
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "total_fees:", s.TotalFees.String())
+	fmt.Printf("%-30s %v\n", "total_trades:", s.TotalTrades)
+	fmt.Printf("%-30s %v\n", "total_notional_volume:", s.TotalNotionalVolume.String())
+	fmt.Printf("%-30s %v\n", "first_trade_ms:", s.FirstTradeTimestamp.Millis())
+	fmt.Printf("%-30s %v\n", "last_trade_ms:", s.LastTradeTimestamp.Millis())
 }

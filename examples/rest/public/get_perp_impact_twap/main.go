@@ -7,23 +7,36 @@
 package main
 
 import (
+	"context"
+	"fmt"
+	"log"
+	"os"
 	"time"
 
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/rest"
 )
 
 func main() {
-	c := example.MustRESTPublic()
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
 	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	now := time.Now()
 	twap, err := c.GetPerpImpactTWAP(ctx, "BTC", now.Add(-time.Hour).UnixMilli(), now.UnixMilli())
-	example.Fatal(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	example.Print("currency", twap.Currency)
-	example.Print("mid diff TWAP", twap.MidPriceDiffTWAP.String())
-	example.Print("ask impact TWAP", twap.AskImpactDiffTWAP.String())
-	example.Print("bid impact TWAP", twap.BidImpactDiffTWAP.String())
+	fmt.Printf("%-30s %v\n", "currency:", twap.Currency)
+	fmt.Printf("%-30s %v\n", "mid diff TWAP:", twap.MidPriceDiffTWAP.String())
+	fmt.Printf("%-30s %v\n", "ask impact TWAP:", twap.AskImpactDiffTWAP.String())
+	fmt.Printf("%-30s %v\n", "bid impact TWAP:", twap.BidImpactDiffTWAP.String())
 }
