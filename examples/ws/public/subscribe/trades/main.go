@@ -2,17 +2,40 @@
 package main
 
 import (
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 func main() {
-	ctx, cancel := example.LongTimeout()
-	defer cancel()
-	c := example.MustWSPublic(ctx)
-	defer c.Close()
+	instrument := os.Getenv("DERIVE_INSTRUMENT")
+	if instrument == "" {
+		instrument = "BTC-PERP"
+	}
 
-	sub, err := c.SubscribeTrades(ctx, example.Instrument())
-	example.Fatal(err)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+
+	wsNetwork := ws.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		wsNetwork = ws.WithMainnet()
+	}
+	c, err := ws.New(wsNetwork)
+	if err != nil {
+		log.Fatalf("ws.New: %v", err)
+	}
+	defer c.Close()
+	if err := c.Connect(ctx); err != nil {
+		log.Fatalf("ws.Connect: %v", err)
+	}
+	sub, err := c.SubscribeTrades(ctx, instrument)
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer sub.Close()
 
 	for {
@@ -23,7 +46,7 @@ func main() {
 			if !ok {
 				return
 			}
-			example.Print("prints", len(batch))
+			fmt.Printf("%-30s %v\n", "prints:", len(batch))
 		}
 	}
 }

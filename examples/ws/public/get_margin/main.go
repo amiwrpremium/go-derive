@@ -3,17 +3,33 @@
 package main
 
 import (
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
 	"github.com/amiwrpremium/go-derive/pkg/enums"
 	"github.com/amiwrpremium/go-derive/pkg/types"
+	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 func main() {
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	c := example.MustWSPublic(ctx)
-	defer c.Close()
 
+	wsNetwork := ws.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		wsNetwork = ws.WithMainnet()
+	}
+	c, err := ws.New(wsNetwork)
+	if err != nil {
+		log.Fatalf("ws.New: %v", err)
+	}
+	defer c.Close()
+	if err := c.Connect(ctx); err != nil {
+		log.Fatalf("ws.Connect: %v", err)
+	}
 	res, err := c.GetPublicMargin(ctx, types.PublicMarginInput{
 		MarginType: enums.MarginTypePM,
 		Market:     "BTC",
@@ -22,6 +38,8 @@ func main() {
 		},
 		SimulatedPositions: []types.SimulatedPosition{},
 	})
-	example.Fatal(err)
-	example.Print("post_initial_margin", res.PostInitialMargin.String())
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "post_initial_margin:", res.PostInitialMargin.String())
 }

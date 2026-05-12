@@ -7,18 +7,36 @@
 package main
 
 import (
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
 	"github.com/amiwrpremium/go-derive/pkg/enums"
+	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 func main() {
-	ctx, cancel := example.LongTimeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
-	c := example.MustWSPublic(ctx)
-	defer c.Close()
 
+	wsNetwork := ws.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		wsNetwork = ws.WithMainnet()
+	}
+	c, err := ws.New(wsNetwork)
+	if err != nil {
+		log.Fatalf("ws.New: %v", err)
+	}
+	defer c.Close()
+	if err := c.Connect(ctx); err != nil {
+		log.Fatalf("ws.Connect: %v", err)
+	}
 	sub, err := c.SubscribeAuctionsWatch(ctx)
-	example.Fatal(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer sub.Close()
 
 	for {
@@ -29,12 +47,12 @@ func main() {
 			if !ok {
 				return
 			}
-			example.Print("subaccount", ev.SubaccountID)
-			example.Print("  state", string(ev.State))
+			fmt.Printf("%-30s %v\n", "subaccount:", ev.SubaccountID)
+			fmt.Printf("%-30s %v\n", "  state:", string(ev.State))
 			if ev.State == enums.AuctionStateOngoing && ev.Details != nil {
-				example.Print("  currency", ev.Details.Currency)
-				example.Print("  est_bid_price", ev.Details.EstimatedBidPrice.String())
-				example.Print("  est_percent_bid", ev.Details.EstimatedPercentBid.String())
+				fmt.Printf("%-30s %v\n", "  currency:", ev.Details.Currency)
+				fmt.Printf("%-30s %v\n", "  est_bid_price:", ev.Details.EstimatedBidPrice.String())
+				fmt.Printf("%-30s %v\n", "  est_percent_bid:", ev.Details.EstimatedPercentBid.String())
 			}
 		}
 	}

@@ -8,11 +8,13 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
+	"time"
 
-	"github.com/amiwrpremium/go-derive/examples/example"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
@@ -23,27 +25,40 @@ func decodeTrades(raw json.RawMessage) ([]types.Trade, error) {
 }
 
 func main() {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+
+	wsNetwork := ws.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		wsNetwork = ws.WithMainnet()
+	}
+	c, err := ws.New(wsNetwork)
+	if err != nil {
+		log.Fatalf("ws.New: %v", err)
+	}
+	defer c.Close()
+	if err := c.Connect(ctx); err != nil {
+		log.Fatalf("ws.Connect: %v", err)
+	}
 	a := os.Getenv("DERIVE_INSTRUMENT_A")
 	b := os.Getenv("DERIVE_INSTRUMENT_B")
 	if a == "" || b == "" {
 		log.Fatal("DERIVE_INSTRUMENT_A and DERIVE_INSTRUMENT_B required")
 	}
-
-	ctx, cancel := example.LongTimeout()
-	defer cancel()
-	c := example.MustWSPublic(ctx)
-	defer c.Close()
-
 	// One shared buffer fed by two subscriptions.
 	out := make(chan []types.Trade, 256)
 	subA, err := ws.SubscribeInto(ctx, c, "trades."+a, decodeTrades, out)
-	example.Fatal(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer subA.Close()
 	subB, err := ws.SubscribeInto(ctx, c, "trades."+b, decodeTrades, out)
-	example.Fatal(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer subB.Close()
 
-	example.Print("merging", a+" + "+b)
+	fmt.Printf("%-30s %v\n", "merging:", a+" + "+b)
 	for {
 		select {
 		case <-ctx.Done():
@@ -52,7 +67,7 @@ func main() {
 			if len(batch) == 0 {
 				continue
 			}
-			example.Print(batch[0].InstrumentName, len(batch))
+			fmt.Printf("%-30s %v\n", batch[0].InstrumentName+":", len(batch))
 		}
 	}
 }

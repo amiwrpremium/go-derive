@@ -4,17 +4,40 @@
 package main
 
 import (
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 func main() {
-	ctx, cancel := example.LongTimeout()
-	defer cancel()
-	c := example.MustWSPublic(ctx)
-	defer c.Close()
+	instrument := os.Getenv("DERIVE_INSTRUMENT")
+	if instrument == "" {
+		instrument = "BTC-PERP"
+	}
 
-	sub, err := c.SubscribeTicker(ctx, example.Instrument(), "")
-	example.Fatal(err)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+
+	wsNetwork := ws.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		wsNetwork = ws.WithMainnet()
+	}
+	c, err := ws.New(wsNetwork)
+	if err != nil {
+		log.Fatalf("ws.New: %v", err)
+	}
+	defer c.Close()
+	if err := c.Connect(ctx); err != nil {
+		log.Fatalf("ws.Connect: %v", err)
+	}
+	sub, err := c.SubscribeTicker(ctx, instrument, "")
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer sub.Close()
 
 	for {
@@ -25,10 +48,10 @@ func main() {
 			if !ok {
 				return
 			}
-			example.Print("instrument", feed.Ticker.InstrumentName)
-			example.Print("mark", feed.Ticker.MarkPrice.String())
-			example.Print("best_bid", feed.Ticker.BestBidPrice.String())
-			example.Print("best_ask", feed.Ticker.BestAskPrice.String())
+			fmt.Printf("%-30s %v\n", "instrument:", feed.Ticker.InstrumentName)
+			fmt.Printf("%-30s %v\n", "mark:", feed.Ticker.MarkPrice.String())
+			fmt.Printf("%-30s %v\n", "best_bid:", feed.Ticker.BestBidPrice.String())
+			fmt.Printf("%-30s %v\n", "best_ask:", feed.Ticker.BestAskPrice.String())
 		}
 	}
 }
