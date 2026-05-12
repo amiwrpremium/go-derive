@@ -7,6 +7,17 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.12.0](https://github.com/amiwrpremium/go-derive/compare/v0.11.0...v0.12.0) (2026-05-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* **examples:** inline example/example helpers into each main.go ([#108](https://github.com/amiwrpremium/go-derive/issues/108))
+
+### Documentation
+
+* **examples:** inline example/example helpers into each main.go ([#108](https://github.com/amiwrpremium/go-derive/issues/108)) ([dbeb3fd](https://github.com/amiwrpremium/go-derive/commit/dbeb3fd74956d2495cef718184a833ca96cca996))
+
 ## [0.11.0](https://github.com/amiwrpremium/go-derive/compare/v0.10.0...v0.11.0) (2026-05-12)
 
 
