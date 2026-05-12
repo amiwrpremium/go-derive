@@ -2,7 +2,8 @@
 package main
 
 import (
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"fmt"
+
 	"github.com/amiwrpremium/go-derive/pkg/auth"
 )
 
@@ -11,5 +12,5 @@ func main() {
 	for i := range s {
 		s[i] = byte(i)
 	}
-	example.Print("hex", s.Hex())
+	fmt.Printf("%-30s %v\n", "hex:", s.Hex())
 }
