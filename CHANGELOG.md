@@ -7,6 +7,17 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.11.0](https://github.com/amiwrpremium/go-derive/compare/v0.10.0...v0.11.0) (2026-05-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* **methods:** replace map[string]any params with typed inputs ([#106](https://github.com/amiwrpremium/go-derive/issues/106))
+
+### Features
+
+* **methods:** replace map[string]any params with typed inputs ([#106](https://github.com/amiwrpremium/go-derive/issues/106)) ([384b8e5](https://github.com/amiwrpremium/go-derive/commit/384b8e5e2016f53106a244c2f68f999dad9c9885))
+
 ## [0.10.0](https://github.com/amiwrpremium/go-derive/compare/v0.9.1...v0.10.0) (2026-05-11)
 
 
