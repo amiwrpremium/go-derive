@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -17,10 +18,10 @@ func main() {
 	end := time.Now().Unix()
 	start := end - 24*3600
 
-	rates, page, err := c.GetInterestRateHistory(ctx, map[string]any{
-		"from_timestamp_sec": start,
-		"to_timestamp_sec":   end,
-	})
+	rates, page, err := c.GetInterestRateHistory(ctx, types.InterestRateHistoryQuery{
+		FromSec: start,
+		ToSec:   end,
+	}, types.PageRequest{})
 	example.Fatal(err)
 	example.Print("rate prints", len(rates))
 	example.Print("total pages", page.NumPages)

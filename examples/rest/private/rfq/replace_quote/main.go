@@ -4,9 +4,8 @@
 //
 // This example is illustrative — set DERIVE_RUN_LIVE_ORDERS=1 only
 // when you actually want it to run; the SDK doesn't gate
-// ReplaceQuote itself. Required params (rfq_id, direction, legs,
-// max_fee, signing fields) must be filled in for the call to
-// succeed against the real engine.
+// ReplaceQuote itself. Required fields (legs, signing fields, etc.)
+// must be filled in for the call to succeed against the real engine.
 package main
 
 import (
@@ -14,6 +13,8 @@ import (
 	"os"
 
 	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/enums"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -25,11 +26,18 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	res, err := c.ReplaceQuote(ctx, map[string]any{
-		"rfq_id":             "<rfq-id>",
-		"quote_id_to_cancel": "<quote-id>",
-		// fill in: direction, legs, max_fee, nonce, signature,
-		// signature_expiry_sec, signer
+	res, err := c.ReplaceQuote(ctx, types.ReplaceQuoteInput{
+		SendQuoteInput: types.SendQuoteInput{
+			RFQID:              "<rfq-id>",
+			Direction:          enums.DirectionBuy,
+			Legs:               nil,
+			MaxFee:             types.MustDecimal("10"),
+			Nonce:              0,
+			Signature:          "",
+			Signer:             example.MustSigner().Owner().Hex(),
+			SignatureExpirySec: 0,
+		},
+		QuoteIDToCancel: "<quote-id>",
 	})
 	example.Fatal(err)
 	example.Print("cancelled_quote", res.CancelledQuote.QuoteID)

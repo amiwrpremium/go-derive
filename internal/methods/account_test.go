@@ -8,7 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/amiwrpremium/go-derive/pkg/enums"
 	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestGetAccount_Decode(t *testing.T) {
@@ -146,11 +148,9 @@ func TestGetPublicMargin_Decode(t *testing.T) {
 		"pre_maintenance_margin":  "0",
 		"post_maintenance_margin": "0",
 	})
-	got, err := api.GetPublicMargin(context.Background(), map[string]any{
-		"margin_type":           "PM",
-		"market":                "BTC",
-		"simulated_collaterals": []any{},
-		"simulated_positions":   []any{},
+	got, err := api.GetPublicMargin(context.Background(), types.PublicMarginInput{
+		MarginType: enums.MarginTypePM,
+		Market:     "BTC",
 	})
 	require.NoError(t, err)
 	assert.False(t, got.IsValidTrade)
@@ -159,6 +159,6 @@ func TestGetPublicMargin_Decode(t *testing.T) {
 func TestGetPublicMargin_PropagatesAPIError(t *testing.T) {
 	api, ft := newAPI(t, false, 0)
 	ft.HandleError("public/get_margin", boom)
-	_, err := api.GetPublicMargin(context.Background(), map[string]any{})
+	_, err := api.GetPublicMargin(context.Background(), types.PublicMarginInput{})
 	assert.ErrorAs(t, err, new(*derrors.APIError))
 }

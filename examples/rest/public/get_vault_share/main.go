@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -27,11 +28,11 @@ func main() {
 	end := time.Now().Unix()
 	start := end - 24*3600
 
-	shares, page, err := c.GetVaultShare(ctx, map[string]any{
-		"vault_name":         name,
-		"from_timestamp_sec": start,
-		"to_timestamp_sec":   end,
-	})
+	shares, page, err := c.GetVaultShare(ctx, types.VaultShareQuery{
+		VaultName: name,
+		FromSec:   start,
+		ToSec:     end,
+	}, types.PageRequest{})
 	example.Fatal(err)
 	example.Print("snapshot count", len(shares))
 	example.Print("total pages", page.NumPages)

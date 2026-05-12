@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestGetMakerPrograms_Decode(t *testing.T) {
@@ -40,9 +42,7 @@ func TestGetMakerProgramScores_Decode(t *testing.T) {
 		},
 		"total_score": "1", "total_volume": "1000",
 	})
-	got, err := api.GetMakerProgramScores(context.Background(), map[string]any{
-		"program_name": "options-q1", "epoch_start_timestamp": int64(1700000000),
-	})
+	got, err := api.GetMakerProgramScores(context.Background(), "options-q1", 1700000000)
 	require.NoError(t, err)
 	assert.Equal(t, "options-q1", got.Program.Name)
 	require.Len(t, got.Scores, 1)
@@ -61,8 +61,9 @@ func TestGetReferralPerformance_Decode(t *testing.T) {
 		"total_builder_fee_collected": "50",
 		"rewards":                     map[string]any{},
 	})
-	got, err := api.GetReferralPerformance(context.Background(), map[string]any{
-		"start_ms": int64(1700000000000), "end_ms": int64(1700100000000),
+	got, err := api.GetReferralPerformance(context.Background(), types.ReferralPerformanceQuery{
+		StartMs: 1700000000000,
+		EndMs:   1700100000000,
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "ALICE", got.ReferralCode)
@@ -95,10 +96,11 @@ func TestGetDetailedMakerSnapshotHistory_Decode(t *testing.T) {
 		},
 		"pagination": map[string]any{"num_pages": 1, "count": 1},
 	})
-	got, err := api.GetDetailedMakerSnapshotHistory(context.Background(), map[string]any{
-		"program_name":          "options-q1",
-		"epoch_start_timestamp": int64(1700000000),
-	})
+	got, err := api.GetDetailedMakerSnapshotHistory(context.Background(), types.DetailedMakerSnapshotHistoryQuery{
+		ProgramName:         "options-q1",
+		EpochStartTimestamp: 1700000000,
+		Wallet:              "0x1111111111111111111111111111111111111111",
+	}, types.PageRequest{})
 	require.NoError(t, err)
 	assert.Equal(t, "options-q1", got.Program.Name)
 	require.Len(t, got.Snapshots, 1)

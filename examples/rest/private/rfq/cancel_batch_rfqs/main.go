@@ -2,7 +2,10 @@
 // Returns the list of cancelled rfq ids.
 package main
 
-import "github.com/amiwrpremium/go-derive/examples/example"
+import (
+	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/types"
+)
 
 func main() {
 	c := example.MustRESTPrivate()
@@ -10,7 +13,7 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	res, err := c.CancelBatchRFQs(ctx, nil)
+	res, err := c.CancelBatchRFQs(ctx, types.CancelBatchInput{})
 	example.Fatal(err)
 	example.Print("cancelled", len(res.CancelledIDs))
 	for i, id := range res.CancelledIDs {

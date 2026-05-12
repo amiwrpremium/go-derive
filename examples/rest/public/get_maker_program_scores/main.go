@@ -33,10 +33,7 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	res, err := c.GetMakerProgramScores(ctx, map[string]any{
-		"program_name":          name,
-		"epoch_start_timestamp": epoch,
-	})
+	res, err := c.GetMakerProgramScores(ctx, name, epoch)
 	example.Fatal(err)
 	example.Print("program", res.Program.Name)
 	example.Print("total_score", res.TotalScore.String())

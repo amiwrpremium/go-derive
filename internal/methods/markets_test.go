@@ -194,7 +194,7 @@ func TestGetTickers_Decode(t *testing.T) {
 			},
 		},
 	})
-	tickers, err := api.GetTickers(context.Background(), map[string]any{"instrument_type": "perp"})
+	tickers, err := api.GetTickers(context.Background(), enums.InstrumentTypePerp, "", 0)
 	require.NoError(t, err)
 	require.Contains(t, tickers, "BTC-PERP")
 	assert.Equal(t, "65000", tickers["BTC-PERP"].MarkPrice.String())
@@ -264,7 +264,7 @@ func TestGetAllUserStatistics_Decode(t *testing.T) {
 			"last_trade_timestamp":  int64(1700100000000),
 		},
 	})
-	got, err := api.GetAllUserStatistics(context.Background(), nil)
+	got, err := api.GetAllUserStatistics(context.Background(), 0)
 	require.NoError(t, err)
 	require.Len(t, got, 1)
 	assert.Equal(t, "0x1111111111111111111111111111111111111111", got[0].Wallet)
@@ -281,9 +281,7 @@ func TestGetUserStatistics_Decode(t *testing.T) {
 		"first_trade_timestamp": int64(1700000000000),
 		"last_trade_timestamp":  int64(1700100000000),
 	})
-	got, err := api.GetUserStatistics(context.Background(), map[string]any{
-		"wallet": "0x1111111111111111111111111111111111111111",
-	})
+	got, err := api.GetUserStatistics(context.Background(), "0x1111111111111111111111111111111111111111")
 	require.NoError(t, err)
 	require.NotNil(t, got)
 	assert.Equal(t, int64(7), got.TotalTrades)
@@ -318,7 +316,7 @@ func TestGetAssets_Decode(t *testing.T) {
 			"currency": "USDC", "is_collateral": true, "is_position": false,
 		},
 	})
-	got, err := api.GetAssets(context.Background(), map[string]any{"currency": "USDC"})
+	got, err := api.GetAssets(context.Background(), enums.AssetTypeERC20, "USDC", false)
 	require.NoError(t, err)
 	require.Len(t, got, 1)
 	assert.Equal(t, "USDC", got[0].AssetName)
@@ -347,8 +345,8 @@ func TestGetStDRVSnapshots_Decode(t *testing.T) {
 			map[string]any{"amount": "1010", "timestamp_sec": int64(1700003600)},
 		},
 	})
-	got, err := api.GetStDRVSnapshots(context.Background(), map[string]any{
-		"wallet": "0x1111111111111111111111111111111111111111",
+	got, err := api.GetStDRVSnapshots(context.Background(), types.STDRVSnapshotsQuery{
+		Wallet: "0x1111111111111111111111111111111111111111",
 	})
 	require.NoError(t, err)
 	require.Len(t, got.Snapshots, 2)
@@ -385,7 +383,7 @@ func TestMarginWatch_Decode(t *testing.T) {
 		"maintenance_margin": "50", "valuation_timestamp": int64(1700000000),
 		"collaterals": []any{}, "positions": []any{},
 	})
-	got, err := api.MarginWatch(context.Background(), map[string]any{"subaccount_id": 7})
+	got, err := api.MarginWatch(context.Background(), 7, false, false)
 	require.NoError(t, err)
 	assert.Equal(t, int64(7), got.SubaccountID)
 	assert.Equal(t, "PM", got.MarginType)

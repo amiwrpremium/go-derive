@@ -366,20 +366,23 @@ func (a *API) GetOrderHistory(ctx context.Context, page types.PageRequest, q typ
 // in a single round trip — the standard maker pattern for
 // re-pricing without a race against the matching engine. Private.
 //
-// `params` should include `order_id_to_cancel` (or
-// `nonce_to_cancel`) plus the same fields PlaceOrder takes for
-// the replacement. The full param shape is documented at
-// docs.derive.xyz.
+// The replacement order is signed by the SDK exactly like
+// [API.PlaceOrder]. Exactly one of [types.ReplaceOrderInput.OrderIDToCancel]
+// or [types.ReplaceOrderInput.NonceToCancel] must be set.
 //
 // The response carries the cancelled order, the (optional)
 // replacement order, the engine's error if the replacement was
 // rejected, and the trades the new order matched.
-func (a *API) Replace(ctx context.Context, params map[string]any) (types.ReplaceResult, error) {
-	if err := a.requireSigner(); err != nil {
+func (a *API) Replace(ctx context.Context, in types.ReplaceOrderInput) (types.ReplaceResult, error) {
+	params, err := a.signedOrderParams(ctx, in.PlaceOrderInput)
+	if err != nil {
 		return types.ReplaceResult{}, err
 	}
-	if err := a.requireSubaccount(); err != nil {
-		return types.ReplaceResult{}, err
+	if in.OrderIDToCancel != "" {
+		params["order_id_to_cancel"] = in.OrderIDToCancel
+	}
+	if in.NonceToCancel != 0 {
+		params["nonce_to_cancel"] = in.NonceToCancel
 	}
 	var resp types.ReplaceResult
 	if err := a.call(ctx, "private/replace", params, &resp); err != nil {
@@ -388,16 +391,14 @@ func (a *API) Replace(ctx context.Context, params map[string]any) (types.Replace
 	return resp, nil
 }
 
-// OrderDebug previews an order without submitting it. Private.
+// OrderDebug returns the engine's internal hashing artefacts for a
+// hypothetical order — useful for validating signatures in CI.
+// Private.
 //
-// `params` mirror PlaceOrder's. The response carries the
-// engine's internal hashing artefacts — useful for validating
-// signatures in CI.
-func (a *API) OrderDebug(ctx context.Context, params map[string]any) (types.OrderDebugResult, error) {
-	if err := a.requireSigner(); err != nil {
-		return types.OrderDebugResult{}, err
-	}
-	if err := a.requireSubaccount(); err != nil {
+// Takes the same input shape as [API.PlaceOrder].
+func (a *API) OrderDebug(ctx context.Context, in types.PlaceOrderInput) (types.OrderDebugResult, error) {
+	params, err := a.signedOrderParams(ctx, in)
+	if err != nil {
 		return types.OrderDebugResult{}, err
 	}
 	var resp types.OrderDebugResult

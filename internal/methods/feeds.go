@@ -16,10 +16,14 @@ import (
 
 // GetFundingRateHistory returns historical funding rate prints for one
 // perpetual instrument over the requested window. Public.
-//
-// Required `params`: `instrument_name`. Optional: `start_timestamp`,
-// `end_timestamp`, `period`.
-func (a *API) GetFundingRateHistory(ctx context.Context, params map[string]any) ([]types.FundingRateHistoryItem, error) {
+func (a *API) GetFundingRateHistory(ctx context.Context, q types.FundingRateHistoryQuery) ([]types.FundingRateHistoryItem, error) {
+	params := map[string]any{
+		"instrument_name": q.InstrumentName,
+	}
+	if q.Period != "" {
+		params["period"] = q.Period
+	}
+	addHistoryWindow(params, q.HistoryWindow)
 	var resp struct {
 		FundingRateHistory []types.FundingRateHistoryItem `json:"funding_rate_history"`
 	}
@@ -32,10 +36,14 @@ func (a *API) GetFundingRateHistory(ctx context.Context, params map[string]any) 
 // GetSpotFeedHistory returns historical oracle spot prices for one
 // currency over the requested window at the given period. Public.
 //
-// Required `params`: `currency`, `period`, `start_timestamp`,
-// `end_timestamp`. Returns the currency the response is keyed against
-// alongside the per-bucket samples.
-func (a *API) GetSpotFeedHistory(ctx context.Context, params map[string]any) (currency string, items []types.SpotFeedHistoryItem, err error) {
+// Returns the currency the response is keyed against alongside the
+// per-bucket samples.
+func (a *API) GetSpotFeedHistory(ctx context.Context, q types.SpotFeedHistoryQuery) (currency string, items []types.SpotFeedHistoryItem, err error) {
+	params := map[string]any{
+		"currency": q.Currency,
+		"period":   q.PeriodSec,
+	}
+	addHistoryWindow(params, q.HistoryWindow)
 	var resp struct {
 		Currency        string                      `json:"currency"`
 		SpotFeedHistory []types.SpotFeedHistoryItem `json:"spot_feed_history"`
@@ -49,11 +57,16 @@ func (a *API) GetSpotFeedHistory(ctx context.Context, params map[string]any) (cu
 // GetLatestSignedFeeds returns the latest oracle signed-feed snapshot
 // for every published currency, expiry, and feed type. Public.
 //
-// Optional `params`: `currency`. Pass nil to get every currency the
-// venue publishes.
-func (a *API) GetLatestSignedFeeds(ctx context.Context, params map[string]any) (types.SignedFeeds, error) {
-	if params == nil {
-		params = map[string]any{}
+// Pass empty currency / zero expiry to get every published feed.
+// Pass expiry=0 explicitly with a currency to fetch spot and
+// perpetual feeds only.
+func (a *API) GetLatestSignedFeeds(ctx context.Context, currency string, expiry int64) (types.SignedFeeds, error) {
+	params := map[string]any{}
+	if currency != "" {
+		params["currency"] = currency
+	}
+	if expiry != 0 {
+		params["expiry"] = expiry
 	}
 	var resp types.SignedFeeds
 	if err := a.call(ctx, "public/get_latest_signed_feeds", params, &resp); err != nil {
@@ -65,10 +78,15 @@ func (a *API) GetLatestSignedFeeds(ctx context.Context, params map[string]any) (
 // GetInterestRateHistory returns historical USDC borrow / supply
 // APY prints over the requested window. Public.
 //
-// Required `params`: `from_timestamp_sec`, `to_timestamp_sec`.
-// Optional: `page`, `page_size`. Paginated; the second return value
-// carries the totals.
-func (a *API) GetInterestRateHistory(ctx context.Context, params map[string]any) ([]types.InterestRateHistoryItem, types.Page, error) {
+// Note: timestamps on this endpoint are in seconds, not
+// milliseconds. Paginated; the second return value carries the
+// totals.
+func (a *API) GetInterestRateHistory(ctx context.Context, q types.InterestRateHistoryQuery, page types.PageRequest) ([]types.InterestRateHistoryItem, types.Page, error) {
+	params := map[string]any{
+		"from_timestamp_sec": q.FromSec,
+		"to_timestamp_sec":   q.ToSec,
+	}
+	addPaging(params, page)
 	var resp struct {
 		InterestRates []types.InterestRateHistoryItem `json:"interest_rates"`
 		Pagination    types.Page                      `json:"pagination"`
@@ -83,11 +101,14 @@ func (a *API) GetInterestRateHistory(ctx context.Context, params map[string]any)
 // mid price, ask-impact price, and bid-impact price versus spot for
 // one currency's perpetual book over the requested window. Public.
 //
-// Required `params`: `currency`, `start_time`, `end_time`.
-//
 // The shape mirrors `PublicGetPerpImpactTwapResultSchema` in
 // `derivexyz/cockpit/orderbook-types`.
-func (a *API) GetPerpImpactTWAP(ctx context.Context, params map[string]any) (types.PerpImpactTWAP, error) {
+func (a *API) GetPerpImpactTWAP(ctx context.Context, currency string, startTime, endTime int64) (types.PerpImpactTWAP, error) {
+	params := map[string]any{
+		"currency":   currency,
+		"start_time": startTime,
+		"end_time":   endTime,
+	}
 	var resp types.PerpImpactTWAP
 	if err := a.call(ctx, "public/get_perp_impact_twap", params, &resp); err != nil {
 		return types.PerpImpactTWAP{}, err

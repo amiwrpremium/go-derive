@@ -25,7 +25,7 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	snap, err := c.MarginWatch(ctx, map[string]any{"subaccount_id": id})
+	snap, err := c.MarginWatch(ctx, id, false, false)
 	example.Fatal(err)
 	example.Print("subaccount_id", snap.SubaccountID)
 	example.Print("margin_type", snap.MarginType)

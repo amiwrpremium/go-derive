@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestGetVaultBalances_Decode(t *testing.T) {
@@ -16,9 +18,7 @@ func TestGetVaultBalances_Decode(t *testing.T) {
 			"chain_id": int64(1), "vault_asset_type": "rswETHC", "amount": "12.5",
 		},
 	})
-	got, err := api.GetVaultBalances(context.Background(), map[string]any{
-		"wallet": "0x2222222222222222222222222222222222222222",
-	})
+	got, err := api.GetVaultBalances(context.Background(), "0x2222222222222222222222222222222222222222", "")
 	require.NoError(t, err)
 	require.Len(t, got, 1)
 	assert.Equal(t, "rswETHC", got[0].Name)
@@ -36,9 +36,11 @@ func TestGetVaultShare_Decode(t *testing.T) {
 		},
 		"pagination": map[string]any{"num_pages": 1, "count": 1},
 	})
-	shares, page, err := api.GetVaultShare(context.Background(), map[string]any{
-		"vault_name": "rswETHC", "from_timestamp_sec": int64(1700000000), "to_timestamp_sec": int64(1700100000),
-	})
+	shares, page, err := api.GetVaultShare(context.Background(), types.VaultShareQuery{
+		VaultName: "rswETHC",
+		FromSec:   1700000000,
+		ToSec:     1700100000,
+	}, types.PageRequest{})
 	require.NoError(t, err)
 	require.Len(t, shares, 1)
 	assert.Equal(t, "1.07", shares[0].UnderlyingValue.String())

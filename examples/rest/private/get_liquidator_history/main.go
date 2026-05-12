@@ -2,7 +2,10 @@
 // liquidator (paginated).
 package main
 
-import "github.com/amiwrpremium/go-derive/examples/example"
+import (
+	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/types"
+)
 
 func main() {
 	c := example.MustRESTPrivate()
@@ -10,7 +13,7 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	bids, page, err := c.GetLiquidatorHistory(ctx, nil)
+	bids, page, err := c.GetLiquidatorHistory(ctx, types.LiquidatorHistoryQuery{}, types.PageRequest{})
 	example.Fatal(err)
 	example.Print("bids", len(bids))
 	example.Print("total pages", page.NumPages)

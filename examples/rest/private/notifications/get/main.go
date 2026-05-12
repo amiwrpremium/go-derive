@@ -1,7 +1,10 @@
 // Paginates notifications for the configured subaccount.
 package main
 
-import "github.com/amiwrpremium/go-derive/examples/example"
+import (
+	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/types"
+)
 
 func main() {
 	c := example.MustRESTPrivate()
@@ -9,7 +12,7 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	events, page, err := c.GetNotifications(ctx, map[string]any{"page_size": 10})
+	events, page, err := c.GetNotifications(ctx, types.NotificationsQuery{}, types.PageRequest{PageSize: 10})
 	example.Fatal(err)
 	example.Print("count", len(events))
 	example.Print("total pages", page.NumPages)

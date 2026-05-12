@@ -19,11 +19,7 @@ func main() {
 	defer cancel()
 
 	now := time.Now()
-	twap, err := c.GetPerpImpactTWAP(ctx, map[string]any{
-		"currency":   "BTC",
-		"start_time": now.Add(-time.Hour).UnixMilli(),
-		"end_time":   now.UnixMilli(),
-	})
+	twap, err := c.GetPerpImpactTWAP(ctx, "BTC", now.Add(-time.Hour).UnixMilli(), now.UnixMilli())
 	example.Fatal(err)
 
 	example.Print("currency", twap.Currency)

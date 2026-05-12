@@ -79,7 +79,7 @@ func TestGetRFQs_Decode(t *testing.T) {
 		},
 		"pagination": map[string]any{"count": 1, "num_pages": 1},
 	})
-	rfqs, page, err := api.GetRFQs(context.Background(), nil)
+	rfqs, page, err := api.GetRFQs(context.Background(), types.RFQsQuery{}, types.PageRequest{})
 	require.NoError(t, err)
 	require.Len(t, rfqs, 1)
 	assert.Equal(t, "R1", rfqs[0].RFQID)
@@ -88,7 +88,7 @@ func TestGetRFQs_Decode(t *testing.T) {
 
 func TestGetRFQs_RequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
-	_, _, err := api.GetRFQs(context.Background(), nil)
+	_, _, err := api.GetRFQs(context.Background(), types.RFQsQuery{}, types.PageRequest{})
 	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
 }
 
@@ -98,7 +98,7 @@ func TestGetQuotes_Decode(t *testing.T) {
 		"quotes":     []any{},
 		"pagination": map[string]any{"count": 0, "num_pages": 0},
 	})
-	got, page, err := api.GetQuotes(context.Background(), nil)
+	got, page, err := api.GetQuotes(context.Background(), types.QuotesQuery{}, types.PageRequest{})
 	require.NoError(t, err)
 	assert.Empty(t, got)
 	assert.Equal(t, 0, page.NumPages)
@@ -110,7 +110,7 @@ func TestPollQuotes_Decode(t *testing.T) {
 		"quotes":     []any{},
 		"pagination": map[string]any{"count": 0, "num_pages": 0},
 	})
-	got, _, err := api.PollQuotes(context.Background(), nil)
+	got, _, err := api.PollQuotes(context.Background(), types.PollQuotesQuery{}, types.PageRequest{})
 	require.NoError(t, err)
 	assert.Empty(t, got)
 }
@@ -129,7 +129,7 @@ func TestSendQuote_Decode(t *testing.T) {
 		"creation_timestamp":    int64(1700000000000),
 		"last_update_timestamp": int64(1700000000000),
 	})
-	q, err := api.SendQuote(context.Background(), map[string]any{"rfq_id": "R1"})
+	q, err := api.SendQuote(context.Background(), types.SendQuoteInput{RFQID: "R1"})
 	require.NoError(t, err)
 	assert.Equal(t, "Q1", q.QuoteID)
 }
@@ -149,7 +149,7 @@ func TestExecuteQuote_Decode(t *testing.T) {
 		"last_update_timestamp": int64(1700000000000),
 		"rfq_filled_pct":        "0.5",
 	})
-	res, err := api.ExecuteQuote(context.Background(), map[string]any{"quote_id": "Q1"})
+	res, err := api.ExecuteQuote(context.Background(), types.ExecuteQuoteInput{RFQID: "R1", QuoteID: "Q1"})
 	require.NoError(t, err)
 	assert.Equal(t, "0.5", res.RFQFilledPct.String())
 }
@@ -168,7 +168,7 @@ func TestCancelQuote_Decode(t *testing.T) {
 		"creation_timestamp":    int64(1700000000000),
 		"last_update_timestamp": int64(1700000000000),
 	})
-	q, err := api.CancelQuote(context.Background(), map[string]any{"quote_id": "Q1"})
+	q, err := api.CancelQuote(context.Background(), "Q1")
 	require.NoError(t, err)
 	assert.Equal(t, "cancelled", string(q.Status))
 }
@@ -204,8 +204,9 @@ func TestReplaceQuote_Decode_HappyPath(t *testing.T) {
 		"quote":              quote,
 		"create_quote_error": nil,
 	})
-	res, err := api.ReplaceQuote(context.Background(), map[string]any{
-		"rfq_id": "R1", "quote_id_to_cancel": "Q1",
+	res, err := api.ReplaceQuote(context.Background(), types.ReplaceQuoteInput{
+		SendQuoteInput:  types.SendQuoteInput{RFQID: "R1"},
+		QuoteIDToCancel: "Q1",
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "Q1", res.CancelledQuote.QuoteID)
@@ -233,8 +234,9 @@ func TestReplaceQuote_Decode_RejectedReplacement(t *testing.T) {
 		"quote":              nil,
 		"create_quote_error": map[string]any{"code": -32000, "message": "insufficient_margin"},
 	})
-	res, err := api.ReplaceQuote(context.Background(), map[string]any{
-		"rfq_id": "R1", "quote_id_to_cancel": "Q1",
+	res, err := api.ReplaceQuote(context.Background(), types.ReplaceQuoteInput{
+		SendQuoteInput:  types.SendQuoteInput{RFQID: "R1"},
+		QuoteIDToCancel: "Q1",
 	})
 	require.NoError(t, err)
 	assert.Nil(t, res.Quote)
@@ -245,7 +247,7 @@ func TestReplaceQuote_Decode_RejectedReplacement(t *testing.T) {
 
 func TestReplaceQuote_RequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
-	_, err := api.ReplaceQuote(context.Background(), nil)
+	_, err := api.ReplaceQuote(context.Background(), types.ReplaceQuoteInput{})
 	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
 }
 
@@ -254,7 +256,7 @@ func TestCancelBatchQuotes_Decode(t *testing.T) {
 	ft.HandleResult("private/cancel_batch_quotes", map[string]any{
 		"cancelled_ids": []any{"a", "b", "c"},
 	})
-	got, err := api.CancelBatchQuotes(context.Background(), nil)
+	got, err := api.CancelBatchQuotes(context.Background(), types.CancelBatchInput{})
 	require.NoError(t, err)
 	assert.Equal(t, []string{"a", "b", "c"}, got.CancelledIDs)
 }
@@ -264,7 +266,7 @@ func TestCancelBatchRFQs_Decode(t *testing.T) {
 	ft.HandleResult("private/cancel_batch_rfqs", map[string]any{
 		"cancelled_ids": []any{"x"},
 	})
-	got, err := api.CancelBatchRFQs(context.Background(), nil)
+	got, err := api.CancelBatchRFQs(context.Background(), types.CancelBatchInput{})
 	require.NoError(t, err)
 	assert.Equal(t, []string{"x"}, got.CancelledIDs)
 }
@@ -289,7 +291,7 @@ func TestRFQGetBestQuote_Decode_NoQuote(t *testing.T) {
 		"down_liquidation_price":           nil,
 		"up_liquidation_price":             nil,
 	})
-	res, err := api.RFQGetBestQuote(context.Background(), map[string]any{"legs": []any{}, "direction": "buy"})
+	res, err := api.RFQGetBestQuote(context.Background(), types.BestQuoteInput{Direction: enums.DirectionBuy})
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	assert.Nil(t, res.BestQuote)
@@ -298,7 +300,7 @@ func TestRFQGetBestQuote_Decode_NoQuote(t *testing.T) {
 }
 
 func TestOrderQuotePublic_Decode(t *testing.T) {
-	api, ft := newAPI(t, false, 0)
+	api, ft := newAPI(t, true, 7)
 	ft.HandleResult("public/order_quote", map[string]any{
 		"is_valid":                         true,
 		"invalid_reason":                   nil,
@@ -314,12 +316,7 @@ func TestOrderQuotePublic_Decode(t *testing.T) {
 		"post_initial_margin":              "120",
 		"post_liquidation_price":           nil,
 	})
-	got, err := api.OrderQuotePublic(context.Background(), map[string]any{
-		"instrument_name": "BTC-PERP",
-		"direction":       "buy",
-		"amount":          "1",
-		"limit_price":     "50000",
-	})
+	got, err := api.OrderQuotePublic(context.Background(), validPlaceOrderInput())
 	require.NoError(t, err)
 	require.NotNil(t, got)
 	assert.True(t, got.IsValid)
@@ -342,7 +339,7 @@ func TestOrderQuote_Decode(t *testing.T) {
 		"post_initial_margin":    "120",
 		"post_liquidation_price": nil,
 	})
-	got, err := api.OrderQuote(context.Background(), map[string]any{})
+	got, err := api.OrderQuote(context.Background(), validPlaceOrderInput())
 	require.NoError(t, err)
 	require.NotNil(t, got)
 	assert.True(t, got.IsValid)
@@ -366,7 +363,7 @@ func TestOrderQuote_Invalid(t *testing.T) {
 		"post_initial_margin":    "100",
 		"post_liquidation_price": "45000",
 	})
-	got, err := api.OrderQuote(context.Background(), map[string]any{})
+	got, err := api.OrderQuote(context.Background(), validPlaceOrderInput())
 	require.NoError(t, err)
 	assert.False(t, got.IsValid)
 	assert.Equal(t, enums.RFQInvalidReasonInsufficientBuyingPower, got.InvalidReason)

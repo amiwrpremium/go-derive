@@ -18,7 +18,7 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	s, err := c.GetUserStatistics(ctx, map[string]any{"wallet": wallet})
+	s, err := c.GetUserStatistics(ctx, wallet)
 	example.Fatal(err)
 	example.Print("total_fees", s.TotalFees.String())
 	example.Print("total_trades", s.TotalTrades)

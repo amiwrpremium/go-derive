@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -19,15 +20,13 @@ func main() {
 
 	end := time.Now().UnixMilli()
 	start := end - int64(30*24*time.Hour/time.Millisecond)
-	params := map[string]any{
-		"start_ms": start,
-		"end_ms":   end,
-	}
-	if code := os.Getenv("DERIVE_REFERRAL_CODE"); code != "" {
-		params["referral_code"] = code
+	q := types.ReferralPerformanceQuery{
+		StartMs:      start,
+		EndMs:        end,
+		ReferralCode: os.Getenv("DERIVE_REFERRAL_CODE"),
 	}
 
-	res, err := c.GetReferralPerformance(ctx, params)
+	res, err := c.GetReferralPerformance(ctx, q)
 	example.Fatal(err)
 	example.Print("referral_code", res.ReferralCode)
 	example.Print("fee_share_percentage", res.FeeSharePercentage.String())

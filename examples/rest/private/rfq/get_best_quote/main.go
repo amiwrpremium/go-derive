@@ -6,6 +6,7 @@ package main
 import (
 	"github.com/amiwrpremium/go-derive/examples/example"
 	"github.com/amiwrpremium/go-derive/pkg/enums"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -14,13 +15,13 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	res, err := c.RFQGetBestQuote(ctx, map[string]any{
-		"direction": string(enums.DirectionBuy),
-		"legs": []map[string]any{
+	res, err := c.RFQGetBestQuote(ctx, types.BestQuoteInput{
+		Direction: enums.DirectionBuy,
+		Legs: []types.RFQLeg{
 			{
-				"instrument_name": example.Instrument(),
-				"direction":       string(enums.DirectionBuy),
-				"amount":          "0.1",
+				InstrumentName: example.Instrument(),
+				Direction:      enums.DirectionBuy,
+				Amount:         types.MustDecimal("0.1"),
 			},
 		},
 	})

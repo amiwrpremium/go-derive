@@ -16,12 +16,16 @@ import (
 
 // GetVaultBalances returns one wallet's vault-token holdings. Public.
 //
-// Optional `params`: `wallet` (smart-contract wallet address) or
-// `smart_contract_owner` (EOA that owns the smart-contract wallet).
-// At least one of the two must be supplied.
-func (a *API) GetVaultBalances(ctx context.Context, params map[string]any) ([]types.VaultBalance, error) {
-	if params == nil {
-		params = map[string]any{}
+// Pass either `wallet` (the smart-contract wallet address) or
+// `smartContractOwner` (the EOA that owns the smart-contract
+// wallet); at least one must be non-empty.
+func (a *API) GetVaultBalances(ctx context.Context, wallet, smartContractOwner string) ([]types.VaultBalance, error) {
+	params := map[string]any{}
+	if wallet != "" {
+		params["wallet"] = wallet
+	}
+	if smartContractOwner != "" {
+		params["smart_contract_owner"] = smartContractOwner
 	}
 	var resp []types.VaultBalance
 	if err := a.call(ctx, "public/get_vault_balances", params, &resp); err != nil {
@@ -33,10 +37,16 @@ func (a *API) GetVaultBalances(ctx context.Context, params map[string]any) ([]ty
 // GetVaultShare returns per-block snapshots of one vault token's
 // price-per-share over the requested window. Public.
 //
-// Required `params`: `vault_name`, `from_timestamp_sec`,
-// `to_timestamp_sec`. Optional: `page`, `page_size`. Paginated; the
+// Timestamps on this endpoint are in seconds, not milliseconds —
+// match the field names on [types.VaultShareQuery]. Paginated; the
 // second return value carries the totals.
-func (a *API) GetVaultShare(ctx context.Context, params map[string]any) ([]types.VaultShare, types.Page, error) {
+func (a *API) GetVaultShare(ctx context.Context, q types.VaultShareQuery, page types.PageRequest) ([]types.VaultShare, types.Page, error) {
+	params := map[string]any{
+		"vault_name":         q.VaultName,
+		"from_timestamp_sec": q.FromSec,
+		"to_timestamp_sec":   q.ToSec,
+	}
+	addPaging(params, page)
 	var resp struct {
 		VaultShares []types.VaultShare `json:"vault_shares"`
 		Pagination  types.Page         `json:"pagination"`

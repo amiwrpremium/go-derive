@@ -76,11 +76,26 @@ func (a *API) GetMargin(ctx context.Context) (types.MarginResult, error) {
 // against the user-supplied collaterals and positions, returning
 // the resulting margin requirement. Public — no signer required.
 //
-// Pass the same shape `private/get_margin` accepts as `params`.
-// Required keys per the OAS: `margin_type` ("PM" / "PM2" / "SM"),
-// `market`, `simulated_collaterals`, `simulated_positions`. Optional:
-// `simulated_collateral_changes`, `simulated_position_changes`.
-func (a *API) GetPublicMargin(ctx context.Context, params map[string]any) (types.MarginResult, error) {
+// See [types.PublicMarginInput] for the input shape. The baseline
+// portfolio is described by [types.PublicMarginInput.SimulatedCollaterals]
+// and [types.PublicMarginInput.SimulatedPositions]; the optional
+// `*Changes` arrays let the caller stack hypothetical trades on top
+// of that baseline.
+func (a *API) GetPublicMargin(ctx context.Context, in types.PublicMarginInput) (types.MarginResult, error) {
+	params := map[string]any{
+		"margin_type":           in.MarginType,
+		"simulated_collaterals": in.SimulatedCollaterals,
+		"simulated_positions":   in.SimulatedPositions,
+	}
+	if in.Market != "" {
+		params["market"] = in.Market
+	}
+	if len(in.SimulatedCollateralChanges) > 0 {
+		params["simulated_collateral_changes"] = in.SimulatedCollateralChanges
+	}
+	if len(in.SimulatedPositionChanges) > 0 {
+		params["simulated_position_changes"] = in.SimulatedPositionChanges
+	}
 	var resp types.MarginResult
 	if err := a.call(ctx, "public/get_margin", params, &resp); err != nil {
 		return types.MarginResult{}, err

@@ -18,7 +18,7 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	q, err := c.CancelQuote(ctx, map[string]any{"quote_id": quoteID})
+	q, err := c.CancelQuote(ctx, quoteID)
 	example.Fatal(err)
 	example.Print("quote id", q.QuoteID)
 	example.Print("status", q.Status)

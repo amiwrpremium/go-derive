@@ -1,7 +1,10 @@
 // Lists interest payments received / paid by the configured subaccount.
 package main
 
-import "github.com/amiwrpremium/go-derive/examples/example"
+import (
+	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/types"
+)
 
 func main() {
 	c := example.MustRESTPrivate()
@@ -9,7 +12,7 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	events, err := c.GetInterestHistory(ctx, nil)
+	events, err := c.GetInterestHistory(ctx, types.InterestHistoryQuery{})
 	example.Fatal(err)
 	example.Print("count", len(events))
 }

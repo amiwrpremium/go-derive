@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -19,8 +20,9 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	cur, items, err := c.GetSpotFeedHistory(ctx, map[string]any{
-		"currency": currency,
+	cur, items, err := c.GetSpotFeedHistory(ctx, types.SpotFeedHistoryQuery{
+		Currency:  currency,
+		PeriodSec: 3600,
 	})
 	example.Fatal(err)
 	example.Print("currency", cur)

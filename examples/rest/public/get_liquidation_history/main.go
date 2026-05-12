@@ -2,7 +2,10 @@
 // Counterpart to private/get_liquidation_history (single-subaccount).
 package main
 
-import "github.com/amiwrpremium/go-derive/examples/example"
+import (
+	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/types"
+)
 
 func main() {
 	c := example.MustRESTPublic()
@@ -10,7 +13,7 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	auctions, page, err := c.GetPublicLiquidationHistory(ctx, nil)
+	auctions, page, err := c.GetPublicLiquidationHistory(ctx, types.LiquidationHistoryQuery{}, types.PageRequest{})
 	example.Fatal(err)
 	example.Print("auctions", len(auctions))
 	example.Print("total pages", page.NumPages)

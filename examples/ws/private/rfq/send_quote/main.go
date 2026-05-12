@@ -10,6 +10,8 @@ import (
 	"os"
 
 	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/enums"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -25,15 +27,15 @@ func main() {
 	c := example.MustWSPrivate(ctx)
 	defer c.Close()
 
-	q, err := c.SendQuote(ctx, map[string]any{
-		"rfq_id":               rfqID,
-		"direction":            "buy",
-		"max_total_cost":       "1000",
-		"legs":                 []any{},
-		"signature":            "",
-		"signer":               example.MustSigner().Owner().Hex(),
-		"nonce":                0,
-		"signature_expiry_sec": 0,
+	q, err := c.SendQuote(ctx, types.SendQuoteInput{
+		RFQID:              rfqID,
+		Direction:          enums.DirectionBuy,
+		Legs:               nil,
+		MaxFee:             types.MustDecimal("10"),
+		Nonce:              0,
+		Signature:          "",
+		Signer:             example.MustSigner().Owner().Hex(),
+		SignatureExpirySec: 0,
 	})
 	example.Fatal(err)
 	example.Print("quote id", q.QuoteID)
