@@ -7,6 +7,18 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.12.2](https://github.com/amiwrpremium/go-derive/compare/v0.12.1...v0.12.2) (2026-05-12)
+
+
+### Dependencies
+
+* **deps:** update github actions (patch) ([#110](https://github.com/amiwrpremium/go-derive/issues/110)) ([cb04e7c](https://github.com/amiwrpremium/go-derive/commit/cb04e7c0e1f3646e200651ec1b50e373504fb6d7))
+
+
+### Continuous Integration
+
+* **security:** exempt trufflehog from the dependency-review license gate ([#114](https://github.com/amiwrpremium/go-derive/issues/114)) ([216a374](https://github.com/amiwrpremium/go-derive/commit/216a3748c0159163e79dc9d62fcfcee25879b62e))
+
 ## [0.12.1](https://github.com/amiwrpremium/go-derive/compare/v0.12.0...v0.12.1) (2026-05-12)
 
 
