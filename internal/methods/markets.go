@@ -139,19 +139,25 @@ func (a *API) GetAllInstruments(ctx context.Context, kind enums.InstrumentType, 
 // GetTickers returns the ticker snapshot keyed by instrument name
 // for every instrument matching the filter. Public.
 //
-// Required `params`: `instrument_type`. Optional: `currency` (required
-// for option queries) and `expiry_date` (required for option
-// queries) — pass them via `params` since they're not always
-// applicable.
+// `instrumentType` is required; `currency` and `expiryDate` (in the
+// engine's YYYYMMDD numeric form) are both required for option
+// queries and ignored for perpetuals / ERC-20s. Pass empty / zero
+// for either when not applicable.
 //
 // Each value is a [types.InstrumentTickerSlim] — the bare per-
 // instrument compact-wire payload — not the WS subscription envelope
 // [types.TickerSlim], which wraps the same payload with an outer
 // `{timestamp, instrument_ticker}` shape that this REST endpoint
 // does not emit.
-func (a *API) GetTickers(ctx context.Context, params map[string]any) (map[string]types.InstrumentTickerSlim, error) {
-	if params == nil {
-		params = map[string]any{}
+func (a *API) GetTickers(ctx context.Context, instrumentType enums.InstrumentType, currency string, expiryDate int64) (map[string]types.InstrumentTickerSlim, error) {
+	params := map[string]any{
+		"instrument_type": instrumentType,
+	}
+	if currency != "" {
+		params["currency"] = currency
+	}
+	if expiryDate != 0 {
+		params["expiry_date"] = expiryDate
 	}
 	var resp struct {
 		Tickers map[string]types.InstrumentTickerSlim `json:"tickers"`
@@ -210,13 +216,18 @@ func (a *API) GetAllStatistics(ctx context.Context, endTime int64) ([]types.Aggr
 }
 
 // GetAllUserStatistics returns the per-wallet trading statistics
-// for every wallet matching the supplied filters. Public.
+// for every wallet, optionally scoped to a `[0, endTime]` window
+// (Unix seconds). Pass zero for the engine's "current time" default.
+// Public.
 //
-// Optional `params`: `currency`, `end_time`, `instrument_name`,
-// `is_rfq`, `start_time`. Pass nil to omit all filters.
-func (a *API) GetAllUserStatistics(ctx context.Context, params map[string]any) ([]types.UserStatistics, error) {
-	if params == nil {
-		params = map[string]any{}
+// The engine accepts additional optional filters (currency,
+// instrument_name, is_rfq, start_time) per docs.derive.xyz that
+// this overload does not surface; if you need them, route through
+// the lower-level call helpers.
+func (a *API) GetAllUserStatistics(ctx context.Context, endTimeSec int64) ([]types.UserStatistics, error) {
+	params := map[string]any{}
+	if endTimeSec != 0 {
+		params["end_time"] = endTimeSec
 	}
 	var resp []types.UserStatistics
 	if err := a.call(ctx, "public/all_user_statistics", params, &resp); err != nil {
@@ -228,11 +239,12 @@ func (a *API) GetAllUserStatistics(ctx context.Context, params map[string]any) (
 // GetUserStatistics returns the trading statistics for one wallet.
 // Public.
 //
-// Required `params`: `wallet`. Optional: `currency`, `end_time`,
-// `instrument_name`, `is_rfq`, `start_time`.
-func (a *API) GetUserStatistics(ctx context.Context, params map[string]any) (types.UserStatistics, error) {
-	if params == nil {
-		params = map[string]any{}
+// The engine accepts additional optional filters (currency,
+// end_time, instrument_name, is_rfq, start_time) per
+// docs.derive.xyz that this overload does not surface.
+func (a *API) GetUserStatistics(ctx context.Context, wallet string) (types.UserStatistics, error) {
+	params := map[string]any{
+		"wallet": wallet,
 	}
 	var resp types.UserStatistics
 	if err := a.call(ctx, "public/user_statistics", params, &resp); err != nil {
@@ -257,11 +269,14 @@ func (a *API) GetAsset(ctx context.Context, name string) (types.Asset, error) {
 // GetAssets lists Asset records matching the supplied filter.
 // Public.
 //
-// Optional `params`: `currency`, `expired`. Pass nil to omit both
-// and return every active asset.
-func (a *API) GetAssets(ctx context.Context, params map[string]any) ([]types.Asset, error) {
-	if params == nil {
-		params = map[string]any{}
+// Per docs.derive.xyz all three arguments are required:
+// `assetType` ("erc20", "option", "perp"), `currency` (e.g.
+// "ETH"), and `expired` (include expired assets).
+func (a *API) GetAssets(ctx context.Context, assetType enums.AssetType, currency string, expired bool) ([]types.Asset, error) {
+	params := map[string]any{
+		"asset_type": assetType,
+		"currency":   currency,
+		"expired":    expired,
 	}
 	var resp []types.Asset
 	if err := a.call(ctx, "public/get_assets", params, &resp); err != nil {
@@ -333,18 +348,25 @@ func (a *API) GetTreeRoots(ctx context.Context) (types.TreeRoots, error) {
 // MarginWatch calculates the mark-to-market and maintenance-margin
 // snapshot for one subaccount. Public.
 //
-// `params` accepts `subaccount_id` (required), plus optional
-// `force_onchain` (force on-chain balance fetch) and
-// `is_delayed_liquidation` (lower MM requirement under a
-// delayed-liquidation grace period).
+// `subaccountID` is required. `forceOnchain` forces an on-chain
+// balance fetch (slower, freshest data); `isDelayedLiquidation`
+// lowers the maintenance-margin requirement under a
+// delayed-liquidation grace period — only valid when the
+// subaccount has delayed liquidation enabled.
 //
 // Note: this is the RPC counterpart to the platform-wide
 // `margin_watch` WebSocket channel. The RPC returns a single
 // snapshot for one subaccount; the channel emits a stream of
 // at-risk subaccounts engine-wide.
-func (a *API) MarginWatch(ctx context.Context, params map[string]any) (types.MarginSnapshot, error) {
-	if params == nil {
-		params = map[string]any{}
+func (a *API) MarginWatch(ctx context.Context, subaccountID int64, forceOnchain, isDelayedLiquidation bool) (types.MarginSnapshot, error) {
+	params := map[string]any{
+		"subaccount_id": subaccountID,
+	}
+	if forceOnchain {
+		params["force_onchain"] = true
+	}
+	if isDelayedLiquidation {
+		params["is_delayed_liquidation"] = true
 	}
 	var resp types.MarginSnapshot
 	if err := a.call(ctx, "public/margin_watch", params, &resp); err != nil {

@@ -16,12 +16,16 @@ import (
 
 // GetVaultBalances returns one wallet's vault-token holdings. Public.
 //
-// Optional `params`: `wallet` (smart-contract wallet address) or
-// `smart_contract_owner` (EOA that owns the smart-contract wallet).
-// At least one of the two must be supplied.
-func (a *API) GetVaultBalances(ctx context.Context, params map[string]any) ([]types.VaultBalance, error) {
-	if params == nil {
-		params = map[string]any{}
+// Pass either `wallet` (the smart-contract wallet address) or
+// `smartContractOwner` (the EOA that owns the smart-contract
+// wallet); at least one must be non-empty.
+func (a *API) GetVaultBalances(ctx context.Context, wallet, smartContractOwner string) ([]types.VaultBalance, error) {
+	params := map[string]any{}
+	if wallet != "" {
+		params["wallet"] = wallet
+	}
+	if smartContractOwner != "" {
+		params["smart_contract_owner"] = smartContractOwner
 	}
 	var resp []types.VaultBalance
 	if err := a.call(ctx, "public/get_vault_balances", params, &resp); err != nil {

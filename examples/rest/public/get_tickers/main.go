@@ -3,7 +3,10 @@
 // to GetTicker (single-instrument).
 package main
 
-import "github.com/amiwrpremium/go-derive/examples/example"
+import (
+	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/enums"
+)
 
 func main() {
 	c := example.MustRESTPublic()
@@ -11,7 +14,7 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	tickers, err := c.GetTickers(ctx, map[string]any{"instrument_type": "perp"})
+	tickers, err := c.GetTickers(ctx, enums.InstrumentTypePerp, "", 0)
 	example.Fatal(err)
 	example.Print("ticker count", len(tickers))
 	i := 0

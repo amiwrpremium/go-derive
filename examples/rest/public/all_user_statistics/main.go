@@ -10,7 +10,7 @@ func main() {
 	ctx, cancel := example.Timeout()
 	defer cancel()
 
-	stats, err := c.GetAllUserStatistics(ctx, nil)
+	stats, err := c.GetAllUserStatistics(ctx, 0)
 	example.Fatal(err)
 	example.Print("rows", len(stats))
 	for i, s := range stats {

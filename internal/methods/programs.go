@@ -32,10 +32,13 @@ func (a *API) GetMakerPrograms(ctx context.Context) ([]types.MakerProgram, error
 // GetMakerProgramScores returns the per-wallet score breakdown for
 // one maker incentive program at one epoch. Public.
 //
-// Required `params`: `program_name`, `epoch_start_timestamp`. The
-// response carries the program metadata alongside the per-wallet
-// breakdown and the program-wide totals.
-func (a *API) GetMakerProgramScores(ctx context.Context, params map[string]any) (types.MakerProgramScore, error) {
+// The response carries the program metadata alongside the
+// per-wallet breakdown and the program-wide totals.
+func (a *API) GetMakerProgramScores(ctx context.Context, programName string, epochStartTimestamp int64) (types.MakerProgramScore, error) {
+	params := map[string]any{
+		"program_name":          programName,
+		"epoch_start_timestamp": epochStartTimestamp,
+	}
 	var resp types.MakerProgramScore
 	if err := a.call(ctx, "public/get_maker_program_scores", params, &resp); err != nil {
 		return types.MakerProgramScore{}, err

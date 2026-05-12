@@ -18,9 +18,7 @@ func TestGetVaultBalances_Decode(t *testing.T) {
 			"chain_id": int64(1), "vault_asset_type": "rswETHC", "amount": "12.5",
 		},
 	})
-	got, err := api.GetVaultBalances(context.Background(), map[string]any{
-		"wallet": "0x2222222222222222222222222222222222222222",
-	})
+	got, err := api.GetVaultBalances(context.Background(), "0x2222222222222222222222222222222222222222", "")
 	require.NoError(t, err)
 	require.Len(t, got, 1)
 	assert.Equal(t, "rswETHC", got[0].Name)
