@@ -33,36 +33,85 @@
 // everything up. Per-sub lifetimes are also possible — give each a
 // child ctx and cancel only that one.
 //
-// Requires `DERIVE_SESSION_KEY` (or `DERIVE_OWNER_KEY`) plus
-// `DERIVE_SUBACCOUNT` in the environment; see the `examples/example`
-// helper for the full env-var contract.
+// Requires `DERIVE_SESSION_KEY` (or `DERIVE_OWNER` plus the session
+// key) and `DERIVE_SUBACCOUNT` in the environment.
 package main
 
 import (
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"strconv"
+	"time"
+
+	"github.com/amiwrpremium/go-derive/pkg/auth"
+	"github.com/amiwrpremium/go-derive/pkg/ws"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 func main() {
-	ctx, cancel := example.LongTimeout()
-	defer cancel()
-	c := example.MustWSPrivate(ctx)
-	defer c.Close()
+	subStr := os.Getenv("DERIVE_SUBACCOUNT")
+	if subStr == "" {
+		log.Fatal("DERIVE_SUBACCOUNT required")
+	}
+	subaccount, err := strconv.ParseInt(subStr, 10, 64)
+	if err != nil {
+		log.Fatalf("DERIVE_SUBACCOUNT=%q: %v", subStr, err)
+	}
+	key := os.Getenv("DERIVE_SESSION_KEY")
+	if key == "" {
+		log.Fatal("DERIVE_SESSION_KEY required")
+	}
+	var signer auth.Signer
+	if owner := os.Getenv("DERIVE_OWNER"); owner != "" {
+		signer, err = auth.NewSessionKeySigner(key, common.HexToAddress(owner))
+	} else {
+		signer, err = auth.NewLocalSigner(key)
+	}
+	if err != nil {
+		log.Fatalf("signer: %v", err)
+	}
 
-	subID := example.Subaccount()
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+
+	wsNetwork := ws.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		wsNetwork = ws.WithMainnet()
+	}
+	c, err := ws.New(wsNetwork, ws.WithSigner(signer), ws.WithSubaccount(subaccount))
+	if err != nil {
+		log.Fatalf("ws.New: %v", err)
+	}
+	defer c.Close()
+	if err := c.Connect(ctx); err != nil {
+		log.Fatalf("ws.Connect: %v", err)
+	}
+	if err := c.Login(ctx); err != nil {
+		log.Fatalf("ws.Login: %v", err)
+	}
+	subID := subaccount
 
 	orders, err := c.SubscribeOrders(ctx, subID)
-	example.Fatal(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer orders.Close()
 
 	balances, err := c.SubscribeBalances(ctx, subID)
-	example.Fatal(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer balances.Close()
 
 	trades, err := c.SubscribeSubaccountTrades(ctx, subID)
-	example.Fatal(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer trades.Close()
 
-	example.Print("multiplexing subaccount", subID)
+	fmt.Printf("%-30s %v\n", "multiplexing subaccount:", subID)
 	for {
 		select {
 		case <-ctx.Done():
@@ -71,17 +120,17 @@ func main() {
 			if !ok {
 				return
 			}
-			example.Print("orders", len(o))
+			fmt.Printf("%-30s %v\n", "orders:", len(o))
 		case b, ok := <-balances.Updates():
 			if !ok {
 				return
 			}
-			example.Print("balance", b)
+			fmt.Printf("%-30s %v\n", "balance:", b)
 		case ts, ok := <-trades.Updates():
 			if !ok {
 				return
 			}
-			example.Print("trades", len(ts))
+			fmt.Printf("%-30s %v\n", "trades:", len(ts))
 		}
 	}
 }

@@ -8,17 +8,35 @@
 package main
 
 import (
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 func main() {
-	ctx, cancel := example.LongTimeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
-	c := example.MustWSPublic(ctx)
-	defer c.Close()
 
+	wsNetwork := ws.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		wsNetwork = ws.WithMainnet()
+	}
+	c, err := ws.New(wsNetwork)
+	if err != nil {
+		log.Fatalf("ws.New: %v", err)
+	}
+	defer c.Close()
+	if err := c.Connect(ctx); err != nil {
+		log.Fatalf("ws.Connect: %v", err)
+	}
 	sub, err := c.SubscribeMarginWatch(ctx)
-	example.Fatal(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer sub.Close()
 
 	for {
@@ -29,13 +47,13 @@ func main() {
 			if !ok {
 				return
 			}
-			example.Print("at-risk subaccounts in batch", len(batch))
+			fmt.Printf("%-30s %v\n", "at-risk subaccounts in batch:", len(batch))
 			for i, ev := range batch {
 				if i >= 3 {
 					break
 				}
-				example.Print("subaccount", ev.SubaccountID)
-				example.Print("  maintenance_margin", ev.MaintenanceMargin.String())
+				fmt.Printf("%-30s %v\n", "subaccount:", ev.SubaccountID)
+				fmt.Printf("%-30s %v\n", "  maintenance_margin:", ev.MaintenanceMargin.String())
 			}
 		}
 	}

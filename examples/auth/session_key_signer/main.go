@@ -2,12 +2,12 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/amiwrpremium/go-derive/examples/example"
 	"github.com/amiwrpremium/go-derive/pkg/auth"
 )
 
@@ -18,8 +18,10 @@ func main() {
 		log.Fatal("DERIVE_SESSION_KEY and DERIVE_OWNER required")
 	}
 	s, err := auth.NewSessionKeySigner(key, common.HexToAddress(owner))
-	example.Fatal(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	example.Print("address (session key)", s.Address())
-	example.Print("owner (smart account)", s.Owner())
+	fmt.Printf("%-30s %v\n", "address (session key):", s.Address())
+	fmt.Printf("%-30s %v\n", "owner (smart account):", s.Owner())
 }

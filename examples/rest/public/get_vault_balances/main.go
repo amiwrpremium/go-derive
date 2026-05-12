@@ -7,32 +7,44 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"os"
+	"time"
 
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/rest"
 )
 
 func main() {
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
+	defer c.Close()
 	wallet := os.Getenv("DERIVE_WALLET")
 	owner := os.Getenv("DERIVE_SMART_CONTRACT_OWNER")
 	if wallet == "" && owner == "" {
 		log.Fatal("DERIVE_WALLET or DERIVE_SMART_CONTRACT_OWNER required")
 	}
-	c := example.MustRESTPublic()
-	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	balances, err := c.GetVaultBalances(ctx, wallet, owner)
-	example.Fatal(err)
-	example.Print("balance count", len(balances))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "balance count:", len(balances))
 	for i, b := range balances {
 		if i >= 5 {
 			break
 		}
-		example.Print("vault", b.Name)
-		example.Print("  amount", b.Amount.String())
-		example.Print("  chain_id", b.ChainID)
+		fmt.Printf("%-30s %v\n", "vault:", b.Name)
+		fmt.Printf("%-30s %v\n", "  amount:", b.Amount.String())
+		fmt.Printf("%-30s %v\n", "  chain_id:", b.ChainID)
 	}
 }

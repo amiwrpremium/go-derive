@@ -4,28 +4,43 @@
 package main
 
 import (
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
 	"github.com/amiwrpremium/go-derive/pkg/enums"
+	"github.com/amiwrpremium/go-derive/pkg/rest"
 )
 
 func main() {
-	c := example.MustRESTPublic()
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
 	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	tickers, err := c.GetTickers(ctx, enums.InstrumentTypePerp, "", 0)
-	example.Fatal(err)
-	example.Print("ticker count", len(tickers))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "ticker count:", len(tickers))
 	i := 0
 	for name, t := range tickers {
 		if i >= 3 {
 			break
 		}
-		example.Print("instrument", name)
-		example.Print("  mark", t.MarkPrice.String())
-		example.Print("  best bid", t.BestBidPrice.String())
-		example.Print("  best ask", t.BestAskPrice.String())
+		fmt.Printf("%-30s %v\n", "instrument:", name)
+		fmt.Printf("%-30s %v\n", "  mark:", t.MarkPrice.String())
+		fmt.Printf("%-30s %v\n", "  best bid:", t.BestBidPrice.String())
+		fmt.Printf("%-30s %v\n", "  best ask:", t.BestAskPrice.String())
 		i++
 	}
 }

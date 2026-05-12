@@ -5,17 +5,27 @@
 package main
 
 import (
+	"context"
+	"fmt"
+	"log"
 	"os"
 	"time"
 
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/rest"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
-	c := example.MustRESTPublic()
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
 	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	end := time.Now().UnixMilli()
@@ -27,11 +37,13 @@ func main() {
 	}
 
 	res, err := c.GetReferralPerformance(ctx, q)
-	example.Fatal(err)
-	example.Print("referral_code", res.ReferralCode)
-	example.Print("fee_share_percentage", res.FeeSharePercentage.String())
-	example.Print("stdrv_balance", res.StdrvBalance.String())
-	example.Print("total_notional_volume", res.TotalNotionalVolume.String())
-	example.Print("total_referred_fees", res.TotalReferredFees.String())
-	example.Print("total_fee_rewards", res.TotalFeeRewards.String())
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "referral_code:", res.ReferralCode)
+	fmt.Printf("%-30s %v\n", "fee_share_percentage:", res.FeeSharePercentage.String())
+	fmt.Printf("%-30s %v\n", "stdrv_balance:", res.StdrvBalance.String())
+	fmt.Printf("%-30s %v\n", "total_notional_volume:", res.TotalNotionalVolume.String())
+	fmt.Printf("%-30s %v\n", "total_referred_fees:", res.TotalReferredFees.String())
+	fmt.Printf("%-30s %v\n", "total_fee_rewards:", res.TotalFeeRewards.String())
 }

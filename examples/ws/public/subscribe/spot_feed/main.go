@@ -7,17 +7,35 @@
 package main
 
 import (
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 func main() {
-	ctx, cancel := example.LongTimeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
-	c := example.MustWSPublic(ctx)
-	defer c.Close()
 
+	wsNetwork := ws.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		wsNetwork = ws.WithMainnet()
+	}
+	c, err := ws.New(wsNetwork)
+	if err != nil {
+		log.Fatalf("ws.New: %v", err)
+	}
+	defer c.Close()
+	if err := c.Connect(ctx); err != nil {
+		log.Fatalf("ws.Connect: %v", err)
+	}
 	sub, err := c.SubscribeSpotFeed(ctx, "BTC")
-	example.Fatal(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer sub.Close()
 
 	for {
@@ -29,7 +47,7 @@ func main() {
 				return
 			}
 			if entry, has := sf.Feeds["BTC"]; has {
-				example.Print("BTC oracle", entry.Price)
+				fmt.Printf("%-30s %v\n", "BTC oracle:", entry.Price)
 			}
 		}
 	}

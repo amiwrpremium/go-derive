@@ -3,11 +3,12 @@ package main
 
 import (
 	"encoding/hex"
+	"fmt"
+	"log"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/shopspring/decimal"
 
-	"github.com/amiwrpremium/go-derive/examples/example"
 	"github.com/amiwrpremium/go-derive/pkg/auth"
 )
 
@@ -18,6 +19,8 @@ func main() {
 		Amount:       decimal.RequireFromString("10"),
 	}
 	h, err := t.Hash()
-	example.Fatal(err)
-	example.Print("hash", hex.EncodeToString(h[:]))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "hash:", hex.EncodeToString(h[:]))
 }

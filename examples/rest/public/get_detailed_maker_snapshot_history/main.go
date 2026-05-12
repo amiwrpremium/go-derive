@@ -5,15 +5,27 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
+	"time"
 
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/rest"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
+	defer c.Close()
 	name := os.Getenv("DERIVE_PROGRAM_NAME")
 	if name == "" {
 		log.Fatal("DERIVE_PROGRAM_NAME required")
@@ -30,10 +42,7 @@ func main() {
 	if wallet == "" {
 		log.Fatal("DERIVE_WALLET required")
 	}
-
-	c := example.MustRESTPublic()
-	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	res, err := c.GetDetailedMakerSnapshotHistory(ctx, types.DetailedMakerSnapshotHistoryQuery{
@@ -41,16 +50,18 @@ func main() {
 		EpochStartTimestamp: epoch,
 		Wallet:              wallet,
 	}, types.PageRequest{})
-	example.Fatal(err)
-	example.Print("program", res.Program.Name)
-	example.Print("snapshots", len(res.Snapshots))
-	example.Print("total pages", res.Pagination.NumPages)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "program:", res.Program.Name)
+	fmt.Printf("%-30s %v\n", "snapshots:", len(res.Snapshots))
+	fmt.Printf("%-30s %v\n", "total pages:", res.Pagination.NumPages)
 	for i, s := range res.Snapshots {
 		if i >= 3 {
 			break
 		}
-		example.Print("snapshot", s.InstrumentName)
-		example.Print("  notional", s.Notional.String())
-		example.Print("  scaled_notional", s.ScaledNotional.String())
+		fmt.Printf("%-30s %v\n", "snapshot:", s.InstrumentName)
+		fmt.Printf("%-30s %v\n", "  notional:", s.Notional.String())
+		fmt.Printf("%-30s %v\n", "  scaled_notional:", s.ScaledNotional.String())
 	}
 }

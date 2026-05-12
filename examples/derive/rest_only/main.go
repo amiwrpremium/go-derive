@@ -2,17 +2,33 @@
 package main
 
 import (
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/amiwrpremium/go-derive/pkg/derive"
 	"github.com/amiwrpremium/go-derive/pkg/enums"
 )
 
 func main() {
-	c := example.MustDerivePublic()
+	network := derive.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		network = derive.WithMainnet()
+	}
+	c, err := derive.NewClient(network)
+	if err != nil {
+		log.Fatalf("derive.NewClient: %v", err)
+	}
 	defer c.Close()
-	ctx, cancel := example.Timeout()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	insts, err := c.REST.GetInstruments(ctx, "BTC", enums.InstrumentTypePerp)
-	example.Fatal(err)
-	example.Print("BTC perps", len(insts))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "BTC perps:", len(insts))
 }

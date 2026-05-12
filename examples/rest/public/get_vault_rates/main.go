@@ -4,21 +4,34 @@
 package main
 
 import (
+	"context"
+	"fmt"
+	"log"
 	"os"
+	"time"
 
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/rest"
 )
 
 func main() {
-	c := example.MustRESTPublic()
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
 	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	rates, err := c.GetVaultRates(ctx, os.Getenv("DERIVE_VAULT_TYPE"))
-	example.Fatal(err)
-	example.Print("rate", rates.Rate.String())
-	example.Print("total_rate", rates.TotalRate.String())
-	example.Print("funding_rate", rates.FundingRate.String())
-	example.Print("interest_rate", rates.InterestRate.String())
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "rate:", rates.Rate.String())
+	fmt.Printf("%-30s %v\n", "total_rate:", rates.TotalRate.String())
+	fmt.Printf("%-30s %v\n", "funding_rate:", rates.FundingRate.String())
+	fmt.Printf("%-30s %v\n", "interest_rate:", rates.InterestRate.String())
 }

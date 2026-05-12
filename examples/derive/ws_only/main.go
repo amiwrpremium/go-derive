@@ -2,18 +2,39 @@
 package main
 
 import (
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/amiwrpremium/go-derive/pkg/derive"
 )
 
 func main() {
-	c := example.MustDerivePublic()
+	network := derive.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		network = derive.WithMainnet()
+	}
+	c, err := derive.NewClient(network)
+	if err != nil {
+		log.Fatalf("derive.NewClient: %v", err)
+	}
 	defer c.Close()
 
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	example.Fatal(c.WS.Connect(ctx))
+	if err := c.WS.Connect(ctx); err != nil {
+		log.Fatal(err)
+	}
 
-	tk, err := c.WS.GetTicker(ctx, example.Instrument())
-	example.Fatal(err)
-	example.Print("mark", tk.MarkPrice)
+	instrument := os.Getenv("DERIVE_INSTRUMENT")
+	if instrument == "" {
+		instrument = "BTC-PERP"
+	}
+	tk, err := c.WS.GetTicker(ctx, instrument)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "mark:", tk.MarkPrice)
 }

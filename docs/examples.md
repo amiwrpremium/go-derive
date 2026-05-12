@@ -40,8 +40,9 @@ examples/
     └── private/           27 programs (incl. 6 subscribe/)
 ```
 
-Each `main.go` is ~10–25 lines because the env-loading boilerplate is
-in [`examples/example/example.go`](../examples/example/example.go).
+Each `main.go` is fully self-contained — the env-loading and client
+construction is inlined into the example itself so a reader can see
+every step without chasing a shared helper.
 
 Run any one:
 

@@ -3,24 +3,41 @@
 // paid out.
 package main
 
-import "github.com/amiwrpremium/go-derive/examples/example"
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/amiwrpremium/go-derive/pkg/rest"
+)
 
 func main() {
-	c := example.MustRESTPublic()
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
 	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	programs, err := c.GetMakerPrograms(ctx)
-	example.Fatal(err)
-	example.Print("program count", len(programs))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "program count:", len(programs))
 	for i, p := range programs {
 		if i >= 5 {
 			break
 		}
-		example.Print("program", p.Name)
-		example.Print("  asset_types", p.AssetTypes)
-		example.Print("  currencies", p.Currencies)
-		example.Print("  min_notional", p.MinNotional.String())
+		fmt.Printf("%-30s %v\n", "program:", p.Name)
+		fmt.Printf("%-30s %v\n", "  asset_types:", p.AssetTypes)
+		fmt.Printf("%-30s %v\n", "  currencies:", p.Currencies)
+		fmt.Printf("%-30s %v\n", "  min_notional:", p.MinNotional.String())
 	}
 }

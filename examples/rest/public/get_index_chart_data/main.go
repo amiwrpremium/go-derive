@@ -3,21 +3,31 @@
 package main
 
 import (
+	"context"
+	"fmt"
+	"log"
 	"os"
 	"time"
 
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/rest"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
+	defer c.Close()
 	currency := os.Getenv("DERIVE_CURRENCY")
 	if currency == "" {
 		currency = "BTC"
 	}
-	c := example.MustRESTPublic()
-	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	end := time.Now()
@@ -31,13 +41,15 @@ func main() {
 		Currency:  currency,
 		PeriodSec: 60,
 	})
-	example.Fatal(err)
-	example.Print("candles", len(candles))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "candles:", len(candles))
 	for i, k := range candles {
 		if i >= 3 {
 			break
 		}
-		example.Print("at ms", k.Timestamp.Millis())
-		example.Print("  open / close", k.OpenPrice.String()+" / "+k.ClosePrice.String())
+		fmt.Printf("%-30s %v\n", "at ms:", k.Timestamp.Millis())
+		fmt.Printf("%-30s %v\n", "  open / close:", k.OpenPrice.String()+" / "+k.ClosePrice.String())
 	}
 }

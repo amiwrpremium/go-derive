@@ -3,24 +3,36 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"os"
+	"time"
 
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"github.com/amiwrpremium/go-derive/pkg/rest"
 )
 
 func main() {
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
+	defer c.Close()
 	root := os.Getenv("DERIVE_WALLET_OR_INVITE_CODE")
 	if root == "" {
 		log.Fatal("DERIVE_WALLET_OR_INVITE_CODE required")
 	}
-	c := example.MustRESTPublic()
-	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	tree, err := c.GetDescendantTree(ctx, root)
-	example.Fatal(err)
-	example.Print("parent", tree.Parent)
-	example.Print("descendants (raw bytes)", len(tree.Descendants))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "parent:", tree.Parent)
+	fmt.Printf("%-30s %v\n", "descendants (raw bytes):", len(tree.Descendants))
 }

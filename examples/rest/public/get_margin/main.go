@@ -5,15 +5,28 @@
 package main
 
 import (
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
 	"github.com/amiwrpremium/go-derive/pkg/enums"
+	"github.com/amiwrpremium/go-derive/pkg/rest"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
-	c := example.MustRESTPublic()
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
 	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	res, err := c.GetPublicMargin(ctx, types.PublicMarginInput{
@@ -24,8 +37,10 @@ func main() {
 		},
 		SimulatedPositions: []types.SimulatedPosition{},
 	})
-	example.Fatal(err)
-	example.Print("pre_initial_margin", res.PreInitialMargin.String())
-	example.Print("post_initial_margin", res.PostInitialMargin.String())
-	example.Print("is_valid_trade", res.IsValidTrade)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%-30s %v\n", "pre_initial_margin:", res.PreInitialMargin.String())
+	fmt.Printf("%-30s %v\n", "post_initial_margin:", res.PostInitialMargin.String())
+	fmt.Printf("%-30s %v\n", "is_valid_trade:", res.IsValidTrade)
 }

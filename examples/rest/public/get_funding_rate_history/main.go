@@ -3,27 +3,47 @@
 package main
 
 import (
-	"github.com/amiwrpremium/go-derive/examples/example"
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/amiwrpremium/go-derive/pkg/rest"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
-	c := example.MustRESTPublic()
+	instrument := os.Getenv("DERIVE_INSTRUMENT")
+	if instrument == "" {
+		instrument = "BTC-PERP"
+	}
+
+	restNetwork := rest.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		restNetwork = rest.WithMainnet()
+	}
+	c, err := rest.New(restNetwork)
+	if err != nil {
+		log.Fatalf("rest.New: %v", err)
+	}
 	defer c.Close()
-	ctx, cancel := example.Timeout()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	history, err := c.GetFundingRateHistory(ctx, types.FundingRateHistoryQuery{
-		InstrumentName: example.Instrument(),
+		InstrumentName: instrument,
 	})
-	example.Fatal(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	example.Print("entries returned", len(history))
+	fmt.Printf("%-30s %v\n", "entries returned:", len(history))
 	for i, e := range history {
 		if i >= 5 {
 			break
 		}
-		example.Print("rate at ms", e.Timestamp.Millis())
-		example.Print("  funding_rate", e.FundingRate.String())
+		fmt.Printf("%-30s %v\n", "rate at ms:", e.Timestamp.Millis())
+		fmt.Printf("%-30s %v\n", "  funding_rate:", e.FundingRate.String())
 	}
 }
