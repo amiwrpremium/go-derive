@@ -205,7 +205,9 @@ Should compile every program in the tree. CI runs this on every PR.
 
 ## Environment variables
 
-Common to most examples, loaded by `examples/example/example.go`:
+Common to most examples. Each example reads these directly from
+`os.Getenv` so the demo is self-contained — there's no shared
+helper package.
 
 | Var | Default | Used by |
 |---|---|---|
