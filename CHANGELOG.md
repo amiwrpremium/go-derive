@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.12.1](https://github.com/amiwrpremium/go-derive/compare/v0.12.0...v0.12.1) (2026-05-12)
+
+
+### Miscellaneous
+
+* **ci:** migrate Renovate config ([#112](https://github.com/amiwrpremium/go-derive/issues/112)) ([4632255](https://github.com/amiwrpremium/go-derive/commit/4632255cae827b14964373d9acf476227f1e5c84))
+
 ## [0.12.0](https://github.com/amiwrpremium/go-derive/compare/v0.11.0...v0.12.0) (2026-05-12)
 
 
