@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.12.3](https://github.com/amiwrpremium/go-derive/compare/v0.12.2...v0.12.3) (2026-05-12)
+
+
+### Dependencies
+
+* **deps:** update module github.com/ethereum/go-ethereum to v1.17.3 ([#111](https://github.com/amiwrpremium/go-derive/issues/111)) ([ef07e60](https://github.com/amiwrpremium/go-derive/commit/ef07e6085add94b128e126618c07c354fca52557))
+
 ## [0.12.2](https://github.com/amiwrpremium/go-derive/compare/v0.12.1...v0.12.2) (2026-05-12)
 
 
