@@ -1,11 +1,24 @@
 // Constructs the top-level facade with the configured network.
 package main
 
-import "github.com/amiwrpremium/go-derive/examples/example"
+import (
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/amiwrpremium/go-derive/pkg/derive"
+)
 
 func main() {
-	c := example.MustDerivePublic()
+	network := derive.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		network = derive.WithMainnet()
+	}
+	c, err := derive.NewClient(network)
+	if err != nil {
+		log.Fatalf("derive.NewClient: %v", err)
+	}
 	defer c.Close()
-	example.Print("network", c.Network().Network)
-	example.Print("chain id", c.Network().ChainID)
+	fmt.Printf("%-30s %v\n", "network:", c.Network().Network)
+	fmt.Printf("%-30s %v\n", "chain id:", c.Network().ChainID)
 }
