@@ -49,8 +49,40 @@ func (a *API) GetTicker(ctx context.Context, name string) (types.Ticker, error) 
 }
 
 // GetPublicTradeHistory returns recent trades on the instrument. Public.
-func (a *API) GetPublicTradeHistory(ctx context.Context, instrument string, page types.PageRequest) ([]types.Trade, types.Page, error) {
-	params := map[string]any{"instrument_name": instrument}
+//
+// All fields on the query are optional and AND together. Pass an
+// instrument name to scope to one market, a currency to scope to one
+// underlying, or both — leave fields zero to ask the engine for an
+// unfiltered tape.
+func (a *API) GetPublicTradeHistory(ctx context.Context, q types.PublicTradeHistoryQuery, page types.PageRequest) ([]types.Trade, types.Page, error) {
+	params := map[string]any{}
+	if q.InstrumentName != "" {
+		params["instrument_name"] = q.InstrumentName
+	}
+	if q.Currency != "" {
+		params["currency"] = q.Currency
+	}
+	if q.InstrumentType != "" {
+		params["instrument_type"] = q.InstrumentType
+	}
+	if q.SubaccountID != 0 {
+		params["subaccount_id"] = q.SubaccountID
+	}
+	if q.TradeID != "" {
+		params["trade_id"] = q.TradeID
+	}
+	if q.TxHash != "" {
+		params["tx_hash"] = q.TxHash
+	}
+	if q.TxStatus != "" {
+		params["tx_status"] = q.TxStatus
+	}
+	if !q.FromTimestamp.Time().IsZero() {
+		params["from_timestamp"] = q.FromTimestamp.Millis()
+	}
+	if !q.ToTimestamp.Time().IsZero() {
+		params["to_timestamp"] = q.ToTimestamp.Millis()
+	}
 	if page.Page > 0 {
 		params["page"] = page.Page
 	}
@@ -378,9 +410,20 @@ func (a *API) MarginWatch(ctx context.Context, subaccountID int64, forceOnchain,
 // GetStatistics returns rolling 24-hour and all-time statistics for
 // one instrument: volume, premium volume, fees, trades count, plus
 // total open interest. Public.
-func (a *API) GetStatistics(ctx context.Context, instrument string) (types.Statistics, error) {
+//
+// Currency and EndTime on the query are optional. EndTime, when
+// non-zero, anchors the rollup window to a Unix-seconds timestamp;
+// otherwise the engine uses "now".
+func (a *API) GetStatistics(ctx context.Context, q types.StatisticsQuery) (types.Statistics, error) {
+	params := map[string]any{"instrument_name": q.InstrumentName}
+	if q.Currency != "" {
+		params["currency"] = q.Currency
+	}
+	if q.EndTime != 0 {
+		params["end_time"] = q.EndTime
+	}
 	var resp types.Statistics
-	if err := a.call(ctx, "public/statistics", map[string]any{"instrument_name": instrument}, &resp); err != nil {
+	if err := a.call(ctx, "public/statistics", params, &resp); err != nil {
 		return types.Statistics{}, err
 	}
 	return resp, nil

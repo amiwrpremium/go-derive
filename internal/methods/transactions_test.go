@@ -18,14 +18,33 @@ func TestGetTradeHistory_Happy(t *testing.T) {
 		"trades":     []any{},
 		"pagination": map[string]any{"num_pages": 4, "count": 100},
 	})
-	_, page, err := api.GetTradeHistory(context.Background(), types.PageRequest{Page: 1, PageSize: 25})
+	_, page, err := api.GetTradeHistory(context.Background(),
+		types.TradeHistoryQuery{InstrumentName: "BTC-PERP", OrderID: "O1"},
+		types.PageRequest{Page: 1, PageSize: 25})
 	require.NoError(t, err)
 	assert.Equal(t, 4, page.NumPages)
 	assert.Equal(t, 100, page.Count)
 
 	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.Equal(t, "BTC-PERP", params["instrument_name"])
+	assert.Equal(t, "O1", params["order_id"])
 	assert.Equal(t, float64(1), params["page"])
 	assert.Equal(t, float64(25), params["page_size"])
+}
+
+func TestGetTradeHistory_WalletOverridesSubaccount(t *testing.T) {
+	api, ft := newAPI(t, true, 1)
+	ft.HandleResult("private/get_trade_history", map[string]any{
+		"trades": []any{}, "pagination": map[string]any{},
+	})
+	_, _, err := api.GetTradeHistory(context.Background(),
+		types.TradeHistoryQuery{Wallet: "0xabc"},
+		types.PageRequest{})
+	require.NoError(t, err)
+	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.Equal(t, "0xabc", params["wallet"])
+	_, hasSub := params["subaccount_id"]
+	assert.False(t, hasSub, "subaccount_id should be omitted when wallet is set")
 }
 
 func TestGetTradeHistory_OmitsZeroPagination(t *testing.T) {
@@ -33,7 +52,7 @@ func TestGetTradeHistory_OmitsZeroPagination(t *testing.T) {
 	ft.HandleResult("private/get_trade_history", map[string]any{
 		"trades": []any{}, "pagination": map[string]any{},
 	})
-	_, _, err := api.GetTradeHistory(context.Background(), types.PageRequest{})
+	_, _, err := api.GetTradeHistory(context.Background(), types.TradeHistoryQuery{}, types.PageRequest{})
 	require.NoError(t, err)
 	params := paramsAsMap(t, ft.LastCall().Params)
 	_, hasPage := params["page"]
@@ -44,7 +63,7 @@ func TestGetTradeHistory_OmitsZeroPagination(t *testing.T) {
 
 func TestGetTradeHistory_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	_, _, err := api.GetTradeHistory(context.Background(), types.PageRequest{})
+	_, _, err := api.GetTradeHistory(context.Background(), types.TradeHistoryQuery{}, types.PageRequest{})
 	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
 }
 

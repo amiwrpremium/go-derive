@@ -33,7 +33,8 @@ func main() {
 	if err := c.Connect(ctx); err != nil {
 		log.Fatalf("ws.Connect: %v", err)
 	}
-	trades, _, err := c.GetPublicTradeHistory(ctx, instrument,
+	trades, _, err := c.GetPublicTradeHistory(ctx,
+		types.PublicTradeHistoryQuery{InstrumentName: instrument},
 		types.PageRequest{PageSize: 5})
 	if err != nil {
 		log.Fatal(err)

@@ -163,6 +163,8 @@ func (a *API) GetPublicOptionSettlementHistory(ctx context.Context, q types.Opti
 	params := map[string]any{}
 	if q.Wallet != "" {
 		params["wallet"] = q.Wallet
+	} else if q.SubaccountID != 0 {
+		params["subaccount_id"] = q.SubaccountID
 	}
 	addPaging(params, page)
 	var resp struct {
