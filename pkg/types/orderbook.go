@@ -58,6 +58,9 @@ func (l *OrderBookLevel) UnmarshalJSON(b []byte) error {
 type OrderBook struct {
 	// InstrumentName identifies the market this snapshot belongs to.
 	InstrumentName string `json:"instrument_name"`
+	// PublishID is the monotonically incrementing publish counter. Use it
+	// to detect dropped or out-of-order messages on the orderbook channel.
+	PublishID int64 `json:"publish_id,omitempty"`
 	// Bids is the buy side of the book.
 	Bids []OrderBookLevel `json:"bids"`
 	// Asks is the sell side of the book.

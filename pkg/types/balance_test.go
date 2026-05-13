@@ -73,3 +73,19 @@ func TestBalance_OmitsEmptyPositionsOnMarshal(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotContains(t, string(b), "positions")
 }
+
+func TestBalanceUpdate_Decode(t *testing.T) {
+	payload := `[
+		{"name":"USDC","new_balance":"10500","previous_balance":"10000","update_type":"trade"},
+		{"name":"BTC-PERP","new_balance":"-0.5","previous_balance":"0","update_type":"trade"}
+	]`
+	var got []types.BalanceUpdate
+	require.NoError(t, json.Unmarshal([]byte(payload), &got))
+	require.Len(t, got, 2)
+	assert.Equal(t, "USDC", got[0].Name)
+	assert.Equal(t, "10500", got[0].NewBalance.String())
+	assert.Equal(t, "10000", got[0].PreviousBalance.String())
+	assert.Equal(t, enums.BalanceUpdateTrade, got[0].UpdateType)
+	assert.Equal(t, "BTC-PERP", got[1].Name)
+	assert.Equal(t, "-0.5", got[1].NewBalance.String())
+}

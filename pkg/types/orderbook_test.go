@@ -34,6 +34,7 @@ func TestOrderBookLevel_UnmarshalRejectsObject(t *testing.T) {
 func TestOrderBook_DecodeFullPayload(t *testing.T) {
 	payload := `{
 		"instrument_name": "BTC-PERP",
+		"publish_id": 42,
 		"bids": [["65000","0.1"],["64999","0.2"]],
 		"asks": [["65001","0.3"]],
 		"timestamp": 1700000000000,
@@ -42,6 +43,7 @@ func TestOrderBook_DecodeFullPayload(t *testing.T) {
 	var ob types.OrderBook
 	require.NoError(t, json.Unmarshal([]byte(payload), &ob))
 	assert.Equal(t, "BTC-PERP", ob.InstrumentName)
+	assert.Equal(t, int64(42), ob.PublishID)
 	require.Len(t, ob.Bids, 2)
 	require.Len(t, ob.Asks, 1)
 	assert.Equal(t, "65000", ob.Bids[0].Price.String())

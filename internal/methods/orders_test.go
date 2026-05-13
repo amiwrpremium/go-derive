@@ -235,8 +235,19 @@ func TestPlaceTriggerOrder_RequiresSigner(t *testing.T) {
 
 func TestCancelOrder(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
-	ft.HandleResult("private/cancel", nil)
-	require.NoError(t, api.CancelOrder(context.Background(), "BTC-PERP", "O1"))
+	ft.HandleResult("private/cancel", map[string]any{
+		"order_id": "O1", "subaccount_id": 1, "instrument_name": "BTC-PERP",
+		"direction": "buy", "order_type": "limit", "time_in_force": "gtc",
+		"order_status": "cancelled", "cancel_reason": "user_request",
+		"amount": "0.1", "filled_amount": "0",
+		"limit_price": "65000", "max_fee": "10", "nonce": 1,
+		"signer":             "0x0000000000000000000000000000000000000000",
+		"creation_timestamp": 1, "last_update_timestamp": 2,
+	})
+	order, err := api.CancelOrder(context.Background(), "BTC-PERP", "O1")
+	require.NoError(t, err)
+	assert.Equal(t, "O1", order.OrderID)
+	assert.Equal(t, "cancelled", string(order.OrderStatus))
 	params := paramsAsMap(t, ft.LastCall().Params)
 	assert.Equal(t, "BTC-PERP", params["instrument_name"])
 	assert.Equal(t, "O1", params["order_id"])
@@ -245,7 +256,7 @@ func TestCancelOrder(t *testing.T) {
 
 func TestCancelOrder_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	err := api.CancelOrder(context.Background(), "BTC-PERP", "O1")
+	_, err := api.CancelOrder(context.Background(), "BTC-PERP", "O1")
 	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
 }
 
