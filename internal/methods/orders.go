@@ -187,16 +187,24 @@ func (a *API) tradeModuleOverride() common.Address { return a.tradeModule }
 func (a *API) SetTradeModule(addr common.Address) { a.tradeModule = addr }
 
 // CancelOrder cancels one open order by id. Private.
-func (a *API) CancelOrder(ctx context.Context, instrument, orderID string) error {
+//
+// Returns the cancelled order — useful to read back the final state
+// (cancel reason, last_update_timestamp) instead of having to call
+// get_order again.
+func (a *API) CancelOrder(ctx context.Context, instrument, orderID string) (types.Order, error) {
 	if err := a.requireSubaccount(); err != nil {
-		return err
+		return types.Order{}, err
 	}
 	params := map[string]any{
 		"subaccount_id":   a.Subaccount,
 		"instrument_name": instrument,
 		"order_id":        orderID,
 	}
-	return a.call(ctx, "private/cancel", params, nil)
+	var resp types.Order
+	if err := a.call(ctx, "private/cancel", params, &resp); err != nil {
+		return types.Order{}, err
+	}
+	return resp, nil
 }
 
 // CancelByLabel cancels all orders carrying the given label. Private.

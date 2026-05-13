@@ -117,12 +117,15 @@ func (c *Client) SubscribeTradesByTypeWithStatus(ctx context.Context, instrument
 // Private channels (require [Client.Login]).
 // --------------------------------------------------------------------
 
-// SubscribeBalances streams balance updates for one subaccount.
-// Wire channel: `{subaccount_id}.balances`.
-func (c *Client) SubscribeBalances(ctx context.Context, subaccountID int64, opts ...SubscribeOption) (*Subscription[types.Balance], error) {
+// SubscribeBalances streams per-asset balance deltas for one subaccount.
+// Each notification carries a slice of [types.BalanceUpdate] entries
+// describing every balance row that changed in the batch — the channel
+// is event-based, not a full snapshot. Wire channel:
+// `{subaccount_id}.balances`.
+func (c *Client) SubscribeBalances(ctx context.Context, subaccountID int64, opts ...SubscribeOption) (*Subscription[[]types.BalanceUpdate], error) {
 	return Subscribe(ctx, c,
 		fmt.Sprintf("%d.balances", subaccountID),
-		decodeJSON[types.Balance], opts...)
+		decodeJSON[[]types.BalanceUpdate], opts...)
 }
 
 // SubscribeOrders streams order lifecycle events for one

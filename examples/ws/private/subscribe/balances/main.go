@@ -65,11 +65,14 @@ func main() {
 		select {
 		case <-ctx.Done():
 			return
-		case bal, ok := <-sub.Updates():
+		case batch, ok := <-sub.Updates():
 			if !ok {
 				return
 			}
-			fmt.Printf("%-30s %v\n", "equity:", bal.SubaccountValue)
+			for _, b := range batch {
+				fmt.Printf("%-12s %-20s %s -> %s (%s)\n",
+					b.UpdateType, b.Name, b.PreviousBalance, b.NewBalance, b.UpdateType)
+			}
 		}
 	}
 }

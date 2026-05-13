@@ -97,31 +97,23 @@ type Balance struct {
 	Positions []Position `json:"positions,omitempty"`
 }
 
-// BalanceUpdate is one entry on the `subaccount.{id}.balances` subscription
-// channel. Where Balance is a snapshot, BalanceUpdate is a delta event:
-// it carries the [enums.BalanceUpdateType] explaining what caused the
-// change (a fill, a deposit, an interest accrual, etc.).
+// BalanceUpdate is one entry on the `{subaccount_id}.balances` subscription
+// channel. Where Balance is a snapshot, BalanceUpdate is a delta event: it
+// carries the [enums.BalanceUpdateType] explaining what caused the change
+// (a fill, a deposit, an interest accrual, etc.).
+//
+// Wire shape mirrors the doc at
+// https://docs.derive.xyz/reference/subaccount_id-balances: the four
+// required fields below.
 type BalanceUpdate struct {
-	// SubaccountID identifies the subaccount this update belongs to.
-	SubaccountID int64 `json:"subaccount_id"`
-	// AssetName is the affected asset.
-	AssetName string `json:"asset_name,omitempty"`
-	// AssetType identifies the asset class.
-	AssetType enums.AssetType `json:"asset_type,omitempty"`
-	// Amount is the new balance after the update.
-	Amount Decimal `json:"amount,omitempty"`
-	// PreviousAmount is the balance before the update.
-	PreviousAmount Decimal `json:"previous_amount,omitempty"`
-	// Delta is the signed change.
-	Delta Decimal `json:"delta,omitempty"`
+	// Name is the affected collateral asset or instrument
+	// (e.g. "USDC", "BTC-PERP").
+	Name string `json:"name"`
+	// NewBalance is the balance after the update.
+	NewBalance Decimal `json:"new_balance"`
+	// PreviousBalance is the balance before the update.
+	PreviousBalance Decimal `json:"previous_balance"`
 	// UpdateType classifies the cause of the update — see
 	// [enums.BalanceUpdateType].
-	UpdateType enums.BalanceUpdateType `json:"update_type,omitempty"`
-	// TxHash is the on-chain transaction hash that generated the update,
-	// for update types that involve on-chain settlement.
-	TxHash TxHash `json:"tx_hash,omitempty"`
-	// TxStatus is the on-chain settlement state.
-	TxStatus enums.TxStatus `json:"tx_status,omitempty"`
-	// Timestamp is when the update was recorded.
-	Timestamp MillisTime `json:"timestamp,omitempty"`
+	UpdateType enums.BalanceUpdateType `json:"update_type"`
 }
