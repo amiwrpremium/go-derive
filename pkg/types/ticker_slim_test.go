@@ -20,6 +20,7 @@ func TestTickerSlim_DecodeFull(t *testing.T) {
 			"A": "0.5",  "a": "78758.5",
 			"B": "0.4",  "b": "78752.1",
 			"I": "78760", "M": "78755",
+			"minp": "78000", "maxp": "79500",
 			"f": "0.0001",
 			"stats": {"v": "100"},
 			"option_pricing": null
@@ -35,6 +36,8 @@ func TestTickerSlim_DecodeFull(t *testing.T) {
 	assert.Equal(t, "78752.1", ts.Ticker.BestBidPrice.String())
 	assert.Equal(t, "78760", ts.Ticker.IndexPrice.String())
 	assert.Equal(t, "78755", ts.Ticker.MarkPrice.String())
+	assert.Equal(t, "78000", ts.Ticker.MinPrice.String())
+	assert.Equal(t, "79500", ts.Ticker.MaxPrice.String())
 	assert.Equal(t, "0.0001", ts.Ticker.FundingRate.String())
 	assert.JSONEq(t, `{"v":"100"}`, string(ts.Ticker.Stats))
 	// JSON `null` decodes into RawMessage as the literal bytes `null`,

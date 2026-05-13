@@ -24,7 +24,23 @@ func TestInstrument_DecodePerp(t *testing.T) {
 		"amount_step": "0.001",
 		"mark_price": "65000.5",
 		"index_price": "65000",
-		"perp_details": {"index": "BTC", "max_leverage": "50"}
+		"maker_fee_rate": "0.0001",
+		"taker_fee_rate": "0.0005",
+		"base_fee": "0.5",
+		"pro_rata_fraction": "0",
+		"pro_rata_amount_step": "0",
+		"fifo_min_allocation": "0",
+		"scheduled_activation": 1700000000,
+		"scheduled_deactivation": 9223372036854775807,
+		"perp_details": {
+			"index": "BTC",
+			"max_leverage": "50",
+			"aggregate_funding": "1.23",
+			"funding_rate": "0.0001",
+			"max_rate_per_hour": "0.01",
+			"min_rate_per_hour": "-0.01",
+			"static_interest_rate": "0.0001"
+		}
 	}`
 	var inst types.Instrument
 	require.NoError(t, json.Unmarshal([]byte(payload), &inst))
@@ -32,6 +48,11 @@ func TestInstrument_DecodePerp(t *testing.T) {
 	require.NotNil(t, inst.Perp)
 	assert.Equal(t, "BTC", inst.Perp.IndexName)
 	assert.Equal(t, "50", inst.Perp.MaxLeverage.String())
+	assert.Equal(t, "1.23", inst.Perp.AggregateFundingRate.String())
+	assert.Equal(t, "0.0001", inst.Perp.StaticInterestRate.String())
+	assert.Equal(t, "0.0001", inst.MakerFeeRate.String())
+	assert.Equal(t, "0.0005", inst.TakerFeeRate.String())
+	assert.Equal(t, int64(1700000000), inst.ScheduledActivation)
 	assert.Nil(t, inst.Option)
 	assert.Nil(t, inst.ERC20)
 }
@@ -65,6 +86,7 @@ func TestInstrument_DecodeERC20(t *testing.T) {
 		"amount_step": "1",
 		"erc20_details": {
 			"underlying_erc20_address": "0x1111111111111111111111111111111111111111",
+			"decimals": 6,
 			"borrow_index": "1.0",
 			"supply_index": "1.0"
 		}
@@ -74,6 +96,7 @@ func TestInstrument_DecodeERC20(t *testing.T) {
 	require.NotNil(t, inst.ERC20)
 	// shopspring normalises "1.0" to "1".
 	assert.Equal(t, "1", inst.ERC20.BorrowIndex.String())
+	assert.Equal(t, 6, inst.ERC20.Decimals)
 }
 
 func TestInstrument_RoundTrip(t *testing.T) {

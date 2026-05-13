@@ -53,6 +53,11 @@ type InstrumentTickerSlim struct {
 	// MarkPrice is the engine-computed mark.
 	MarkPrice Decimal `json:"M,omitempty"`
 
+	// MinPrice is the engine-enforced lower price band.
+	MinPrice Decimal `json:"minp,omitempty"`
+	// MaxPrice is the engine-enforced upper price band.
+	MaxPrice Decimal `json:"maxp,omitempty"`
+
 	// FundingRate is the current 1h funding rate (perp instruments only).
 	FundingRate Decimal `json:"f,omitempty"`
 

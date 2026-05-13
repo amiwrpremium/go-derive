@@ -70,6 +70,17 @@ type Trade struct {
 	QuoteID string `json:"quote_id,omitempty"`
 	// RFQID links the trade back to the originating RFQ, when applicable.
 	RFQID string `json:"rfq_id,omitempty"`
+	// IsTransfer is true when this trade row represents an internal
+	// position transfer (private/transfer_position) rather than a
+	// matched fill. Private only.
+	IsTransfer bool `json:"is_transfer,omitempty"`
+	// Label is the user-defined label attached to the originating
+	// order; private only.
+	Label string `json:"label,omitempty"`
+	// TransactionID is the engine-side transaction id for the fill,
+	// useful for joining against `public/get_transaction` output.
+	// Private only.
+	TransactionID string `json:"transaction_id,omitempty"`
 	// TxHash is the on-chain transaction hash that carried the trade
 	// settlement (populated once the engine submits the tx).
 	TxHash TxHash `json:"tx_hash,omitempty"`

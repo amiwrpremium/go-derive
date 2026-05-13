@@ -62,6 +62,33 @@ type Instrument struct {
 	// option strikes / expiries packed into a single ERC-1155.
 	BaseAssetSubID string `json:"base_asset_sub_id,omitempty"`
 
+	// MakerFeeRate is the fee rate charged to makers (e.g. "0.0003").
+	MakerFeeRate Decimal `json:"maker_fee_rate,omitempty"`
+	// TakerFeeRate is the fee rate charged to takers.
+	TakerFeeRate Decimal `json:"taker_fee_rate,omitempty"`
+	// BaseFee is the flat per-fill fee in quote currency.
+	BaseFee Decimal `json:"base_fee,omitempty"`
+	// MarkPriceFeeRateCap caps the fee at a fraction of mark price.
+	// Nullable on the wire; absent decodes to zero.
+	MarkPriceFeeRateCap Decimal `json:"mark_price_fee_rate_cap,omitempty"`
+
+	// ProRataFraction is the fraction of incoming size routed
+	// pro-rata to the resting book.
+	ProRataFraction Decimal `json:"pro_rata_fraction,omitempty"`
+	// ProRataAmountStep is the size increment used by the pro-rata
+	// matcher.
+	ProRataAmountStep Decimal `json:"pro_rata_amount_step,omitempty"`
+	// FIFOMinAllocation is the minimum allocation routed FIFO before
+	// pro-rata kicks in.
+	FIFOMinAllocation Decimal `json:"fifo_min_allocation,omitempty"`
+
+	// ScheduledActivation is the Unix-seconds time the instrument
+	// becomes tradable.
+	ScheduledActivation int64 `json:"scheduled_activation,omitempty"`
+	// ScheduledDeactivation is the Unix-seconds time the instrument
+	// is delisted.
+	ScheduledDeactivation int64 `json:"scheduled_deactivation,omitempty"`
+
 	// Perp carries perp-specific fields when [Type] is
 	// [enums.InstrumentTypePerp]; nil otherwise.
 	Perp *PerpDetails `json:"perp_details,omitempty"`
@@ -81,9 +108,16 @@ type PerpDetails struct {
 	MaxLeverage Decimal `json:"max_leverage,omitempty"`
 	// AggregateFundingRate is the cumulative funding rate paid since
 	// instrument inception.
-	AggregateFundingRate Decimal `json:"aggregate_funding_rate,omitempty"`
+	AggregateFundingRate Decimal `json:"aggregate_funding,omitempty"`
 	// FundingRate is the most recent per-period funding rate.
 	FundingRate Decimal `json:"funding_rate,omitempty"`
+	// MaxRatePerHour caps the funding rate at the upper bound per hour.
+	MaxRatePerHour Decimal `json:"max_rate_per_hour,omitempty"`
+	// MinRatePerHour caps the funding rate at the lower bound per hour.
+	MinRatePerHour Decimal `json:"min_rate_per_hour,omitempty"`
+	// StaticInterestRate is the engine's static interest-rate input to
+	// the funding-rate formula.
+	StaticInterestRate Decimal `json:"static_interest_rate,omitempty"`
 }
 
 // OptionDetails carries fields specific to options contracts.
@@ -105,6 +139,9 @@ type OptionDetails struct {
 type ERC20Details struct {
 	// UnderlyingERC20Address is the on-chain address of the wrapped ERC-20.
 	UnderlyingERC20Address Address `json:"underlying_erc20_address,omitempty"`
+	// Decimals is the underlying ERC-20's decimals (typically 6 for USDC,
+	// 18 for weETH).
+	Decimals int `json:"decimals,omitempty"`
 	// BorrowIndex is the cumulative interest index for borrows.
 	BorrowIndex Decimal `json:"borrow_index,omitempty"`
 	// SupplyIndex is the cumulative interest index for supplies.

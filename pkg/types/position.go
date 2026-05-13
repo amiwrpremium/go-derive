@@ -33,12 +33,21 @@ type Position struct {
 	InstrumentName string `json:"instrument_name"`
 	// InstrumentType identifies whether this is a perp, option or ERC20.
 	InstrumentType enums.InstrumentType `json:"instrument_type"`
+	// SubaccountID is the subaccount holding the position. Populated
+	// when the response groups positions by subaccount.
+	SubaccountID int64 `json:"subaccount_id,omitempty"`
 	// CreationTimestamp is when the position first appeared on the engine.
 	CreationTimestamp MillisTime `json:"creation_timestamp,omitempty"`
 	// Amount is the signed position size (positive=long, negative=short).
 	Amount Decimal `json:"amount"`
+	// AmountStep is the size increment for this instrument; position
+	// amounts will always be an integer multiple of this value.
+	AmountStep Decimal `json:"amount_step,omitempty"`
 	// AveragePrice is the volume-weighted entry price.
 	AveragePrice Decimal `json:"average_price"`
+	// AveragePriceExclFees is the volume-weighted entry price
+	// excluding fees paid on the entries.
+	AveragePriceExclFees Decimal `json:"average_price_excl_fees,omitempty"`
 	// MarkPrice is the engine's current mark.
 	MarkPrice Decimal `json:"mark_price"`
 	// MarkValue is the position's mark-to-market value in quote currency.
@@ -61,8 +70,15 @@ type Position struct {
 
 	// UnrealizedPNL is the mark-to-market PnL.
 	UnrealizedPNL Decimal `json:"unrealized_pnl"`
+	// UnrealizedPNLExclFees is the mark-to-market PnL excluding fees.
+	UnrealizedPNLExclFees Decimal `json:"unrealized_pnl_excl_fees,omitempty"`
 	// RealizedPNL is the cumulative realized PnL across closes.
 	RealizedPNL Decimal `json:"realized_pnl"`
+	// RealizedPNLExclFees is the cumulative realized PnL across closes
+	// excluding fees paid on the closes.
+	RealizedPNLExclFees Decimal `json:"realized_pnl_excl_fees,omitempty"`
+	// TotalFees is the cumulative fees paid against this position.
+	TotalFees Decimal `json:"total_fees,omitempty"`
 
 	// CumulativeFunding is the total funding paid/received over the
 	// position's lifetime (perps only).

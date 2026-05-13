@@ -33,10 +33,18 @@ type Collateral struct {
 	Currency string `json:"currency,omitempty"`
 	// Amount is the balance in the asset's native units.
 	Amount Decimal `json:"amount"`
+	// AmountStep is the increment for this collateral asset.
+	AmountStep Decimal `json:"amount_step,omitempty"`
 	// MarkPrice is the asset's mark price in quote currency (USDC).
 	MarkPrice Decimal `json:"mark_price,omitempty"`
 	// MarkValue is the asset balance valued at the current mark.
 	MarkValue Decimal `json:"mark_value"`
+	// AveragePrice is the volume-weighted entry price across all
+	// deposits / acquisitions of this asset.
+	AveragePrice Decimal `json:"average_price,omitempty"`
+	// AveragePriceExclFees is the volume-weighted entry price
+	// excluding fees paid on the acquisitions.
+	AveragePriceExclFees Decimal `json:"average_price_excl_fees,omitempty"`
 	// CumulativeInterest is the lifetime interest earned/paid on this asset.
 	CumulativeInterest Decimal `json:"cumulative_interest,omitempty"`
 	// PendingInterest is interest accrued but not yet settled.
@@ -45,6 +53,26 @@ type Collateral struct {
 	InitialMargin Decimal `json:"initial_margin,omitempty"`
 	// MaintenanceMargin is the asset's contribution to the subaccount's MM.
 	MaintenanceMargin Decimal `json:"maintenance_margin,omitempty"`
+	// OpenOrdersMargin is the margin reserved by open orders against
+	// this collateral asset.
+	OpenOrdersMargin Decimal `json:"open_orders_margin,omitempty"`
+	// Delta is the asset's contribution to subaccount delta.
+	Delta Decimal `json:"delta,omitempty"`
+	// DeltaCurrency is the currency Delta is denominated in.
+	DeltaCurrency string `json:"delta_currency,omitempty"`
+	// RealizedPNL is the realized PnL booked against this collateral.
+	RealizedPNL Decimal `json:"realized_pnl,omitempty"`
+	// RealizedPNLExclFees is the realized PnL excluding fees.
+	RealizedPNLExclFees Decimal `json:"realized_pnl_excl_fees,omitempty"`
+	// UnrealizedPNL is the mark-to-market PnL against this collateral.
+	UnrealizedPNL Decimal `json:"unrealized_pnl,omitempty"`
+	// UnrealizedPNLExclFees is the unrealized PnL excluding fees.
+	UnrealizedPNLExclFees Decimal `json:"unrealized_pnl_excl_fees,omitempty"`
+	// TotalFees is the cumulative fees paid against this collateral.
+	TotalFees Decimal `json:"total_fees,omitempty"`
+	// CreationTimestamp is when this collateral row was first credited
+	// to the subaccount.
+	CreationTimestamp MillisTime `json:"creation_timestamp,omitempty"`
 }
 
 // Balance summarises a subaccount's value and margin posture in one struct.
