@@ -30,14 +30,20 @@ type Config struct {
 }
 
 // Contracts collects on-chain addresses referenced by the SDK. Only the
-// matching engine and trade-module addresses are needed to compute action
-// hashes for signing; deposit/withdraw addresses are used by pkg/contracts.
+// matching engine and the per-action module addresses are needed to
+// compute action hashes for signing; deposit/withdraw addresses are
+// used by pkg/contracts.
 type Contracts struct {
 	MatchingEngine string
 	TradeModule    string
 	DepositModule  string
 	WithdrawModule string
 	TransferModule string
+	// RFQModule is the per-action module address used when the SDK
+	// signs RFQ quote payloads (`private/send_quote`,
+	// `private/replace_quote`) and quote-execution payloads
+	// (`private/execute_quote`).
+	RFQModule string
 }
 
 // Mainnet returns Derive mainnet configuration.
@@ -57,6 +63,7 @@ func Mainnet() Config {
 			DepositModule:  "0x9B3FE5E5a3bcEa5df4E08c41Ce89C4e3Ff01Ace3",
 			WithdrawModule: "0x9d0E8f5b25384C7310CB8C6aE32C8fbeb645d083",
 			TransferModule: "0x01259207A40925b794C8ac320456F7F6c8FE2636",
+			RFQModule:      "0x9371352CCef6f5b36EfDFE90942fFE622Ab77F1D",
 		},
 	}
 }
@@ -75,6 +82,7 @@ func Testnet() Config {
 			DepositModule:  "0x9B3FE5E5a3bcEa5df4E08c41Ce89C4e3Ff01Ace3",
 			WithdrawModule: "0x9d0E8f5b25384C7310CB8C6aE32C8fbeb645d083",
 			TransferModule: "0x01259207A40925b794C8ac320456F7F6c8FE2636",
+			RFQModule:      "0x4E4DD8Be1e461913D9A5DBC4B830e67a8694ebCa",
 		},
 	}
 }

@@ -1,8 +1,9 @@
 // Submits a quote in response to an existing RFQ — the maker side
-// of the RFQ flow. private/send_quote is a low-level pass-through:
-// the caller supplies a fully-signed quote payload (signature,
-// signer, nonce, signature_expiry_sec) per the docs at
-// https://docs.derive.xyz/reference/private-send_quote.
+// of the RFQ flow. The SDK signs the per-quote EIP-712 payload
+// internally; the caller just supplies the business fields plus
+// each leg's on-chain identifiers (Asset + SubID), which the SDK
+// uses for the RFQ module hash. Obtain them from
+// `public/get_instrument` once per instrument.
 //
 // Requires DERIVE_RFQ_ID and DERIVE_RUN_LIVE_ORDERS=1 (since the
 // quote, once accepted, may fill).
@@ -66,18 +67,14 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	// Fill in legs / signature / signer / nonce / signature_expiry_sec
-	// from your signing pipeline; this example only demonstrates the
-	// call shape.
+	// Fill in the real legs — InstrumentName + Direction + Amount +
+	// Price come from your quoting logic; Asset + SubID come from
+	// public/get_instrument for each leg's instrument.
 	q, err := c.SendQuote(ctx, types.SendQuoteInput{
-		RFQID:              rfqID,
-		Direction:          enums.DirectionBuy,
-		Legs:               nil,
-		MaxFee:             types.MustDecimal("10"),
-		Nonce:              0,
-		Signature:          "",
-		Signer:             signer.Owner().Hex(),
-		SignatureExpirySec: 0,
+		RFQID:     rfqID,
+		Direction: enums.DirectionBuy,
+		Legs:      nil,
+		MaxFee:    types.MustDecimal("10"),
 	})
 	if err != nil {
 		log.Fatal(err)

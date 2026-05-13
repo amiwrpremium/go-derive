@@ -104,6 +104,7 @@ func New(opts ...Option) (*Client, error) {
 		SignatureExpiry: c.expiry,
 	}
 	api.SetTradeModule(common.HexToAddress(c.network.Contracts.TradeModule))
+	api.SetRFQModule(common.HexToAddress(c.network.Contracts.RFQModule))
 
 	return &Client{API: api, http: httpT, signer: c.signer, cfg: c.network}, nil
 }

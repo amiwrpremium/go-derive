@@ -1,6 +1,8 @@
 // Submits a quote in response to an existing RFQ over WebSocket —
-// the maker side of the RFQ flow. private/send_quote is a low-level
-// pass-through: the caller supplies a fully-signed quote payload.
+// the maker side of the RFQ flow. The SDK signs the per-quote
+// EIP-712 payload internally; each leg supplies its on-chain
+// identifiers (Asset + SubID, from public/get_instrument)
+// alongside the wire fields.
 //
 // Requires DERIVE_RFQ_ID and DERIVE_RUN_LIVE_ORDERS=1.
 package main
@@ -70,14 +72,10 @@ func main() {
 		log.Fatal("set DERIVE_RUN_LIVE_ORDERS=1 to actually send a quote")
 	}
 	q, err := c.SendQuote(ctx, types.SendQuoteInput{
-		RFQID:              rfqID,
-		Direction:          enums.DirectionBuy,
-		Legs:               nil,
-		MaxFee:             types.MustDecimal("10"),
-		Nonce:              0,
-		Signature:          "",
-		Signer:             signer.Owner().Hex(),
-		SignatureExpirySec: 0,
+		RFQID:     rfqID,
+		Direction: enums.DirectionBuy,
+		Legs:      nil,
+		MaxFee:    types.MustDecimal("10"),
 	})
 	if err != nil {
 		log.Fatal(err)

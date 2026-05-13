@@ -46,10 +46,18 @@ func (l RFQLeg) Validate() error {
 	return nil
 }
 
-// QuoteLeg is a priced leg attached to a maker's [Quote] response.
+// QuoteLeg is a priced leg attached to a maker's [Quote] response
+// or a quote-submission input.
 //
 // Distinct from [RFQLeg] because RFQs don't carry per-leg prices —
-// quotes do. Mirrors `LegPricedSchema` in the OAS.
+// quotes do. Mirrors `LegPricedSchema` in the OAS for the wire
+// fields. [Asset] and [SubID] are SDK-internal: they're required
+// inputs when the SDK signs `private/send_quote` /
+// `private/execute_quote` / `private/replace_quote` payloads (the
+// engine reads `instrument_name` from the wire body but the
+// on-chain RFQ module hashes the asset address + sub-id directly).
+// They are not emitted on the wire and are not populated on
+// responses.
 type QuoteLeg struct {
 	// InstrumentName identifies the leg's market.
 	InstrumentName string `json:"instrument_name"`
@@ -59,6 +67,14 @@ type QuoteLeg struct {
 	Amount Decimal `json:"amount"`
 	// Price is the per-leg price the maker is committing to.
 	Price Decimal `json:"price"`
+	// Asset is the leg's on-chain base asset address. Required for
+	// SDK-side signing; obtain via `public/get_instrument`. Not
+	// emitted on the wire.
+	Asset Address `json:"-"`
+	// SubID is the leg's per-asset sub-id (e.g. expiry/strike for
+	// options; zero for perpetuals). Required for SDK-side signing.
+	// Not emitted on the wire.
+	SubID uint64 `json:"-"`
 }
 
 // RFQ is a Request-For-Quote initiated by a taker.
