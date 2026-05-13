@@ -16,18 +16,36 @@ func TestCollateral_Decode(t *testing.T) {
 		"asset_name": "USDC",
 		"asset_type": "erc20",
 		"amount": "10000",
+		"amount_step": "0.000001",
 		"mark_price": "1",
 		"mark_value": "10000",
+		"average_price": "1",
+		"average_price_excl_fees": "1",
 		"cumulative_interest": "5",
 		"pending_interest": "0.1",
 		"initial_margin": "100",
-		"maintenance_margin": "50"
+		"maintenance_margin": "50",
+		"open_orders_margin": "20",
+		"delta": "10000",
+		"delta_currency": "USDC",
+		"realized_pnl": "5",
+		"realized_pnl_excl_fees": "6",
+		"unrealized_pnl": "1",
+		"unrealized_pnl_excl_fees": "2",
+		"total_fees": "3",
+		"creation_timestamp": 1700000000000
 	}`
 	var c types.Collateral
 	require.NoError(t, json.Unmarshal([]byte(payload), &c))
 	assert.Equal(t, "USDC", c.AssetName)
 	assert.Equal(t, enums.AssetTypeERC20, c.AssetType)
 	assert.Equal(t, "10000", c.Amount.String())
+	assert.Equal(t, "USDC", c.DeltaCurrency)
+	assert.Equal(t, "20", c.OpenOrdersMargin.String())
+	assert.Equal(t, "6", c.RealizedPNLExclFees.String())
+	assert.Equal(t, "2", c.UnrealizedPNLExclFees.String())
+	assert.Equal(t, "3", c.TotalFees.String())
+	assert.Equal(t, int64(1700000000000), c.CreationTimestamp.Millis())
 }
 
 func TestCollateral_RoundTrip(t *testing.T) {

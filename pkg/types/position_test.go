@@ -15,15 +15,21 @@ func TestPosition_DecodeFull(t *testing.T) {
 	payload := `{
 		"instrument_name": "BTC-PERP",
 		"instrument_type": "perp",
+		"subaccount_id": 42,
 		"amount": "0.5",
+		"amount_step": "0.001",
 		"average_price": "65000",
+		"average_price_excl_fees": "64980",
 		"mark_price": "65500",
 		"mark_value": "32750",
 		"index_price": "65500",
 		"leverage": "5",
 		"liquidation_price": "10000",
 		"unrealized_pnl": "250",
+		"unrealized_pnl_excl_fees": "260",
 		"realized_pnl": "10",
+		"realized_pnl_excl_fees": "11",
+		"total_fees": "2",
 		"open_orders_margin": "100",
 		"cumulative_funding": "1",
 		"pending_funding": "0.1"
@@ -32,8 +38,13 @@ func TestPosition_DecodeFull(t *testing.T) {
 	require.NoError(t, json.Unmarshal([]byte(payload), &p))
 	assert.Equal(t, "BTC-PERP", p.InstrumentName)
 	assert.Equal(t, enums.InstrumentTypePerp, p.InstrumentType)
+	assert.Equal(t, int64(42), p.SubaccountID)
 	assert.Equal(t, "0.5", p.Amount.String())
-	assert.Equal(t, "250", p.UnrealizedPNL.String())
+	assert.Equal(t, "0.001", p.AmountStep.String())
+	assert.Equal(t, "64980", p.AveragePriceExclFees.String())
+	assert.Equal(t, "260", p.UnrealizedPNLExclFees.String())
+	assert.Equal(t, "11", p.RealizedPNLExclFees.String())
+	assert.Equal(t, "2", p.TotalFees.String())
 	assert.Equal(t, "5", p.Leverage.String())
 }
 

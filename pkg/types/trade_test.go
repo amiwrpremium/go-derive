@@ -25,6 +25,9 @@ func TestTrade_Decode(t *testing.T) {
 		"trade_fee": "0.5",
 		"liquidity_role": "taker",
 		"realized_pnl": "10",
+		"is_transfer": false,
+		"label": "alpha-strategy",
+		"transaction_id": "txn-12345",
 		"timestamp": 1700000000000
 	}`
 	var tr types.Trade
@@ -32,6 +35,28 @@ func TestTrade_Decode(t *testing.T) {
 	assert.Equal(t, "T1", tr.TradeID)
 	assert.Equal(t, enums.DirectionBuy, tr.Direction)
 	assert.Equal(t, enums.LiquidityRoleTaker, tr.LiquidityRole)
+	assert.False(t, tr.IsTransfer)
+	assert.Equal(t, "alpha-strategy", tr.Label)
+	assert.Equal(t, "txn-12345", tr.TransactionID)
+}
+
+func TestTrade_DecodeTransfer(t *testing.T) {
+	payload := `{
+		"trade_id": "T2",
+		"subaccount_id": 1,
+		"instrument_name": "BTC-PERP",
+		"direction": "sell",
+		"trade_price": "0",
+		"trade_amount": "1",
+		"mark_price": "65000",
+		"is_transfer": true,
+		"transaction_id": "txn-99",
+		"timestamp": 1700000000000
+	}`
+	var tr types.Trade
+	require.NoError(t, json.Unmarshal([]byte(payload), &tr))
+	assert.True(t, tr.IsTransfer)
+	assert.Equal(t, "txn-99", tr.TransactionID)
 }
 
 func TestTrade_OmitsEmpty(t *testing.T) {

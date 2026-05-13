@@ -22,6 +22,11 @@ import "encoding/json"
 
 // Ticker is the public market summary for one instrument: top-of-book, marks,
 // and depth at 5%.
+//
+// Wire shape: a flat object combining the instrument's static metadata
+// (fees, schedule, asset addresses) with the live market state (top-of-book,
+// marks, OI). The kind-specific blocks (Perp/Option/ERC20) at the bottom are
+// non-nil only for the matching [InstrumentType].
 type Ticker struct {
 	// InstrumentName identifies the market.
 	InstrumentName string `json:"instrument_name"`
@@ -29,6 +34,46 @@ type Ticker struct {
 	InstrumentType string `json:"instrument_type,omitempty"`
 	// IsActive reports whether the instrument is currently open for trading.
 	IsActive bool `json:"is_active,omitempty"`
+
+	// BaseCurrency is the underlying asset symbol (e.g. "BTC", "ETH").
+	BaseCurrency string `json:"base_currency,omitempty"`
+	// QuoteCurrency is the asset prices are quoted in — almost always "USDC".
+	QuoteCurrency string `json:"quote_currency,omitempty"`
+	// BaseAssetAddress is the on-chain address of the base asset.
+	BaseAssetAddress Address `json:"base_asset_address,omitempty"`
+	// BaseAssetSubID is the per-asset subId.
+	BaseAssetSubID string `json:"base_asset_sub_id,omitempty"`
+
+	// TickSize is the minimum price increment.
+	TickSize Decimal `json:"tick_size,omitempty"`
+	// AmountStep is the size increment.
+	AmountStep Decimal `json:"amount_step,omitempty"`
+	// MinimumAmount is the smallest order size allowed.
+	MinimumAmount Decimal `json:"minimum_amount,omitempty"`
+	// MaximumAmount is the largest order size allowed.
+	MaximumAmount Decimal `json:"maximum_amount,omitempty"`
+
+	// MakerFeeRate is the fee rate charged to makers (e.g. "0.0003").
+	MakerFeeRate Decimal `json:"maker_fee_rate,omitempty"`
+	// TakerFeeRate is the fee rate charged to takers.
+	TakerFeeRate Decimal `json:"taker_fee_rate,omitempty"`
+	// BaseFee is the flat per-fill fee in quote currency.
+	BaseFee Decimal `json:"base_fee,omitempty"`
+	// MarkPriceFeeRateCap caps the fee at a fraction of mark price.
+	MarkPriceFeeRateCap Decimal `json:"mark_price_fee_rate_cap,omitempty"`
+
+	// ProRataFraction is the fraction of incoming size routed pro-rata.
+	ProRataFraction Decimal `json:"pro_rata_fraction,omitempty"`
+	// ProRataAmountStep is the size increment used by the pro-rata matcher.
+	ProRataAmountStep Decimal `json:"pro_rata_amount_step,omitempty"`
+	// FIFOMinAllocation is the minimum allocation routed FIFO before
+	// pro-rata kicks in.
+	FIFOMinAllocation Decimal `json:"fifo_min_allocation,omitempty"`
+
+	// ScheduledActivation is the Unix-seconds activation time.
+	ScheduledActivation int64 `json:"scheduled_activation,omitempty"`
+	// ScheduledDeactivation is the Unix-seconds delisting time.
+	ScheduledDeactivation int64 `json:"scheduled_deactivation,omitempty"`
 
 	// BestBidPrice is the highest resting bid.
 	BestBidPrice Decimal `json:"best_bid_price"`
@@ -58,6 +103,21 @@ type Ticker struct {
 	// (`{"PM": [...], "PM2": [...], "SM": [...]}` of `{current_open_interest,
 	// interest_cap, manager_currency}` items). Decode further if needed.
 	OpenInterest json.RawMessage `json:"open_interest,omitempty"`
+
+	// Stats is the rolling 24h volume / OI / price-change block. Preserved
+	// as raw JSON because the shape includes per-margin-type breakdowns.
+	Stats json.RawMessage `json:"stats,omitempty"`
+
+	// OptionPricing carries IV / greeks for option tickers. Nullable for
+	// non-option instruments.
+	OptionPricing json.RawMessage `json:"option_pricing,omitempty"`
+
+	// Perp carries perp-specific fields when InstrumentType is "perp".
+	Perp *PerpDetails `json:"perp_details,omitempty"`
+	// Option carries option-specific fields when InstrumentType is "option".
+	Option *OptionDetails `json:"option_details,omitempty"`
+	// ERC20 carries ERC-20 spot fields when InstrumentType is "erc20".
+	ERC20 *ERC20Details `json:"erc20_details,omitempty"`
 
 	// Timestamp is when this ticker snapshot was produced.
 	Timestamp MillisTime `json:"timestamp"`
