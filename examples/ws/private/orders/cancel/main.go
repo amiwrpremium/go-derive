@@ -64,8 +64,11 @@ func main() {
 	if id == "" {
 		log.Fatal("DERIVE_ORDER_ID required")
 	}
-	if err := c.CancelOrder(ctx, instrument, id); err != nil {
+	order, err := c.CancelOrder(ctx, instrument, id)
+	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("%-30s %v\n", "cancelled:", id)
+	fmt.Printf("%-30s %v\n", "cancelled:", order.OrderID)
+	fmt.Printf("%-30s %v\n", "cancel_reason:", order.CancelReason)
+	fmt.Printf("%-30s %v\n", "status:", order.OrderStatus)
 }
