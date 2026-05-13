@@ -99,6 +99,7 @@ func New(opts ...Option) (*Client, error) {
 		SignatureExpiry: c.expiry,
 	}
 	api.SetTradeModule(common.HexToAddress(c.network.Contracts.TradeModule))
+	api.SetRFQModule(common.HexToAddress(c.network.Contracts.RFQModule))
 
 	cli := &Client{API: api, wt: wt, signer: c.signer, cfg: c.network}
 

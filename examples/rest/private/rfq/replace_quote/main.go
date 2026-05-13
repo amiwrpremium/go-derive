@@ -1,11 +1,12 @@
 // Replaces (cancel + send) one outstanding maker quote in a single
 // round trip — the quote-side counterpart to private/replace for
-// orders.
+// orders. The SDK signs the replacement quote internally; the
+// caller supplies only the business fields plus each leg's
+// on-chain identifiers.
 //
 // This example is illustrative — set DERIVE_RUN_LIVE_ORDERS=1 only
 // when you actually want it to run; the SDK doesn't gate
-// ReplaceQuote itself. Required fields (legs, signing fields, etc.)
-// must be filled in for the call to succeed against the real engine.
+// ReplaceQuote itself.
 package main
 
 import (
@@ -64,14 +65,10 @@ func main() {
 
 	res, err := c.ReplaceQuote(ctx, types.ReplaceQuoteInput{
 		SendQuoteInput: types.SendQuoteInput{
-			RFQID:              "<rfq-id>",
-			Direction:          enums.DirectionBuy,
-			Legs:               nil,
-			MaxFee:             types.MustDecimal("10"),
-			Nonce:              0,
-			Signature:          "",
-			Signer:             signer.Owner().Hex(),
-			SignatureExpirySec: 0,
+			RFQID:     "<rfq-id>",
+			Direction: enums.DirectionBuy,
+			Legs:      nil,
+			MaxFee:    types.MustDecimal("10"),
 		},
 		QuoteIDToCancel: "<quote-id>",
 	})

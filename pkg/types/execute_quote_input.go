@@ -11,10 +11,13 @@ import "github.com/amiwrpremium/go-derive/pkg/enums"
 // A taker uses this to settle against one specific maker quote
 // that came back on an open RFQ.
 //
-// Quote signing is not yet handled by the SDK: callers must
-// pre-compute [Signature], [Signer], [SignatureExpirySec] and
-// [Nonce] from their own signing flow. The remaining fields are
-// forwarded to the engine verbatim.
+// The SDK signs the per-execute EIP-712 payload internally. Each
+// leg must carry both the engine-facing fields and the on-chain
+// identifiers (`Asset`, `SubID`) used by the RFQ module's hash;
+// obtain them via `public/get_instrument`. The SDK internally
+// inverts the global direction when computing the per-leg signed
+// amount, since the taker takes the opposite side of the maker
+// quote.
 type ExecuteQuoteInput struct {
 	// RFQID is the RFQ the taker initially sent.
 	RFQID string
@@ -32,18 +35,6 @@ type ExecuteQuoteInput struct {
 	Legs []QuoteLeg
 	// MaxFee is the maximum dollar fee for the full trade.
 	MaxFee Decimal
-	// Nonce is the unique per-execution nonce.
-	Nonce uint64
-	// Signature is the caller-computed Ethereum signature over the
-	// execution payload.
-	Signature string
-	// Signer is the wallet or session-key address that produced
-	// [Signature].
-	Signer string
-	// SignatureExpirySec is the Unix timestamp (seconds) after which
-	// the signature is no longer valid. Must be at least 310 seconds
-	// in the future.
-	SignatureExpirySec int64
 	// Label is an optional user-defined tag.
 	Label string
 	// EnableTakerProtection turns on Derive's taker-side protection
@@ -70,20 +61,22 @@ func (in ExecuteQuoteInput) Validate() error {
 	if len(in.Legs) == 0 {
 		return invalidParam("legs", "must have at least one leg")
 	}
+	for i := range in.Legs {
+		if in.Legs[i].InstrumentName == "" {
+			return invalidParam("legs.instrument_name", "required")
+		}
+		if err := in.Legs[i].Direction.Validate(); err != nil {
+			return invalidParam("legs.direction", err.Error())
+		}
+		if in.Legs[i].Amount.Sign() <= 0 {
+			return invalidParam("legs.amount", "must be positive")
+		}
+		if (in.Legs[i].Asset == Address{}) {
+			return invalidParam("legs.asset", "required for SDK-side signing")
+		}
+	}
 	if in.MaxFee.Sign() < 0 {
 		return invalidParam("max_fee", "must be non-negative")
-	}
-	if in.Nonce == 0 {
-		return invalidParam("nonce", "required")
-	}
-	if in.Signature == "" {
-		return invalidParam("signature", "required")
-	}
-	if in.Signer == "" {
-		return invalidParam("signer", "required")
-	}
-	if in.SignatureExpirySec == 0 {
-		return invalidParam("signature_expiry_sec", "required")
 	}
 	return nil
 }

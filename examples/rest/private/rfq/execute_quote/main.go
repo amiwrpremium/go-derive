@@ -3,8 +3,12 @@
 // DERIVE_RUN_LIVE_ORDERS=1 since execution fills the trade
 // immediately.
 //
-// private/execute_quote takes a fully-signed payload — the caller
-// must supply the signature material from their own signing flow.
+// The SDK signs the per-execute EIP-712 payload internally,
+// inverting the global direction when computing the per-leg signed
+// amount (the taker takes the opposite side of the maker quote).
+// Each leg must carry the on-chain identifiers (Asset + SubID)
+// alongside the wire fields — fetch them via
+// `public/get_instrument`.
 package main
 
 import (
@@ -70,15 +74,11 @@ func main() {
 	defer cancel()
 
 	res, err := c.ExecuteQuote(ctx, types.ExecuteQuoteInput{
-		RFQID:              rfqID,
-		QuoteID:            quoteID,
-		Direction:          enums.DirectionBuy,
-		Legs:               nil,
-		MaxFee:             types.MustDecimal("10"),
-		Nonce:              0,
-		Signature:          "",
-		Signer:             signer.Owner().Hex(),
-		SignatureExpirySec: 0,
+		RFQID:     rfqID,
+		QuoteID:   quoteID,
+		Direction: enums.DirectionBuy,
+		Legs:      nil,
+		MaxFee:    types.MustDecimal("10"),
 	})
 	if err != nil {
 		log.Fatal(err)

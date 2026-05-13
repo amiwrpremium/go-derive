@@ -10,9 +10,17 @@ package methods
 
 import (
 	"context"
+	"time"
 
+	"github.com/ethereum/go-ethereum/common"
+
+	"github.com/amiwrpremium/go-derive/pkg/auth"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
+
+// SetRFQModule is called by the client constructors to thread through
+// the per-network RFQ module contract address.
+func (a *API) SetRFQModule(addr common.Address) { a.rfqModule = addr }
 
 // SendRFQ broadcasts a request-for-quote to market makers. Private.
 func (a *API) SendRFQ(ctx context.Context, legs []types.RFQLeg, maxFee types.Decimal) (types.RFQ, error) {
@@ -171,23 +179,20 @@ func quotesQueryParams(q types.QuotesQuery, defaultSubaccount int64) map[string]
 	return params
 }
 
-// SendQuote responds to an open RFQ with a maker quote. The
-// payload carries the multi-leg priced quote plus the caller's
-// pre-computed EIP-712 signature material. Private.
+// SendQuote responds to an open RFQ with a maker quote. The SDK
+// signs the per-quote EIP-712 payload internally; the caller
+// supplies only the business fields on [types.SendQuoteInput]
+// (RFQ id, direction, legs, max fee, optional metadata). Private.
 //
-// The SDK does not yet sign quote payloads; the caller is
-// responsible for populating [types.SendQuoteInput.Signature],
-// [types.SendQuoteInput.Signer],
-// [types.SendQuoteInput.SignatureExpirySec] and
-// [types.SendQuoteInput.Nonce] before calling.
+// Each leg must carry both the engine-facing fields and the
+// on-chain identifiers `Asset` + `SubID` (used by the RFQ module's
+// per-leg hash). Retrieve them via `public/get_instrument` once
+// per instrument at startup.
 func (a *API) SendQuote(ctx context.Context, in types.SendQuoteInput) (types.Quote, error) {
-	if err := a.requireSigner(); err != nil {
+	params, err := a.signedQuoteParams(ctx, in)
+	if err != nil {
 		return types.Quote{}, err
 	}
-	if err := a.requireSubaccount(); err != nil {
-		return types.Quote{}, err
-	}
-	params := sendQuoteParams(in, a.Subaccount)
 	var resp types.Quote
 	if err := a.call(ctx, "private/send_quote", params, &resp); err != nil {
 		return types.Quote{}, err
@@ -199,17 +204,15 @@ func (a *API) SendQuote(ctx context.Context, in types.SendQuoteInput) (types.Quo
 // by the taker once `send_rfq` has surfaced acceptable quotes.
 // Private.
 //
-// The SDK does not yet sign quote-execute payloads; the caller is
-// responsible for the signature fields on [types.ExecuteQuoteInput].
+// The SDK signs the per-execute EIP-712 payload internally,
+// inverting the global direction when computing the per-leg signed
+// amount (the taker takes the opposite side of the maker quote).
 // The response wraps a [types.Quote] and adds `rfq_filled_pct`.
 func (a *API) ExecuteQuote(ctx context.Context, in types.ExecuteQuoteInput) (types.ExecuteQuoteResult, error) {
-	if err := a.requireSigner(); err != nil {
+	params, err := a.signedExecuteQuoteParams(ctx, in)
+	if err != nil {
 		return types.ExecuteQuoteResult{}, err
 	}
-	if err := a.requireSubaccount(); err != nil {
-		return types.ExecuteQuoteResult{}, err
-	}
-	params := executeQuoteParams(in, a.Subaccount)
 	var resp types.ExecuteQuoteResult
 	if err := a.call(ctx, "private/execute_quote", params, &resp); err != nil {
 		return types.ExecuteQuoteResult{}, err
@@ -240,25 +243,20 @@ func (a *API) CancelQuote(ctx context.Context, quoteID string) (types.Quote, err
 // replacement in a single round trip — the maker counterpart to
 // [API.Replace] for orders. Private.
 //
-// The replacement carries the same signed-quote shape as
-// [API.SendQuote]; the caller pre-signs and populates the
-// signature fields on [types.SendQuoteInput] embedded in
-// [types.ReplaceQuoteInput]. Exactly one of
+// The SDK signs the replacement quote exactly like
+// [API.SendQuote]. Exactly one of
 // [types.ReplaceQuoteInput.QuoteIDToCancel] or
-// [types.ReplaceQuoteInput.NonceToCancel] identifies the quote being
-// replaced.
+// [types.ReplaceQuoteInput.NonceToCancel] identifies the quote
+// being replaced.
 //
 // The response carries the cancelled quote, the (optional)
 // replacement quote, and the engine's error if the replacement was
 // rejected.
 func (a *API) ReplaceQuote(ctx context.Context, in types.ReplaceQuoteInput) (types.ReplaceQuoteResult, error) {
-	if err := a.requireSigner(); err != nil {
+	params, err := a.signedQuoteParams(ctx, in.SendQuoteInput)
+	if err != nil {
 		return types.ReplaceQuoteResult{}, err
 	}
-	if err := a.requireSubaccount(); err != nil {
-		return types.ReplaceQuoteResult{}, err
-	}
-	params := sendQuoteParams(in.SendQuoteInput, a.Subaccount)
 	if in.QuoteIDToCancel != "" {
 		params["quote_id_to_cancel"] = in.QuoteIDToCancel
 	}
@@ -334,21 +332,61 @@ func (a *API) RFQGetBestQuote(ctx context.Context, in types.BestQuoteInput) (typ
 	return resp, nil
 }
 
-func sendQuoteParams(in types.SendQuoteInput, defaultSubaccount int64) map[string]any {
+// signedQuoteParams is the shared signing block for the
+// quote-submission endpoints (private/send_quote,
+// private/replace_quote). It hashes the per-quote RFQ module
+// payload, wraps it in the EIP-712 ActionData envelope, signs,
+// and returns the wire params map.
+func (a *API) signedQuoteParams(ctx context.Context, in types.SendQuoteInput) (map[string]any, error) {
+	if err := a.requireSigner(); err != nil {
+		return nil, err
+	}
+	if err := a.requireSubaccount(); err != nil {
+		return nil, err
+	}
+
 	sub := in.SubaccountID
 	if sub == 0 {
-		sub = defaultSubaccount
+		sub = a.Subaccount
 	}
+	nonce := a.Nonces.Next()
+	expiry := time.Now().Unix() + a.SignatureExpiry
+
+	legs := convertLegs(in.Legs)
+	module := auth.RFQQuoteModuleData{
+		GlobalDirection: in.Direction,
+		MaxFee:          in.MaxFee.Inner(),
+		Legs:            legs,
+	}
+	dataHash, err := module.Hash()
+	if err != nil {
+		return nil, err
+	}
+
+	action := auth.ActionData{
+		SubaccountID: sub,
+		Nonce:        nonce,
+		Module:       a.rfqModule,
+		Data:         dataHash,
+		Expiry:       expiry,
+		Owner:        a.Signer.Owner(),
+		Signer:       a.Signer.Address(),
+	}
+	sig, err := a.Signer.SignAction(ctx, a.Domain, action)
+	if err != nil {
+		return nil, err
+	}
+
 	params := map[string]any{
 		"subaccount_id":        sub,
 		"rfq_id":               in.RFQID,
 		"direction":            in.Direction,
 		"legs":                 in.Legs,
 		"max_fee":              in.MaxFee,
-		"nonce":                in.Nonce,
-		"signature":            in.Signature,
-		"signer":               in.Signer,
-		"signature_expiry_sec": in.SignatureExpirySec,
+		"nonce":                nonce,
+		"signature":            sig.Hex(),
+		"signer":               a.Signer.Address().Hex(),
+		"signature_expiry_sec": expiry,
 	}
 	if in.Label != "" {
 		params["label"] = in.Label
@@ -359,14 +397,52 @@ func sendQuoteParams(in types.SendQuoteInput, defaultSubaccount int64) map[strin
 	if in.Client != "" {
 		params["client"] = in.Client
 	}
-	return params
+	return params, nil
 }
 
-func executeQuoteParams(in types.ExecuteQuoteInput, defaultSubaccount int64) map[string]any {
+// signedExecuteQuoteParams is the shared signing block for
+// private/execute_quote. The leg encoding inverts the global
+// direction (the taker takes the opposite side of the maker quote).
+func (a *API) signedExecuteQuoteParams(ctx context.Context, in types.ExecuteQuoteInput) (map[string]any, error) {
+	if err := a.requireSigner(); err != nil {
+		return nil, err
+	}
+	if err := a.requireSubaccount(); err != nil {
+		return nil, err
+	}
+
 	sub := in.SubaccountID
 	if sub == 0 {
-		sub = defaultSubaccount
+		sub = a.Subaccount
 	}
+	nonce := a.Nonces.Next()
+	expiry := time.Now().Unix() + a.SignatureExpiry
+
+	legs := convertLegs(in.Legs)
+	module := auth.RFQExecuteModuleData{
+		GlobalDirection: in.Direction,
+		MaxFee:          in.MaxFee.Inner(),
+		Legs:            legs,
+	}
+	dataHash, err := module.Hash()
+	if err != nil {
+		return nil, err
+	}
+
+	action := auth.ActionData{
+		SubaccountID: sub,
+		Nonce:        nonce,
+		Module:       a.rfqModule,
+		Data:         dataHash,
+		Expiry:       expiry,
+		Owner:        a.Signer.Owner(),
+		Signer:       a.Signer.Address(),
+	}
+	sig, err := a.Signer.SignAction(ctx, a.Domain, action)
+	if err != nil {
+		return nil, err
+	}
+
 	params := map[string]any{
 		"subaccount_id":        sub,
 		"rfq_id":               in.RFQID,
@@ -374,10 +450,10 @@ func executeQuoteParams(in types.ExecuteQuoteInput, defaultSubaccount int64) map
 		"direction":            in.Direction,
 		"legs":                 in.Legs,
 		"max_fee":              in.MaxFee,
-		"nonce":                in.Nonce,
-		"signature":            in.Signature,
-		"signer":               in.Signer,
-		"signature_expiry_sec": in.SignatureExpirySec,
+		"nonce":                nonce,
+		"signature":            sig.Hex(),
+		"signer":               a.Signer.Address().Hex(),
+		"signature_expiry_sec": expiry,
 	}
 	if in.Label != "" {
 		params["label"] = in.Label
@@ -388,7 +464,26 @@ func executeQuoteParams(in types.ExecuteQuoteInput, defaultSubaccount int64) map
 	if in.Client != "" {
 		params["client"] = in.Client
 	}
-	return params
+	return params, nil
+}
+
+// convertLegs maps the public types.QuoteLeg shape (used on the
+// wire and on inputs) to the auth.RFQQuoteLeg shape (used inside
+// the signing primitives). The wire fields and on-chain
+// identifiers travel together on a single QuoteLeg, so the
+// translation is a 1:1 field copy.
+func convertLegs(legs []types.QuoteLeg) []auth.RFQQuoteLeg {
+	out := make([]auth.RFQQuoteLeg, len(legs))
+	for i := range legs {
+		out[i] = auth.RFQQuoteLeg{
+			Asset:     common.Address(legs[i].Asset),
+			SubID:     legs[i].SubID,
+			Direction: legs[i].Direction,
+			Amount:    legs[i].Amount.Inner(),
+			Price:     legs[i].Price.Inner(),
+		}
+	}
+	return out
 }
 
 func bestQuoteParams(in types.BestQuoteInput, defaultSubaccount int64) map[string]any {

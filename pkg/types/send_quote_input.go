@@ -11,11 +11,11 @@ import "github.com/amiwrpremium/go-derive/pkg/enums"
 // uses this to respond to an open RFQ with a multi-leg priced
 // quote.
 //
-// Quote signing is not yet handled by the SDK: callers must
-// pre-compute [Signature], [Signer], [SignatureExpirySec] and
-// [Nonce] using their own signing flow before calling
-// [methods.API.SendQuote]. The remaining fields are forwarded to
-// the engine verbatim.
+// The SDK signs the per-quote EIP-712 payload internally — caller
+// supplies only the business fields. Each leg must carry both the
+// engine-facing fields (`InstrumentName`, `Direction`, `Amount`,
+// `Price`) and the on-chain identifiers (`Asset`, `SubID`) needed
+// for hashing; obtain `Asset` / `SubID` via `public/get_instrument`.
 type SendQuoteInput struct {
 	// RFQID is the open RFQ this quote responds to.
 	RFQID string
@@ -31,20 +31,6 @@ type SendQuoteInput struct {
 	// MaxFee is the maximum dollar fee for the full trade. The
 	// engine rejects the quote if the estimated fee exceeds it.
 	MaxFee Decimal
-	// Nonce is the unique per-quote nonce; the engine deduplicates
-	// against this value.
-	Nonce uint64
-	// Signature is the caller-computed Ethereum signature over the
-	// quote payload.
-	Signature string
-	// Signer is the wallet or session-key address that produced
-	// [Signature].
-	Signer string
-	// SignatureExpirySec is the Unix timestamp (seconds) after which
-	// the signature is no longer valid. Must be at least 310 seconds
-	// in the future per the engine; the quote expires at
-	// SignatureExpirySec - 300.
-	SignatureExpirySec int64
 	// Label is an optional user-defined tag attached to the quote.
 	Label string
 	// MMP marks the quote as eligible for market-maker protection
@@ -77,21 +63,12 @@ func (in SendQuoteInput) Validate() error {
 		if in.Legs[i].Amount.Sign() <= 0 {
 			return invalidParam("legs.amount", "must be positive")
 		}
+		if (in.Legs[i].Asset == Address{}) {
+			return invalidParam("legs.asset", "required for SDK-side signing")
+		}
 	}
 	if in.MaxFee.Sign() < 0 {
 		return invalidParam("max_fee", "must be non-negative")
-	}
-	if in.Nonce == 0 {
-		return invalidParam("nonce", "required")
-	}
-	if in.Signature == "" {
-		return invalidParam("signature", "required")
-	}
-	if in.Signer == "" {
-		return invalidParam("signer", "required")
-	}
-	if in.SignatureExpirySec == 0 {
-		return invalidParam("signature_expiry_sec", "required")
 	}
 	return nil
 }

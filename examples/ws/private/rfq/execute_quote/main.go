@@ -75,15 +75,11 @@ func main() {
 		log.Fatal("set DERIVE_RUN_LIVE_ORDERS=1 to actually execute")
 	}
 	res, err := c.ExecuteQuote(ctx, types.ExecuteQuoteInput{
-		RFQID:              rfqID,
-		QuoteID:            quoteID,
-		Direction:          enums.DirectionBuy,
-		Legs:               nil,
-		MaxFee:             types.MustDecimal("10"),
-		Nonce:              0,
-		Signature:          "",
-		Signer:             signer.Owner().Hex(),
-		SignatureExpirySec: 0,
+		RFQID:     rfqID,
+		QuoteID:   quoteID,
+		Direction: enums.DirectionBuy,
+		Legs:      nil,
+		MaxFee:    types.MustDecimal("10"),
 	})
 	if err != nil {
 		log.Fatal(err)

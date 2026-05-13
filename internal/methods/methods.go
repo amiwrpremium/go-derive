@@ -38,6 +38,11 @@ type API struct {
 	// tradeModule is the on-chain TradeModule contract — used as
 	// Action.Module when signing order placement. Set via SetTradeModule.
 	tradeModule common.Address
+
+	// rfqModule is the on-chain RFQ module contract — used as
+	// Action.Module when signing RFQ send/execute/replace quote
+	// payloads. Set via SetRFQModule.
+	rfqModule common.Address
 }
 
 // requireSigner returns ErrUnauthorized if no signer is configured.
