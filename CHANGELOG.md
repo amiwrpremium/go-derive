@@ -7,6 +7,17 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.13.0](https://github.com/amiwrpremium/go-derive/compare/v0.12.3...v0.13.0) (2026-05-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* **methods:** sign RFQ send/execute/replace quote payloads in the SDK ([#117](https://github.com/amiwrpremium/go-derive/issues/117))
+
+### Features
+
+* **methods:** sign RFQ send/execute/replace quote payloads in the SDK ([#117](https://github.com/amiwrpremium/go-derive/issues/117)) ([db46b9c](https://github.com/amiwrpremium/go-derive/commit/db46b9c374f81f75ed006471ecfe7661aefecd57))
+
 ## [0.12.3](https://github.com/amiwrpremium/go-derive/compare/v0.12.2...v0.12.3) (2026-05-12)
 
 
