@@ -109,6 +109,10 @@ const (
 	// CodeEngineConfirmationTimeout means the matching engine did not
 	// confirm a state change within the expected window.
 	CodeEngineConfirmationTimeout = 9001
+	// CodeCacheConnectionError means the engine's cache layer is
+	// unreachable; the request body may include further diagnostic
+	// details under `data`.
+	CodeCacheConnectionError = 9002
 
 	// --- Account / wallet (10xxx) -----------------------------------------
 
@@ -155,6 +159,10 @@ const (
 	// CodePM2CollateralConstraint means a portfolio-margin v2 collateral
 	// rule was violated.
 	CodePM2CollateralConstraint = 10015
+	// CodePM2CollateralUnsupported means PortfolioMargin v2 does not
+	// support the requested collateral asset. Use a Portfolio Manager
+	// or Standard Manager subaccount that does support the currency.
+	CodePM2CollateralUnsupported = 10016
 
 	// --- Order placement / lifecycle (11xxx) ------------------------------
 
@@ -239,6 +247,10 @@ const (
 	// CodeReplaceFilledAmountMismatch means the replaced order's filled
 	// amount does not match the expected state.
 	CodeReplaceFilledAmountMismatch = 11028
+	// CodeOpenInterestCapExceeded means a trade or transfer was
+	// rejected because it would have caused the open-interest to
+	// exceed the cap for either the sender or recipient manager.
+	CodeOpenInterestCapExceeded = 11029
 
 	// --- Trigger orders (1105x) -------------------------------------------
 
@@ -282,6 +294,19 @@ const (
 	// CodeQuoteCostTooHigh means the quote's total cost exceeds the
 	// caller's max_total_fee.
 	CodeQuoteCostTooHigh = 11107
+	// CodeRFQPartialFillTooHigh means an attempt was made to fill an
+	// RFQ above the requested total size.
+	CodeRFQPartialFillTooHigh = 11108
+	// CodeRFQFilledDirectionLocked means an RFQ's filled direction
+	// cannot be changed once the RFQ is partially filled.
+	CodeRFQFilledDirectionLocked = 11109
+	// CodeQuoteTakerCostTooHigh means the quote's taker-side total
+	// cost exceeded the orderbook execution price band.
+	CodeQuoteTakerCostTooHigh = 11110
+	// CodeRFQDisabledForAccount means RFQ functionality is disabled
+	// for this account, typically because of suspicious activity or
+	// a terms-of-service violation.
+	CodeRFQDisabledForAccount = 11111
 
 	// --- Auction (112xx) --------------------------------------------------
 
@@ -405,6 +430,9 @@ const (
 	// CodeAccountDisabledCompliance means the account has been disabled
 	// for compliance reasons.
 	CodeAccountDisabledCompliance = 16001
+	// CodeOFACBlocked means the account is blocked because of OFAC
+	// compliance violations.
+	CodeOFACBlocked = 16002
 	// CodeSentinelAuthInvalid means a Sentinel-class authentication check
 	// failed.
 	CodeSentinelAuthInvalid = 16100
