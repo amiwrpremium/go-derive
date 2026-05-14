@@ -68,13 +68,13 @@ func TestPlaceOrderInput_Validate_AllowsEmptyTimeInForce(t *testing.T) {
 
 func TestPlaceOrder_RequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
-	_, err := api.PlaceOrder(context.Background(), types.PlaceOrderInput{})
+	_, _, err := api.PlaceOrder(context.Background(), types.PlaceOrderInput{})
 	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
 }
 
 func TestPlaceOrder_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0) // signer set but subaccount=0
-	_, err := api.PlaceOrder(context.Background(), types.PlaceOrderInput{})
+	_, _, err := api.PlaceOrder(context.Background(), types.PlaceOrderInput{})
 	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
 }
 
@@ -107,9 +107,10 @@ func TestPlaceOrder_Success_PopulatesSignatureFields(t *testing.T) {
 		LimitPrice:     types.MustDecimal("65000"),
 		MaxFee:         types.MustDecimal("10"),
 	}
-	order, err := api.PlaceOrder(context.Background(), in)
+	order, trades, err := api.PlaceOrder(context.Background(), in)
 	require.NoError(t, err)
 	assert.Equal(t, "O1", order.OrderID)
+	assert.Empty(t, trades)
 
 	// The captured params must include signature, signer, signature_expiry_sec, nonce.
 	params := paramsAsMap(t, ft.LastCall().Params)
@@ -120,6 +121,64 @@ func TestPlaceOrder_Success_PopulatesSignatureFields(t *testing.T) {
 	assert.Greater(t, params["nonce"], float64(0))
 	assert.Equal(t, "buy", params["direction"])
 	assert.Equal(t, "BTC-PERP", params["instrument_name"])
+}
+
+func TestPlaceOrder_SurfacesTradesAndOptionalFields(t *testing.T) {
+	api, ft := newAPI(t, true, 1)
+
+	ft.Handle("private/order", func(_ json.RawMessage) (any, error) {
+		return map[string]any{
+			"order": map[string]any{
+				"order_id": "O2", "subaccount_id": 1, "instrument_name": "BTC-PERP",
+				"direction": "buy", "order_type": "limit", "time_in_force": "ioc",
+				"order_status": "filled", "amount": "0.1", "filled_amount": "0.1",
+				"limit_price": "65000", "max_fee": "10", "nonce": 1,
+				"signer":             "0x0000000000000000000000000000000000000000",
+				"creation_timestamp": 1700000000000, "last_update_timestamp": 1700000000001,
+			},
+			"trades": []any{
+				map[string]any{
+					"trade_id":        "T1",
+					"instrument_name": "BTC-PERP",
+					"direction":       "buy",
+					"trade_price":     "65000",
+					"trade_amount":    "0.1",
+					"mark_price":      "65000",
+					"timestamp":       1700000000001,
+				},
+			},
+		}, nil
+	})
+
+	in := types.PlaceOrderInput{
+		InstrumentName:  "BTC-PERP",
+		Asset:           types.Address(common.HexToAddress("0x1111111111111111111111111111111111111111")),
+		Direction:       enums.DirectionBuy,
+		OrderType:       enums.OrderTypeLimit,
+		TimeInForce:     enums.TimeInForceIOC,
+		Amount:          types.MustDecimal("0.1"),
+		LimitPrice:      types.MustDecimal("65000"),
+		MaxFee:          types.MustDecimal("10"),
+		Client:          "alpha-bot",
+		IsAtomicSigning: true,
+		ReferralCode:    "REF-1",
+		RejectPostOnly:  true,
+		RejectTimestamp: 1700000000999,
+		ExtraFee:        types.MustDecimal("0.05"),
+	}
+	order, trades, err := api.PlaceOrder(context.Background(), in)
+	require.NoError(t, err)
+	assert.Equal(t, "O2", order.OrderID)
+	require.Len(t, trades, 1)
+	assert.Equal(t, "T1", trades[0].TradeID)
+
+	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.Equal(t, "alpha-bot", params["client"])
+	assert.Equal(t, true, params["is_atomic_signing"])
+	assert.Equal(t, "REF-1", params["referral_code"])
+	assert.Equal(t, true, params["reject_post_only"])
+	assert.Equal(t, float64(1700000000999), params["reject_timestamp"])
+	assert.Equal(t, "0.05", params["extra_fee"])
 }
 
 func TestPlaceAlgoOrder_Success_PopulatesAlgoFields(t *testing.T) {
@@ -157,7 +216,7 @@ func TestPlaceAlgoOrder_Success_PopulatesAlgoFields(t *testing.T) {
 		AlgoDurationSec: 3600,
 		AlgoNumSlices:   60,
 	}
-	order, err := api.PlaceAlgoOrder(context.Background(), in)
+	order, _, err := api.PlaceAlgoOrder(context.Background(), in)
 	require.NoError(t, err)
 	assert.Equal(t, "A1", order.OrderID)
 	assert.Equal(t, "twap", order.AlgoType)
@@ -174,7 +233,7 @@ func TestPlaceAlgoOrder_Success_PopulatesAlgoFields(t *testing.T) {
 
 func TestPlaceAlgoOrder_RequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
-	_, err := api.PlaceAlgoOrder(context.Background(), types.AlgoOrderInput{})
+	_, _, err := api.PlaceAlgoOrder(context.Background(), types.AlgoOrderInput{})
 	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
 }
 
@@ -213,7 +272,7 @@ func TestPlaceTriggerOrder_Success_PopulatesTriggerFields(t *testing.T) {
 		TriggerPriceType: enums.TriggerPriceTypeMark,
 		TriggerPrice:     types.MustDecimal("59000"),
 	}
-	order, err := api.PlaceTriggerOrder(context.Background(), in)
+	order, _, err := api.PlaceTriggerOrder(context.Background(), in)
 	require.NoError(t, err)
 	assert.Equal(t, "T1", order.OrderID)
 	assert.Equal(t, "stoploss", order.TriggerType)
@@ -229,7 +288,7 @@ func TestPlaceTriggerOrder_Success_PopulatesTriggerFields(t *testing.T) {
 
 func TestPlaceTriggerOrder_RequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
-	_, err := api.PlaceTriggerOrder(context.Background(), types.TriggerOrderInput{})
+	_, _, err := api.PlaceTriggerOrder(context.Background(), types.TriggerOrderInput{})
 	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
 }
 

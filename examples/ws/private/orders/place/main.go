@@ -75,7 +75,7 @@ func main() {
 	limit := tk.MarkPrice.Inner().Mul(decimal.RequireFromString("0.95"))
 	price, _ := types.NewDecimal(limit.String())
 
-	o, err := c.PlaceOrder(ctx, types.PlaceOrderInput{
+	o, trades, err := c.PlaceOrder(ctx, types.PlaceOrderInput{
 		InstrumentName: instrument,
 		Asset:          types.Address(baseAsset),
 		Direction:      enums.DirectionBuy,
@@ -89,4 +89,5 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Printf("%-30s %v\n", "placed:", o.OrderID)
+	fmt.Printf("%-30s %v\n", "trades on submission:", len(trades))
 }

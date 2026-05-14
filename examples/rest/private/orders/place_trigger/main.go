@@ -78,7 +78,7 @@ func main() {
 	limit := mark.Mul(decimal.RequireFromString("0.94"))
 	limitPrice, _ := types.NewDecimal(limit.String())
 
-	o, err := c.PlaceTriggerOrder(ctx, types.TriggerOrderInput{
+	o, _, err := c.PlaceTriggerOrder(ctx, types.TriggerOrderInput{
 		PlaceOrderInput: types.PlaceOrderInput{
 			InstrumentName: instrument,
 			Asset:          types.Address(baseAsset),

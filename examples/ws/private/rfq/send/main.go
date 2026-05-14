@@ -62,9 +62,12 @@ func main() {
 	if err := c.Login(ctx); err != nil {
 		log.Fatalf("ws.Login: %v", err)
 	}
-	rfq, err := c.SendRFQ(ctx, []types.RFQLeg{
-		{InstrumentName: instrument, Direction: enums.DirectionBuy, Amount: types.MustDecimal("0.1")},
-	}, types.MustDecimal("10"))
+	rfq, err := c.SendRFQ(ctx, types.SendRFQInput{
+		Legs: []types.RFQLeg{
+			{InstrumentName: instrument, Direction: enums.DirectionBuy, Amount: types.MustDecimal("0.1")},
+		},
+		MaxTotalCost: types.MustDecimal("10"),
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
