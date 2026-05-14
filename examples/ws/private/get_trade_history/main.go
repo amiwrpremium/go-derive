@@ -57,7 +57,7 @@ func main() {
 	if err := c.Login(ctx); err != nil {
 		log.Fatalf("ws.Login: %v", err)
 	}
-	trades, _, err := c.GetTradeHistory(ctx, types.PageRequest{PageSize: 10})
+	trades, _, err := c.GetTradeHistory(ctx, types.TradeHistoryQuery{}, types.PageRequest{PageSize: 10})
 	if err != nil {
 		log.Fatal(err)
 	}

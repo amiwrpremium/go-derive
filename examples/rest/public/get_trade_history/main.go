@@ -31,7 +31,8 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	trades, page, err := c.GetPublicTradeHistory(ctx, instrument,
+	trades, page, err := c.GetPublicTradeHistory(ctx,
+		types.PublicTradeHistoryQuery{InstrumentName: instrument},
 		types.PageRequest{PageSize: 5})
 	if err != nil {
 		log.Fatal(err)

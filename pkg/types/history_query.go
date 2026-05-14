@@ -61,7 +61,89 @@ type LiquidatorHistoryQuery struct {
 // Neither variant accepts timestamps — the query is purely by
 // account identity.
 type OptionSettlementHistoryQuery struct {
+	// Wallet, when non-empty, queries across every subaccount under
+	// that wallet. When set, the engine ignores SubaccountID.
 	Wallet string
+	// SubaccountID restricts the query to one subaccount. Ignored
+	// when Wallet is set.
+	SubaccountID int64
+}
+
+// TradeHistoryQuery narrows a paginated `private/get_trade_history`
+// request. All fields are optional; the zero value asks the engine
+// for unfiltered results.
+//
+// FromTimestamp/ToTimestamp use the endpoint's own
+// `from_timestamp`/`to_timestamp` wire keys rather than the
+// `start_timestamp`/`end_timestamp` keys used by
+// [HistoryWindow]-backed endpoints.
+type TradeHistoryQuery struct {
+	// Wallet, when non-empty, spans every subaccount under that
+	// wallet and causes the engine to ignore the client's configured
+	// subaccount.
+	Wallet string
+	// InstrumentName filters to one instrument.
+	InstrumentName string
+	// OrderID filters to fills from one order.
+	OrderID string
+	// QuoteID filters to fills that came out of one RFQ quote.
+	// Accepts a concrete UUID, or the engine's enum strings
+	// "is_quote" / "is_not_quote".
+	QuoteID string
+	// FromTimestamp is the earliest fill timestamp to include
+	// (milliseconds since the Unix epoch). Zero defers to the
+	// server-side default of 0.
+	FromTimestamp MillisTime
+	// ToTimestamp is the latest fill timestamp to include
+	// (milliseconds since the Unix epoch). Zero defers to the
+	// server-side default of "now".
+	ToTimestamp MillisTime
+}
+
+// PublicTradeHistoryQuery narrows a paginated
+// `public/get_trade_history` request. InstrumentName is the only
+// commonly-required filter; all others are optional and AND together.
+//
+// FromTimestamp/ToTimestamp use the endpoint's own
+// `from_timestamp`/`to_timestamp` wire keys.
+type PublicTradeHistoryQuery struct {
+	// InstrumentName filters to one instrument.
+	InstrumentName string
+	// Currency filters to one underlying currency.
+	Currency string
+	// InstrumentType filters to one instrument kind ("perp",
+	// "option", "erc20").
+	InstrumentType string
+	// SubaccountID filters to trades on one subaccount (zero =
+	// any).
+	SubaccountID int64
+	// TradeID, when set, fetches the specific trade by id.
+	TradeID string
+	// TxHash filters by the on-chain settlement transaction hash.
+	TxHash string
+	// TxStatus filters by the on-chain settlement state.
+	// Server-side default is "settled".
+	TxStatus string
+	// FromTimestamp is the earliest fill timestamp to include
+	// (milliseconds since the Unix epoch).
+	FromTimestamp MillisTime
+	// ToTimestamp is the latest fill timestamp to include
+	// (milliseconds since the Unix epoch).
+	ToTimestamp MillisTime
+}
+
+// StatisticsQuery parameterises `public/statistics`. InstrumentName
+// is required. Currency and EndTime are optional filters documented
+// on the endpoint.
+type StatisticsQuery struct {
+	// InstrumentName identifies the market. Required.
+	InstrumentName string
+	// Currency, when non-empty, narrows the rollup to one
+	// underlying currency.
+	Currency string
+	// EndTime, when non-zero, anchors the rollup window to a
+	// Unix-seconds timestamp; otherwise the engine uses "now".
+	EndTime int64
 }
 
 // ERC20TransferHistoryQuery narrows a

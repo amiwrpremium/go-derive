@@ -15,11 +15,37 @@ import (
 )
 
 // GetTradeHistory paginates the user's fills. Private.
-func (a *API) GetTradeHistory(ctx context.Context, page types.PageRequest) ([]types.Trade, types.Page, error) {
-	if err := a.requireSubaccount(); err != nil {
-		return nil, types.Page{}, err
+//
+// All filters on the query are optional. Pass Wallet to span every
+// subaccount under that wallet; when Wallet is empty the
+// client-configured subaccount is used. InstrumentName, OrderID, and
+// QuoteID narrow the result further; QuoteID accepts a concrete UUID
+// or the engine's enum strings "is_quote" / "is_not_quote".
+func (a *API) GetTradeHistory(ctx context.Context, q types.TradeHistoryQuery, page types.PageRequest) ([]types.Trade, types.Page, error) {
+	params := map[string]any{}
+	if q.Wallet != "" {
+		params["wallet"] = q.Wallet
+	} else {
+		if err := a.requireSubaccount(); err != nil {
+			return nil, types.Page{}, err
+		}
+		params["subaccount_id"] = a.Subaccount
 	}
-	params := map[string]any{"subaccount_id": a.Subaccount}
+	if q.InstrumentName != "" {
+		params["instrument_name"] = q.InstrumentName
+	}
+	if q.OrderID != "" {
+		params["order_id"] = q.OrderID
+	}
+	if q.QuoteID != "" {
+		params["quote_id"] = q.QuoteID
+	}
+	if !q.FromTimestamp.Time().IsZero() {
+		params["from_timestamp"] = q.FromTimestamp.Millis()
+	}
+	if !q.ToTimestamp.Time().IsZero() {
+		params["to_timestamp"] = q.ToTimestamp.Millis()
+	}
 	if page.Page > 0 {
 		params["page"] = page.Page
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -86,11 +87,22 @@ func TestGetPublicTradeHistory(t *testing.T) {
 		"trades":     []any{},
 		"pagination": map[string]any{"num_pages": 1, "count": 0, "current_page": 1, "page_size": 50},
 	})
-	trades, page, err := api.GetPublicTradeHistory(context.Background(), "BTC-PERP", types.PageRequest{Page: 2, PageSize: 50})
+	trades, page, err := api.GetPublicTradeHistory(context.Background(),
+		types.PublicTradeHistoryQuery{
+			InstrumentName: "BTC-PERP",
+			Currency:       "BTC",
+			TxStatus:       "settled",
+			FromTimestamp:  types.NewMillisTime(time.UnixMilli(1700000000000)),
+		},
+		types.PageRequest{Page: 2, PageSize: 50})
 	require.NoError(t, err)
 	assert.Empty(t, trades)
 	assert.Equal(t, 1, page.NumPages)
 	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.Equal(t, "BTC-PERP", params["instrument_name"])
+	assert.Equal(t, "BTC", params["currency"])
+	assert.Equal(t, "settled", params["tx_status"])
+	assert.Equal(t, float64(1700000000000), params["from_timestamp"])
 	assert.Equal(t, float64(2), params["page"])
 	assert.Equal(t, float64(50), params["page_size"])
 }
@@ -133,10 +145,17 @@ func TestGetStatistics_Decode(t *testing.T) {
 		"total_premium_volume":  "500000",
 		"total_trades":          int64(25000),
 	})
-	got, err := api.GetStatistics(context.Background(), "BTC-PERP")
+	got, err := api.GetStatistics(context.Background(), types.StatisticsQuery{
+		InstrumentName: "BTC-PERP",
+		Currency:       "BTC",
+		EndTime:        1700000000,
+	})
 	require.NoError(t, err)
 	assert.Equal(t, int64(250), got.DailyTrades)
 	assert.Equal(t, "500", got.OpenInterest.String())
+	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.Equal(t, "BTC", params["currency"])
+	assert.Equal(t, float64(1700000000), params["end_time"])
 }
 
 func TestGetCurrency_Decode(t *testing.T) {

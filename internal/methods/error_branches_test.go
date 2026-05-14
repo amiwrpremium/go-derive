@@ -41,7 +41,7 @@ func TestNoArgWrappers_PropagateError(t *testing.T) {
 	t.Run("GetStatistics", func(t *testing.T) {
 		api, ft := newAPI(t, true, 0)
 		ft.HandleError("public/statistics", boom)
-		_, err := api.GetStatistics(context.Background(), "BTC-PERP")
+		_, err := api.GetStatistics(context.Background(), types.StatisticsQuery{InstrumentName: "BTC-PERP"})
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 	t.Run("GetTransaction", func(t *testing.T) {
@@ -107,7 +107,7 @@ func TestNoArgWrappers_PropagateError(t *testing.T) {
 	t.Run("GetTradeHistory_ServerError", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/get_trade_history", boom)
-		_, _, err := api.GetTradeHistory(context.Background(), types.PageRequest{})
+		_, _, err := api.GetTradeHistory(context.Background(), types.TradeHistoryQuery{}, types.PageRequest{})
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 	t.Run("OrderQuote", func(t *testing.T) {

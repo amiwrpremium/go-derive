@@ -51,7 +51,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	trades, page, err := c.GetTradeHistory(ctx, types.PageRequest{PageSize: 10})
+	trades, page, err := c.GetTradeHistory(ctx, types.TradeHistoryQuery{}, types.PageRequest{PageSize: 10})
 	if err != nil {
 		log.Fatal(err)
 	}
