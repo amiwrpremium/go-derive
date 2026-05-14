@@ -30,17 +30,17 @@ func methodsOf(calls []testutil.FakeCall) []string {
 
 func instrumentResponse(name, subID string) map[string]any {
 	return map[string]any{
-		"instrument_name":   name,
-		"base_currency":     "BTC",
-		"quote_currency":    "USDC",
-		"instrument_type":   "perp",
-		"is_active":         true,
-		"tick_size":         "0.5",
-		"minimum_amount":    "0.001",
-		"maximum_amount":    "1000",
-		"amount_step":       "0.001",
-		"base_asset_address":  instAddrHex,
-		"base_asset_sub_id":   subID,
+		"instrument_name":    name,
+		"base_currency":      "BTC",
+		"quote_currency":     "USDC",
+		"instrument_type":    "perp",
+		"is_active":          true,
+		"tick_size":          "0.5",
+		"minimum_amount":     "0.001",
+		"maximum_amount":     "1000",
+		"amount_step":        "0.001",
+		"base_asset_address": instAddrHex,
+		"base_asset_sub_id":  subID,
 	}
 }
 
