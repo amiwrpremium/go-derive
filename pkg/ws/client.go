@@ -108,6 +108,11 @@ func New(opts ...Option) (*Client, error) {
 	if c.reconnect && c.signer != nil {
 		cli.installReconnectLogin()
 	}
+	if c.preloadAllInsts {
+		go func() {
+			_ = api.PreloadAllInstruments(context.Background())
+		}()
+	}
 	return cli, nil
 }
 

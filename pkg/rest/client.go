@@ -106,7 +106,14 @@ func New(opts ...Option) (*Client, error) {
 	api.SetTradeModule(common.HexToAddress(c.network.Contracts.TradeModule))
 	api.SetRFQModule(common.HexToAddress(c.network.Contracts.RFQModule))
 
-	return &Client{API: api, http: httpT, signer: c.signer, cfg: c.network}, nil
+	client := &Client{API: api, http: httpT, signer: c.signer, cfg: c.network}
+
+	if c.preloadAllInsts {
+		go func() {
+			_ = api.PreloadAllInstruments(context.Background())
+		}()
+	}
+	return client, nil
 }
 
 // Close releases transport-level resources. The [Client] is unusable

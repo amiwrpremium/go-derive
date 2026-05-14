@@ -40,14 +40,15 @@ import (
 type Option func(*config)
 
 type config struct {
-	network    netconf.Config
-	signer     auth.Signer
-	subaccount int64
-	httpClient *http.Client
-	userAgent  string
-	tps        float64
-	burst      float64
-	expiry     int64
+	network         netconf.Config
+	signer          auth.Signer
+	subaccount      int64
+	httpClient      *http.Client
+	userAgent       string
+	tps             float64
+	burst           float64
+	expiry          int64
+	preloadAllInsts bool
 }
 
 // WithMainnet selects Derive's mainnet endpoints (chain id 957). Required
@@ -103,4 +104,20 @@ func WithRateLimit(tps, burst float64) Option {
 // replay-protection bounds.
 func WithSignatureExpiry(seconds int64) Option {
 	return func(c *config) { c.expiry = seconds }
+}
+
+// WithInstrumentPreload kicks off a background fetch of every live
+// instrument (across all currencies and kinds) immediately after
+// the client is constructed.
+//
+// The preload populates the SDK's instrument metadata cache, letting
+// subsequent signed actions (PlaceOrder, SendQuote, etc.) skip the
+// per-instrument public/get_instrument lookup that otherwise happens
+// lazily on first use of each new instrument.
+//
+// The fetch runs in a goroutine using context.Background(); errors
+// are swallowed. Callers who want to surface errors should invoke
+// [methods.API.PreloadAllInstruments] manually instead.
+func WithInstrumentPreload() Option {
+	return func(c *config) { c.preloadAllInsts = true }
 }

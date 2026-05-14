@@ -10,6 +10,7 @@ package methods
 
 import (
 	"context"
+	"sync"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -43,6 +44,13 @@ type API struct {
 	// Action.Module when signing RFQ send/execute/replace quote
 	// payloads. Set via SetRFQModule.
 	rfqModule common.Address
+
+	// instrumentCacheStorage and instrumentCacheOnce back the
+	// metadata cache reached via instCache(). Lazy initialisation
+	// keeps the API zero value usable in tests and lets the
+	// transport-layer constructors skip cache wiring.
+	instrumentCacheStorage *instrumentCache
+	instrumentCacheOnce    sync.Once
 }
 
 // requireSigner returns ErrUnauthorized if no signer is configured.
