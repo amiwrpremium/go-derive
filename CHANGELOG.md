@@ -7,6 +7,29 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.14.0](https://github.com/amiwrpremium/go-derive/compare/v0.13.0...v0.14.0) (2026-05-14)
+
+
+### ⚠ BREAKING CHANGES
+
+* **methods:** expose documented optional fields on signed actions ([#125](https://github.com/amiwrpremium/go-derive/issues/125))
+* **methods:** expose documented optional filters on read endpoints ([#123](https://github.com/amiwrpremium/go-derive/issues/123))
+* **types:** fill in missing response fields across core DTOs ([#122](https://github.com/amiwrpremium/go-derive/issues/122))
+* **ws:** align balances channel, cancel response, and orderbook with docs ([#119](https://github.com/amiwrpremium/go-derive/issues/119))
+
+### Features
+
+* **errors:** add eight missing JSON-RPC error code constants ([#124](https://github.com/amiwrpremium/go-derive/issues/124)) ([9cd7bb6](https://github.com/amiwrpremium/go-derive/commit/9cd7bb6efa185083a8ba024512db7839694b6390))
+* **methods:** add session-key management endpoints ([#121](https://github.com/amiwrpremium/go-derive/issues/121)) ([23ce0f3](https://github.com/amiwrpremium/go-derive/commit/23ce0f3c5f20f5face78e5c02a6fcb76cec69c9b))
+* **methods:** expose documented optional fields on signed actions ([#125](https://github.com/amiwrpremium/go-derive/issues/125)) ([1b02d27](https://github.com/amiwrpremium/go-derive/commit/1b02d272e268b4371f95c034d673e9531ddd9871))
+* **methods:** expose documented optional filters on read endpoints ([#123](https://github.com/amiwrpremium/go-derive/issues/123)) ([ce45f65](https://github.com/amiwrpremium/go-derive/commit/ce45f65618881a1445f221375dd233572c101e76))
+* **types:** fill in missing response fields across core DTOs ([#122](https://github.com/amiwrpremium/go-derive/issues/122)) ([e2ef244](https://github.com/amiwrpremium/go-derive/commit/e2ef244d407713ab20821c21e5cbf8fea511892b))
+
+
+### Bug Fixes
+
+* **ws:** align balances channel, cancel response, and orderbook with docs ([#119](https://github.com/amiwrpremium/go-derive/issues/119)) ([459f780](https://github.com/amiwrpremium/go-derive/commit/459f780dfcc934662503849fae71498c0b0010d5))
+
 ## [0.13.0](https://github.com/amiwrpremium/go-derive/compare/v0.12.3...v0.13.0) (2026-05-13)
 
 
