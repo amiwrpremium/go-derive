@@ -23,6 +23,7 @@ func allCodes() map[string]int {
 		"ConcurrentWSClientsLimitExceeded":  derrors.CodeConcurrentWSClientsLimitExceeded,
 		"OrderConfirmationTimeout":          derrors.CodeOrderConfirmationTimeout,
 		"EngineConfirmationTimeout":         derrors.CodeEngineConfirmationTimeout,
+		"CacheConnectionError":              derrors.CodeCacheConnectionError,
 		"ManagerNotFound":                   derrors.CodeManagerNotFound,
 		"AssetNotERC20":                     derrors.CodeAssetNotERC20,
 		"WalletMismatch":                    derrors.CodeWalletMismatch,
@@ -39,6 +40,7 @@ func allCodes() map[string]int {
 		"PendingDeposit":                    derrors.CodePendingDeposit,
 		"PendingWithdrawal":                 derrors.CodePendingWithdrawal,
 		"PM2CollateralConstraint":           derrors.CodePM2CollateralConstraint,
+		"PM2CollateralUnsupported":          derrors.CodePM2CollateralUnsupported,
 		"InsufficientFundsOrder":            derrors.CodeInsufficientFundsOrder,
 		"OrderRejectedFromQueue":            derrors.CodeOrderRejectedFromQueue,
 		"AlreadyCancelled":                  derrors.CodeAlreadyCancelled,
@@ -60,6 +62,7 @@ func allCodes() map[string]int {
 		"OpenOrdersLimitExceeded":           derrors.CodeOpenOrdersLimitExceeded,
 		"NegativeERC20Balance":              derrors.CodeNegativeERC20Balance,
 		"InstrumentNotLive":                 derrors.CodeInstrumentNotLive,
+		"OpenInterestCapExceeded":           derrors.CodeOpenInterestCapExceeded,
 		"TriggerOrderCancelled":             derrors.CodeTriggerOrderCancelled,
 		"InvalidTriggerPrice":               derrors.CodeInvalidTriggerPrice,
 		"TriggerOrderLimitExceeded":         derrors.CodeTriggerOrderLimitExceeded,
@@ -74,6 +77,10 @@ func allCodes() map[string]int {
 		"RFQIDMismatch":                     derrors.CodeRFQIDMismatch,
 		"InvalidRFQCounterparty":            derrors.CodeInvalidRFQCounterparty,
 		"QuoteCostTooHigh":                  derrors.CodeQuoteCostTooHigh,
+		"RFQPartialFillTooHigh":             derrors.CodeRFQPartialFillTooHigh,
+		"RFQFilledDirectionLocked":          derrors.CodeRFQFilledDirectionLocked,
+		"QuoteTakerCostTooHigh":             derrors.CodeQuoteTakerCostTooHigh,
+		"RFQDisabledForAccount":             derrors.CodeRFQDisabledForAccount,
 		"AuctionNotOngoing":                 derrors.CodeAuctionNotOngoing,
 		"OpenOrdersNotAllowed":              derrors.CodeOpenOrdersNotAllowed,
 		"PriceLimitExceeded":                derrors.CodePriceLimitExceeded,
@@ -114,6 +121,7 @@ func allCodes() map[string]int {
 		"ReferralCodeNotFound":              derrors.CodeReferralCodeNotFound,
 		"RestrictedRegion":                  derrors.CodeRestrictedRegion,
 		"AccountDisabledCompliance":         derrors.CodeAccountDisabledCompliance,
+		"OFACBlocked":                       derrors.CodeOFACBlocked,
 		"SentinelAuthInvalid":               derrors.CodeSentinelAuthInvalid,
 		"InvalidBlockNumber":                derrors.CodeInvalidBlockNumber,
 		"BlockEstimationFailed":             derrors.CodeBlockEstimationFailed,
@@ -178,9 +186,15 @@ func TestCodes_KnownValues(t *testing.T) {
 	assert.Equal(t, 11015, derrors.CodeMMPFrozen)
 	assert.Equal(t, 16000, derrors.CodeRestrictedRegion)
 	assert.Equal(t, 19000, derrors.CodeMakerProgramNotFound)
+	assert.Equal(t, 9002, derrors.CodeCacheConnectionError)
+	assert.Equal(t, 10016, derrors.CodePM2CollateralUnsupported)
+	assert.Equal(t, 11029, derrors.CodeOpenInterestCapExceeded)
+	assert.Equal(t, 11108, derrors.CodeRFQPartialFillTooHigh)
+	assert.Equal(t, 11111, derrors.CodeRFQDisabledForAccount)
+	assert.Equal(t, 16002, derrors.CodeOFACBlocked)
 }
 
 func TestCodes_TotalCount(t *testing.T) {
 	// Sanity check that all documented codes are present.
-	assert.Equal(t, 111, len(allCodes()))
+	assert.Equal(t, 119, len(allCodes()))
 }

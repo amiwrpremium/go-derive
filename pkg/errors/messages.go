@@ -45,6 +45,7 @@ var codeMessages = map[int]string{
 	// Engine / order-confirmation timeouts (9xxx)
 	CodeOrderConfirmationTimeout:  "order confirmation timed out before the engine acknowledged it",
 	CodeEngineConfirmationTimeout: "matching-engine confirmation timed out",
+	CodeCacheConnectionError:      "cache connection error — see response data for details",
 
 	// Account / wallet (10xxx)
 	CodeManagerNotFound:                "manager not found for the requested wallet",
@@ -63,6 +64,7 @@ var codeMessages = map[int]string{
 	CodePendingDeposit:                 "deposit is still pending and cannot be used yet",
 	CodePendingWithdrawal:              "withdrawal is still pending",
 	CodePM2CollateralConstraint:        "portfolio-margin v2 collateral constraint not satisfied",
+	CodePM2CollateralUnsupported:       "portfolio-margin v2 does not support this collateral asset",
 
 	// Order placement / lifecycle (11xxx)
 	CodeInsufficientFundsOrder:      "insufficient funds: order would breach the subaccount's margin requirements",
@@ -93,6 +95,7 @@ var codeMessages = map[int]string{
 	CodeTransferReject:              "subaccount transfer rejected by the engine",
 	CodeSubaccountUnderLiquidation:  "subaccount is undergoing a liquidation auction",
 	CodeReplaceFilledAmountMismatch: "replace order's filled amount does not match the expected state",
+	CodeOpenInterestCapExceeded:     "trade or transfer rejected: open-interest cap would be exceeded",
 
 	// Trigger orders (1105x)
 	CodeTriggerOrderCancelled:          "trigger order was cancelled before its trigger fired",
@@ -103,14 +106,18 @@ var codeMessages = map[int]string{
 	CodeMarketOrderInvalidTriggerPrice: "market order has an invalid trigger price",
 
 	// RFQ / Quote (111xx)
-	CodeLegInstrumentsNotUnique: "RFQ/quote leg instruments must be unique",
-	CodeRFQNotFound:             "RFQ not found",
-	CodeQuoteNotFound:           "quote not found",
-	CodeRFQLegMismatch:          "quote legs do not match the RFQ legs",
-	CodeRFQNotOpen:              "RFQ is not open and cannot be quoted on or executed",
-	CodeRFQIDMismatch:           "RFQ id in the request does not match the quote",
-	CodeInvalidRFQCounterparty:  "RFQ counterparty is invalid or unauthorized",
-	CodeQuoteCostTooHigh:        "quote cost exceeds the configured maximum",
+	CodeLegInstrumentsNotUnique:  "RFQ/quote leg instruments must be unique",
+	CodeRFQNotFound:              "RFQ not found",
+	CodeQuoteNotFound:            "quote not found",
+	CodeRFQLegMismatch:           "quote legs do not match the RFQ legs",
+	CodeRFQNotOpen:               "RFQ is not open and cannot be quoted on or executed",
+	CodeRFQIDMismatch:            "RFQ id in the request does not match the quote",
+	CodeInvalidRFQCounterparty:   "RFQ counterparty is invalid or unauthorized",
+	CodeQuoteCostTooHigh:         "quote cost exceeds the configured maximum",
+	CodeRFQPartialFillTooHigh:    "RFQ partial-fill percentage exceeds the requested total size",
+	CodeRFQFilledDirectionLocked: "RFQ filled direction cannot be changed after a partial fill",
+	CodeQuoteTakerCostTooHigh:    "quote taker total cost exceeds the orderbook execution price",
+	CodeRFQDisabledForAccount:    "RFQ functionality is disabled for this account",
 
 	// Auction (112xx)
 	CodeAuctionNotOngoing:    "auction is not currently ongoing",
@@ -162,6 +169,7 @@ var codeMessages = map[int]string{
 	// Compliance (16xxx)
 	CodeRestrictedRegion:          "request originates from a restricted region",
 	CodeAccountDisabledCompliance: "account has been disabled for compliance reasons",
+	CodeOFACBlocked:               "account is blocked due to OFAC compliance violations",
 	CodeSentinelAuthInvalid:       "sentinel authentication is invalid",
 
 	// Vault / block (18xxx)
