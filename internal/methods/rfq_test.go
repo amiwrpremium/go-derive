@@ -18,14 +18,58 @@ func TestSendRFQ_Happy(t *testing.T) {
 		"rfq_id": "R1", "subaccount_id": 1, "status": "open",
 		"legs": []any{}, "creation_timestamp": 1, "last_update_timestamp": 1,
 	})
-	rfq, err := api.SendRFQ(context.Background(), nil, types.MustDecimal("100"))
+	rfq, err := api.SendRFQ(context.Background(), types.SendRFQInput{
+		MaxTotalCost: types.MustDecimal("100"),
+	})
 	require.NoError(t, err)
 	assert.Equal(t, "R1", rfq.RFQID)
+	params := paramsAsMap(t, ft.LastCall().Params)
+	// Wire key is max_total_cost per docs, not max_total_fee (the SDK
+	// previously sent the latter, which the engine silently ignored).
+	assert.Equal(t, "100", params["max_total_cost"])
+	_, hasOldKey := params["max_total_fee"]
+	assert.False(t, hasOldKey, "max_total_fee is not a documented field")
+}
+
+func TestSendRFQ_AllOptionalFieldsReachTheWire(t *testing.T) {
+	api, ft := newAPI(t, true, 1)
+	ft.HandleResult("private/send_rfq", map[string]any{
+		"rfq_id": "R2", "subaccount_id": 1, "status": "open",
+		"legs": []any{}, "creation_timestamp": 1, "last_update_timestamp": 1,
+	})
+	maker := types.MustAddress("0x1111111111111111111111111111111111111111")
+	_, err := api.SendRFQ(context.Background(), types.SendRFQInput{
+		Counterparties:     []types.Address{maker},
+		PreferredDirection: enums.DirectionBuy,
+		ReducingDirection:  enums.DirectionSell,
+		Label:              "alpha-rfq",
+		MaxTotalCost:       types.MustDecimal("100"),
+		MinTotalCost:       types.MustDecimal("50"),
+		PartialFillStep:    types.MustDecimal("0.01"),
+		Client:             "alpha-bot",
+		ReferralCode:       "REF-1",
+		ExtraFee:           types.MustDecimal("0.05"),
+	})
+	require.NoError(t, err)
+	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.Equal(t, "buy", params["preferred_direction"])
+	assert.Equal(t, "sell", params["reducing_direction"])
+	assert.Equal(t, "alpha-rfq", params["label"])
+	assert.Equal(t, "100", params["max_total_cost"])
+	assert.Equal(t, "50", params["min_total_cost"])
+	assert.Equal(t, "0.01", params["partial_fill_step"])
+	assert.Equal(t, "alpha-bot", params["client"])
+	assert.Equal(t, "REF-1", params["referral_code"])
+	assert.Equal(t, "0.05", params["extra_fee"])
+	// counterparties marshals as an array of address strings.
+	cps, ok := params["counterparties"].([]any)
+	require.True(t, ok)
+	require.Len(t, cps, 1)
 }
 
 func TestSendRFQ_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	_, err := api.SendRFQ(context.Background(), nil, types.MustDecimal("0"))
+	_, err := api.SendRFQ(context.Background(), types.SendRFQInput{})
 	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
 }
 

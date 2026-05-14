@@ -23,14 +23,47 @@ import (
 func (a *API) SetRFQModule(addr common.Address) { a.rfqModule = addr }
 
 // SendRFQ broadcasts a request-for-quote to market makers. Private.
-func (a *API) SendRFQ(ctx context.Context, legs []types.RFQLeg, maxFee types.Decimal) (types.RFQ, error) {
+//
+// All filter / hint fields on [types.SendRFQInput] are optional; only
+// [types.SendRFQInput.Legs] is required. Wire keys mirror
+// docs.derive.xyz/reference/post_private-send-rfq.
+func (a *API) SendRFQ(ctx context.Context, in types.SendRFQInput) (types.RFQ, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return types.RFQ{}, err
 	}
 	params := map[string]any{
 		"subaccount_id": a.Subaccount,
-		"legs":          legs,
-		"max_total_fee": maxFee,
+		"legs":          in.Legs,
+	}
+	if len(in.Counterparties) > 0 {
+		params["counterparties"] = in.Counterparties
+	}
+	if in.PreferredDirection != "" {
+		params["preferred_direction"] = in.PreferredDirection
+	}
+	if in.ReducingDirection != "" {
+		params["reducing_direction"] = in.ReducingDirection
+	}
+	if in.Label != "" {
+		params["label"] = in.Label
+	}
+	if !in.MaxTotalCost.IsZero() {
+		params["max_total_cost"] = in.MaxTotalCost
+	}
+	if !in.MinTotalCost.IsZero() {
+		params["min_total_cost"] = in.MinTotalCost
+	}
+	if !in.PartialFillStep.IsZero() {
+		params["partial_fill_step"] = in.PartialFillStep
+	}
+	if in.Client != "" {
+		params["client"] = in.Client
+	}
+	if in.ReferralCode != "" {
+		params["referral_code"] = in.ReferralCode
+	}
+	if !in.ExtraFee.IsZero() {
+		params["extra_fee"] = in.ExtraFee
 	}
 	var rfq types.RFQ
 	err := a.call(ctx, "private/send_rfq", params, &rfq)

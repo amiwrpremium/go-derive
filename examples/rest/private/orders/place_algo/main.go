@@ -71,7 +71,7 @@ func main() {
 	limit := tk.MarkPrice.Inner().Mul(decimal.RequireFromString("0.95"))
 	price, _ := types.NewDecimal(limit.String())
 
-	o, err := c.PlaceAlgoOrder(ctx, types.AlgoOrderInput{
+	o, _, err := c.PlaceAlgoOrder(ctx, types.AlgoOrderInput{
 		PlaceOrderInput: types.PlaceOrderInput{
 			InstrumentName: instrument,
 			Asset:          types.Address(baseAsset),

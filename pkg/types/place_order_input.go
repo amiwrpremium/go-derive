@@ -27,6 +27,27 @@ type PlaceOrderInput struct {
 	Label          string
 	MMP            bool
 	ReduceOnly     bool
+	// Client is an optional caller-defined tag attached to the order.
+	// Echoed back on the order record; useful for client-side
+	// reconciliation.
+	Client string
+	// IsAtomicSigning marks the order as signed via EIP-1271
+	// (Safe / smart-contract wallet). Required by callers using a
+	// vault-style signer rather than a plain EOA.
+	IsAtomicSigning bool
+	// ReferralCode is an optional referral code applied to the order.
+	ReferralCode string
+	// RejectPostOnly rejects the order if it would have crossed the
+	// book (stricter form of post-only — fails fast instead of
+	// resting).
+	RejectPostOnly bool
+	// RejectTimestamp is the latest acceptable arrival time at the
+	// engine, in milliseconds since the Unix epoch. The engine
+	// rejects the order if its own clock is past this value.
+	RejectTimestamp int64
+	// ExtraFee is an optional caller-paid tip on top of the standard
+	// fee schedule. Denominated in quote currency (USDC).
+	ExtraFee Decimal
 }
 
 // Validate performs schema-level checks on the receiver: required fields

@@ -24,18 +24,22 @@ import (
 // The session key signs the action; the resulting signature, signer address,
 // nonce and expiry are embedded in the JSON-RPC params so the matching engine
 // can recompute the EIP-712 hash and verify.
-func (a *API) PlaceOrder(ctx context.Context, in types.PlaceOrderInput) (types.Order, error) {
+//
+// Returns the engine's order record plus the trades the order matched on
+// submission (nil if the order rested without matching).
+func (a *API) PlaceOrder(ctx context.Context, in types.PlaceOrderInput) (types.Order, []types.Trade, error) {
 	params, err := a.signedOrderParams(ctx, in)
 	if err != nil {
-		return types.Order{}, err
+		return types.Order{}, nil, err
 	}
 	var resp struct {
-		Order types.Order `json:"order"`
+		Order  types.Order   `json:"order"`
+		Trades []types.Trade `json:"trades"`
 	}
 	if err := a.call(ctx, "private/order", params, &resp); err != nil {
-		return types.Order{}, err
+		return types.Order{}, nil, err
 	}
-	return resp.Order, nil
+	return resp.Order, resp.Trades, nil
 }
 
 // signedOrderParams is the shared signing block for every order-
@@ -115,6 +119,24 @@ func (a *API) signedOrderParams(ctx context.Context, in types.PlaceOrderInput) (
 	if in.ReduceOnly {
 		params["reduce_only"] = true
 	}
+	if in.Client != "" {
+		params["client"] = in.Client
+	}
+	if in.IsAtomicSigning {
+		params["is_atomic_signing"] = true
+	}
+	if in.ReferralCode != "" {
+		params["referral_code"] = in.ReferralCode
+	}
+	if in.RejectPostOnly {
+		params["reject_post_only"] = true
+	}
+	if in.RejectTimestamp != 0 {
+		params["reject_timestamp"] = in.RejectTimestamp
+	}
+	if !in.ExtraFee.IsZero() {
+		params["extra_fee"] = in.ExtraFee
+	}
 	return params, nil
 }
 
@@ -126,24 +148,27 @@ func (a *API) signedOrderParams(ctx context.Context, in types.PlaceOrderInput) (
 // alongside the standard order params; they are not part of the
 // EIP-712 signature payload.
 //
-// Returns the engine's order record in `algo_active` state. Cancel
-// with [API.CancelAlgoOrder] or [API.CancelAllAlgoOrders].
-func (a *API) PlaceAlgoOrder(ctx context.Context, in types.AlgoOrderInput) (types.Order, error) {
+// Returns the engine's order record in `algo_active` state, plus any
+// trades the parent order matched on submission (typically empty for
+// algos that schedule child orders over time). Cancel with
+// [API.CancelAlgoOrder] or [API.CancelAllAlgoOrders].
+func (a *API) PlaceAlgoOrder(ctx context.Context, in types.AlgoOrderInput) (types.Order, []types.Trade, error) {
 	params, err := a.signedOrderParams(ctx, in.PlaceOrderInput)
 	if err != nil {
-		return types.Order{}, err
+		return types.Order{}, nil, err
 	}
 	params["algo_type"] = in.AlgoType
 	params["algo_duration_sec"] = in.AlgoDurationSec
 	params["algo_num_slices"] = in.AlgoNumSlices
 
 	var resp struct {
-		Order types.Order `json:"order"`
+		Order  types.Order   `json:"order"`
+		Trades []types.Trade `json:"trades"`
 	}
 	if err := a.call(ctx, "private/algo_order", params, &resp); err != nil {
-		return types.Order{}, err
+		return types.Order{}, nil, err
 	}
-	return resp.Order, nil
+	return resp.Order, resp.Trades, nil
 }
 
 // PlaceTriggerOrder builds, signs and submits a stop-loss or
@@ -157,23 +182,26 @@ func (a *API) PlaceAlgoOrder(ctx context.Context, in types.AlgoOrderInput) (type
 // The order is saved server-side in `untriggered` state until the
 // matching engine sees the watched price cross the trigger level.
 // Cancel ahead of time with [API.CancelTriggerOrder] or
-// [API.CancelAllTriggerOrders].
-func (a *API) PlaceTriggerOrder(ctx context.Context, in types.TriggerOrderInput) (types.Order, error) {
+// [API.CancelAllTriggerOrders]. Trades are returned alongside the
+// parent record for consistency with [API.PlaceOrder]; they will be
+// empty until the trigger fires.
+func (a *API) PlaceTriggerOrder(ctx context.Context, in types.TriggerOrderInput) (types.Order, []types.Trade, error) {
 	params, err := a.signedOrderParams(ctx, in.PlaceOrderInput)
 	if err != nil {
-		return types.Order{}, err
+		return types.Order{}, nil, err
 	}
 	params["trigger_type"] = in.TriggerType
 	params["trigger_price_type"] = in.TriggerPriceType
 	params["trigger_price"] = in.TriggerPrice
 
 	var resp struct {
-		Order types.Order `json:"order"`
+		Order  types.Order   `json:"order"`
+		Trades []types.Trade `json:"trades"`
 	}
 	if err := a.call(ctx, "private/trigger_order", params, &resp); err != nil {
-		return types.Order{}, err
+		return types.Order{}, nil, err
 	}
-	return resp.Order, nil
+	return resp.Order, resp.Trades, nil
 }
 
 // tradeModuleOverride returns the TradeModule address from the ambient

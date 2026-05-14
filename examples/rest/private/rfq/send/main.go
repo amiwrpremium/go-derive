@@ -56,9 +56,12 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	rfq, err := c.SendRFQ(ctx, []types.RFQLeg{
-		{InstrumentName: instrument, Direction: enums.DirectionBuy, Amount: types.MustDecimal("0.1")},
-	}, types.MustDecimal("10"))
+	rfq, err := c.SendRFQ(ctx, types.SendRFQInput{
+		Legs: []types.RFQLeg{
+			{InstrumentName: instrument, Direction: enums.DirectionBuy, Amount: types.MustDecimal("0.1")},
+		},
+		MaxTotalCost: types.MustDecimal("10"),
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
