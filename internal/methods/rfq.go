@@ -378,6 +378,10 @@ func (a *API) signedQuoteParams(ctx context.Context, in types.SendQuoteInput) (m
 		return nil, err
 	}
 
+	if err := a.resolveQuoteLegs(ctx, in.Legs); err != nil {
+		return nil, err
+	}
+
 	sub := in.SubaccountID
 	if sub == 0 {
 		sub = a.Subaccount
@@ -444,6 +448,10 @@ func (a *API) signedExecuteQuoteParams(ctx context.Context, in types.ExecuteQuot
 		return nil, err
 	}
 
+	if err := a.resolveQuoteLegs(ctx, in.Legs); err != nil {
+		return nil, err
+	}
+
 	sub := in.SubaccountID
 	if sub == 0 {
 		sub = a.Subaccount
@@ -505,6 +513,26 @@ func (a *API) signedExecuteQuoteParams(ctx context.Context, in types.ExecuteQuot
 // the signing primitives). The wire fields and on-chain
 // identifiers travel together on a single QuoteLeg, so the
 // translation is a 1:1 field copy.
+// resolveQuoteLegs fills in Asset/SubID on any leg the caller left
+// zero, using the instrument cache (or fetching public/get_instrument
+// on miss). Mutates the supplied slice in place — legs are
+// reference-shared with the wire params map but Asset/SubID are
+// json:"-" so the mutation is invisible on the wire.
+func (a *API) resolveQuoteLegs(ctx context.Context, legs []types.QuoteLeg) error {
+	for i := range legs {
+		if !legs[i].Asset.IsZero() || legs[i].InstrumentName == "" {
+			continue
+		}
+		meta, err := a.resolveInstrument(ctx, legs[i].InstrumentName)
+		if err != nil {
+			return err
+		}
+		legs[i].Asset = meta.Asset
+		legs[i].SubID = meta.SubID
+	}
+	return nil
+}
+
 func convertLegs(legs []types.QuoteLeg) []auth.RFQQuoteLeg {
 	out := make([]auth.RFQQuoteLeg, len(legs))
 	for i := range legs {

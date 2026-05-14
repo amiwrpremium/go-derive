@@ -18,6 +18,9 @@ import (
 // GetInstruments lists active instruments matching the filter. Public.
 //
 // Derive returns the result as a bare JSON array of instrument objects.
+// As a side effect, the returned instruments' on-chain metadata is
+// stored in the SDK's instrument cache so subsequent signed actions on
+// any of them skip the per-instrument get_instrument lookup.
 func (a *API) GetInstruments(ctx context.Context, currency string, kind enums.InstrumentType) ([]types.Instrument, error) {
 	params := map[string]any{}
 	if currency != "" {
@@ -31,13 +34,21 @@ func (a *API) GetInstruments(ctx context.Context, currency string, kind enums.In
 	if err := a.call(ctx, "public/get_instruments", params, &insts); err != nil {
 		return nil, err
 	}
+	a.instCache().populate(insts)
 	return insts, nil
 }
 
 // GetInstrument fetches one instrument by name. Public.
+//
+// As a side effect, the returned instrument's on-chain metadata is
+// stored in the SDK's instrument cache so subsequent signed actions on
+// it skip the lookup.
 func (a *API) GetInstrument(ctx context.Context, name string) (types.Instrument, error) {
 	var inst types.Instrument
 	err := a.call(ctx, "public/get_instrument", map[string]any{"instrument_name": name}, &inst)
+	if err == nil {
+		a.instCache().populateOne(inst)
+	}
 	return inst, err
 }
 
@@ -165,6 +176,7 @@ func (a *API) GetAllInstruments(ctx context.Context, kind enums.InstrumentType, 
 	if err := a.call(ctx, "public/get_all_instruments", params, &resp); err != nil {
 		return nil, types.Page{}, err
 	}
+	a.instCache().populate(resp.Instruments)
 	return resp.Instruments, resp.Pagination, nil
 }
 

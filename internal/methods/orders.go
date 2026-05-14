@@ -55,6 +55,18 @@ func (a *API) signedOrderParams(ctx context.Context, in types.PlaceOrderInput) (
 		return nil, err
 	}
 
+	// Resolve on-chain metadata from the instrument name when the caller
+	// left Asset zero. Caller-supplied Asset/SubID always win — the cache
+	// is a convenience, not an authority.
+	if in.Asset.IsZero() && in.InstrumentName != "" {
+		meta, err := a.resolveInstrument(ctx, in.InstrumentName)
+		if err != nil {
+			return nil, err
+		}
+		in.Asset = meta.Asset
+		in.SubID = meta.SubID
+	}
+
 	nonce := a.Nonces.Next()
 	expiry := time.Now().Unix() + a.SignatureExpiry
 

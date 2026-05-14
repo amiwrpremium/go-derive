@@ -53,10 +53,11 @@ type Client struct {
 type Option func(*config)
 
 type config struct {
-	network    netconf.Config
-	signer     auth.Signer
-	subaccount int64
-	connectWS  bool
+	network      netconf.Config
+	signer       auth.Signer
+	subaccount   int64
+	connectWS    bool
+	preloadInsts bool
 }
 
 // WithMainnet selects Derive's mainnet endpoints.
@@ -84,6 +85,14 @@ func WithSubaccount(id int64) Option { return func(c *config) { c.subaccount = i
 // own context and surface the resulting error.
 func WithConnectWS(b bool) Option { return func(c *config) { c.connectWS = b } }
 
+// WithInstrumentPreload kicks off a background fetch of every live
+// instrument via the REST client immediately after construction.
+//
+// The preload populates the shared instrument metadata cache used by
+// signed actions on both transports. See
+// [rest.WithInstrumentPreload] for details.
+func WithInstrumentPreload() Option { return func(c *config) { c.preloadInsts = true } }
+
 // NewClient constructs a [Client] from the supplied options.
 //
 // One of [WithMainnet], [WithTestnet], or [WithCustomNetwork] must be
@@ -99,19 +108,25 @@ func NewClient(opts ...Option) (*Client, error) {
 		return nil, derrors.ErrInvalidConfig
 	}
 
-	r, err := rest.New(
+	restOpts := []rest.Option{
 		rest.WithCustomNetwork(cfg.network),
 		rest.WithSigner(cfg.signer),
 		rest.WithSubaccount(cfg.subaccount),
-	)
-	if err != nil {
-		return nil, err
 	}
-	w, err := ws.New(
+	wsOpts := []ws.Option{
 		ws.WithCustomNetwork(cfg.network),
 		ws.WithSigner(cfg.signer),
 		ws.WithSubaccount(cfg.subaccount),
-	)
+	}
+	if cfg.preloadInsts {
+		restOpts = append(restOpts, rest.WithInstrumentPreload())
+		wsOpts = append(wsOpts, ws.WithInstrumentPreload())
+	}
+	r, err := rest.New(restOpts...)
+	if err != nil {
+		return nil, err
+	}
+	w, err := ws.New(wsOpts...)
 	if err != nil {
 		_ = r.Close()
 		return nil, err
