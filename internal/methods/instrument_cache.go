@@ -157,8 +157,7 @@ func (a *API) PreloadInstruments(ctx context.Context, currencies ...string) erro
 
 // PreloadAllInstruments paginates every live instrument across all
 // currencies via public/get_all_instruments and populates the cache.
-// Calls GetAllInstruments once per kind (perp, option, erc20) and
-// pages until exhaustion.
+// Calls GetAllInstrumentsAll once per kind (perp, option, erc20).
 //
 // Expired instruments are not included — they can't be traded, so
 // caching them is wasteful.
@@ -170,17 +169,10 @@ func (a *API) PreloadAllInstruments(ctx context.Context) error {
 		enums.InstrumentTypeOption,
 		enums.InstrumentTypeERC20,
 	}
+	opts := types.PaginateOptions{PageSize: 1000}
 	for _, kind := range kinds {
-		page := types.PageRequest{Page: 1, PageSize: 1000}
-		for {
-			_, info, err := a.GetAllInstruments(ctx, kind, false, page)
-			if err != nil {
-				return fmt.Errorf("methods: preload all %s: %w", kind, err)
-			}
-			if info.NumPages == 0 || page.Page >= info.NumPages {
-				break
-			}
-			page.Page++
+		if _, err := a.GetAllInstrumentsAll(ctx, kind, false, opts); err != nil {
+			return fmt.Errorf("methods: preload all %s: %w", kind, err)
 		}
 	}
 	return nil
