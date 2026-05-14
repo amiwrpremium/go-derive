@@ -7,6 +7,14 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.14.1](https://github.com/amiwrpremium/go-derive/compare/v0.14.0...v0.14.1) (2026-05-14)
+
+
+### Features
+
+* **errors:** categorise errors and add IsRetryable / Code helpers ([#129](https://github.com/amiwrpremium/go-derive/issues/129)) ([7edd55d](https://github.com/amiwrpremium/go-derive/commit/7edd55d4a58d152b6ea6555c72729e0ed702ec7f))
+* **methods:** add *All companion methods for paginated endpoints ([#127](https://github.com/amiwrpremium/go-derive/issues/127)) ([226cc1f](https://github.com/amiwrpremium/go-derive/commit/226cc1f6d6a6bd08c16dbf11d5e5d5e3afae2cda))
+
 ## [0.14.0](https://github.com/amiwrpremium/go-derive/compare/v0.13.0...v0.14.0) (2026-05-14)
 
 
