@@ -9,7 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/amiwrpremium/go-derive/internal/testutil"
+	"github.com/amiwrpremium/go-derive/pkg/auth"
 	"github.com/amiwrpremium/go-derive/pkg/enums"
+	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 )
 
 func TestClient_SubscribeTrades_Wires(t *testing.T) {
@@ -223,6 +225,72 @@ func TestClient_SubscribeSubaccountTradesByStatus(t *testing.T) {
 	require.NoError(t, err)
 	defer func() { _ = sub.Close() }()
 	assert.True(t, srv.WaitSubscribed("7.trades.settled", time.Second))
+}
+
+// Validation gates: zero subaccount and missing signer must fail
+// before the WebSocket subscribe round-trip.
+
+func TestClient_PrivateSubscribe_ZeroSubaccountRejected(t *testing.T) {
+	srv := testutil.NewMockWSServer()
+	defer srv.Close()
+	c := newWSClient(t, srv, true)
+	require.NoError(t, c.Connect(context.Background()))
+	defer func() { _ = c.Close() }()
+	ctx := context.Background()
+
+	t.Run("Balances", func(t *testing.T) {
+		_, err := c.SubscribeBalances(ctx, 0)
+		assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+	})
+	t.Run("Orders", func(t *testing.T) {
+		_, err := c.SubscribeOrders(ctx, 0)
+		assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+	})
+	t.Run("BestQuotes", func(t *testing.T) {
+		_, err := c.SubscribeBestQuotes(ctx, 0)
+		assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+	})
+	t.Run("Quotes", func(t *testing.T) {
+		_, err := c.SubscribeQuotes(ctx, 0)
+		assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+	})
+	t.Run("SubaccountTrades", func(t *testing.T) {
+		_, err := c.SubscribeSubaccountTrades(ctx, 0)
+		assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+	})
+	t.Run("SubaccountTradesByStatus", func(t *testing.T) {
+		_, err := c.SubscribeSubaccountTradesByStatus(ctx, 0, enums.TxStatusSettled)
+		assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
+	})
+}
+
+func TestClient_SubscribeRFQs_EmptyWalletNoSignerRejected(t *testing.T) {
+	srv := testutil.NewMockWSServer()
+	defer srv.Close()
+	c := newWSClient(t, srv, false) // no signer
+	require.NoError(t, c.Connect(context.Background()))
+	defer func() { _ = c.Close() }()
+
+	_, err := c.SubscribeRFQs(context.Background(), "")
+	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
+}
+
+func TestClient_SubscribeRFQs_EmptyWalletFallsBackToSignerOwner(t *testing.T) {
+	srv := testutil.NewMockWSServer()
+	defer srv.Close()
+	c := newWSClient(t, srv, true) // signs with testKey
+	require.NoError(t, c.Connect(context.Background()))
+	defer func() { _ = c.Close() }()
+
+	sub, err := c.SubscribeRFQs(context.Background(), "")
+	require.NoError(t, err)
+	defer func() { _ = sub.Close() }()
+
+	// Derive the expected wallet from the same key the helper uses.
+	s, err := auth.NewLocalSigner(testKey)
+	require.NoError(t, err)
+	expected := s.OwnerAddress().Hex() + ".rfqs"
+	assert.True(t, srv.WaitSubscribed(expected, time.Second))
 }
 
 // End-to-end decode through one typed method to confirm the type
