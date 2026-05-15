@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.16.0](https://github.com/amiwrpremium/go-derive/compare/v0.15.0...v0.16.0) (2026-05-15)
+
+
+### Features
+
+* **rest:** add WithHTTPTimeout option ([#136](https://github.com/amiwrpremium/go-derive/issues/136)) ([2d7af5b](https://github.com/amiwrpremium/go-derive/commit/2d7af5bc4f86b3a782dc1939770acc4d4c3c5a8b))
+
 ## [0.15.0](https://github.com/amiwrpremium/go-derive/compare/v0.14.1...v0.15.0) (2026-05-15)
 
 
