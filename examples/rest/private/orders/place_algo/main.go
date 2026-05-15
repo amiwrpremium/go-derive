@@ -64,7 +64,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	tk, err := c.GetTicker(ctx, instrument)
+	tk, err := c.GetTicker(ctx, types.TickerQuery{Name: instrument})
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -19,13 +19,13 @@ import (
 // Pass either `wallet` (the smart-contract wallet address) or
 // `smartContractOwner` (the EOA that owns the smart-contract
 // wallet); at least one must be non-empty.
-func (a *API) GetVaultBalances(ctx context.Context, wallet, smartContractOwner string) ([]types.VaultBalance, error) {
+func (a *API) GetVaultBalances(ctx context.Context, q types.VaultBalancesQuery) ([]types.VaultBalance, error) {
 	params := map[string]any{}
-	if wallet != "" {
-		params["wallet"] = wallet
+	if q.Wallet != "" {
+		params["wallet"] = q.Wallet
 	}
-	if smartContractOwner != "" {
-		params["smart_contract_owner"] = smartContractOwner
+	if q.SmartContractOwner != "" {
+		params["smart_contract_owner"] = q.SmartContractOwner
 	}
 	var resp []types.VaultBalance
 	if err := a.call(ctx, "public/get_vault_balances", params, &resp); err != nil {
@@ -82,10 +82,10 @@ func (a *API) GetVaultPools(ctx context.Context) ([]types.VaultPool, error) {
 // the per-leg balances. Public.
 //
 // Required `vaultType`: documented values are `lbtc` and `weeth`.
-func (a *API) GetVaultRates(ctx context.Context, vaultType string) (types.VaultRates, error) {
+func (a *API) GetVaultRates(ctx context.Context, q types.VaultRatesQuery) (types.VaultRates, error) {
 	params := map[string]any{}
-	if vaultType != "" {
-		params["vault_type"] = vaultType
+	if q.VaultType != "" {
+		params["vault_type"] = q.VaultType
 	}
 	var resp types.VaultRates
 	if err := a.call(ctx, "public/get_vault_rates", params, &resp); err != nil {

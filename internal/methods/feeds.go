@@ -60,13 +60,13 @@ func (a *API) GetSpotFeedHistory(ctx context.Context, q types.SpotFeedHistoryQue
 // Pass empty currency / zero expiry to get every published feed.
 // Pass expiry=0 explicitly with a currency to fetch spot and
 // perpetual feeds only.
-func (a *API) GetLatestSignedFeeds(ctx context.Context, currency string, expiry int64) (types.SignedFeeds, error) {
+func (a *API) GetLatestSignedFeeds(ctx context.Context, q types.LatestSignedFeedsQuery) (types.SignedFeeds, error) {
 	params := map[string]any{}
-	if currency != "" {
-		params["currency"] = currency
+	if q.Currency != "" {
+		params["currency"] = q.Currency
 	}
-	if expiry != 0 {
-		params["expiry"] = expiry
+	if q.Expiry != 0 {
+		params["expiry"] = q.Expiry
 	}
 	var resp types.SignedFeeds
 	if err := a.call(ctx, "public/get_latest_signed_feeds", params, &resp); err != nil {
@@ -103,11 +103,11 @@ func (a *API) GetInterestRateHistory(ctx context.Context, q types.InterestRateHi
 //
 // The shape mirrors `PublicGetPerpImpactTwapResultSchema` in
 // `derivexyz/cockpit/orderbook-types`.
-func (a *API) GetPerpImpactTWAP(ctx context.Context, currency string, startTime, endTime int64) (types.PerpImpactTWAP, error) {
+func (a *API) GetPerpImpactTWAP(ctx context.Context, q types.PerpImpactTWAPQuery) (types.PerpImpactTWAP, error) {
 	params := map[string]any{
-		"currency":   currency,
-		"start_time": startTime,
-		"end_time":   endTime,
+		"currency":   q.Currency,
+		"start_time": q.StartTime,
+		"end_time":   q.EndTime,
 	}
 	var resp types.PerpImpactTWAP
 	if err := a.call(ctx, "public/get_perp_impact_twap", params, &resp); err != nil {

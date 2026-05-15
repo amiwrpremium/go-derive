@@ -10,9 +10,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/amiwrpremium/go-derive/pkg/auth"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 func main() {

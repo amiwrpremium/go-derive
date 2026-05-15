@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestGetAllPoints_Decode(t *testing.T) {
@@ -15,7 +17,7 @@ func TestGetAllPoints_Decode(t *testing.T) {
 		"total_users":           int64(50),
 		"points":                map[string]any{"0xabc": "100", "0xdef": "200"},
 	})
-	got, err := api.GetAllPoints(context.Background(), "trading")
+	got, err := api.GetAllPoints(context.Background(), types.AllPointsQuery{Program: "trading"})
 	require.NoError(t, err)
 	assert.Equal(t, int64(50), got.TotalUsers)
 	assert.NotEmpty(t, got.Points)
@@ -32,7 +34,7 @@ func TestGetPoints_Decode(t *testing.T) {
 		"user_rank":               int64(7),
 		"points":                  map[string]any{"trading": "100"},
 	})
-	got, err := api.GetPoints(context.Background(), "trading", "0xabc")
+	got, err := api.GetPoints(context.Background(), types.PointsQuery{Program: "trading", Wallet: "0xabc"})
 	require.NoError(t, err)
 	assert.Equal(t, "1000", got.TotalNotionalVolume.String())
 	assert.NotEmpty(t, got.Points)
@@ -52,7 +54,7 @@ func TestGetPointsLeaderboard_Decode(t *testing.T) {
 			},
 		},
 	})
-	got, err := api.GetPointsLeaderboard(context.Background(), "trading", 1)
+	got, err := api.GetPointsLeaderboard(context.Background(), types.PointsLeaderboardQuery{Program: "trading", Page: 1})
 	require.NoError(t, err)
 	require.Len(t, got.Leaderboard, 1)
 	assert.Equal(t, int64(1), got.Leaderboard[0].Rank)

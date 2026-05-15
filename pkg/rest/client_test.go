@@ -12,6 +12,7 @@ import (
 	"github.com/amiwrpremium/go-derive/internal/testutil"
 	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 // withMock configures a Client pointed at a mock server. Network-aware
@@ -50,7 +51,7 @@ func TestGetInstruments_DecodesPayload(t *testing.T) {
 	c := withMock(t, srv)
 	defer c.Close()
 
-	insts, err := c.GetInstruments(context.Background(), "BTC", "perp")
+	insts, err := c.GetInstruments(context.Background(), types.InstrumentsQuery{Currency: "BTC", Kind: "perp"})
 	require.NoError(t, err)
 	require.Len(t, insts, 1)
 	assert.Equal(t, "BTC-PERP", insts[0].Name)

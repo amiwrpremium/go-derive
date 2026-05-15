@@ -14,6 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/amiwrpremium/go-derive/pkg/auth"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -67,7 +68,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := c.CancelByNonce(ctx, instrument, nonce)
+	res, err := c.CancelByNonce(ctx, types.CancelByNonceInput{InstrumentName: instrument, Nonce: nonce})
 	if err != nil {
 		log.Fatal(err)
 	}

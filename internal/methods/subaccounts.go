@@ -52,7 +52,7 @@ func (a *API) GetSubaccounts(ctx context.Context) ([]int64, error) {
 //
 // The endpoint returns no useful data on success; this method
 // surfaces a `nil` error.
-func (a *API) ChangeSubaccountLabel(ctx context.Context, label string) error {
+func (a *API) ChangeSubaccountLabel(ctx context.Context, in types.ChangeSubaccountLabelInput) error {
 	if err := a.requireSigner(); err != nil {
 		return err
 	}
@@ -61,6 +61,6 @@ func (a *API) ChangeSubaccountLabel(ctx context.Context, label string) error {
 	}
 	return a.call(ctx, "private/change_subaccount_label", map[string]any{
 		"subaccount_id": a.Subaccount,
-		"label":         label,
+		"label":         in.Label,
 	}, nil)
 }

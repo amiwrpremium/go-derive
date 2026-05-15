@@ -15,6 +15,7 @@ import (
 
 	"github.com/amiwrpremium/go-derive/pkg/enums"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -30,7 +31,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	insts, err := c.GetInstruments(ctx, "BTC", enums.InstrumentTypePerp)
+	insts, err := c.GetInstruments(ctx, types.InstrumentsQuery{Currency: "BTC", Kind: enums.InstrumentTypePerp})
 	if err != nil {
 		log.Fatal(err)
 	}

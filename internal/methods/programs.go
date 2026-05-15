@@ -34,10 +34,10 @@ func (a *API) GetMakerPrograms(ctx context.Context) ([]types.MakerProgram, error
 //
 // The response carries the program metadata alongside the
 // per-wallet breakdown and the program-wide totals.
-func (a *API) GetMakerProgramScores(ctx context.Context, programName string, epochStartTimestamp int64) (types.MakerProgramScore, error) {
+func (a *API) GetMakerProgramScores(ctx context.Context, q types.MakerProgramScoresQuery) (types.MakerProgramScore, error) {
 	params := map[string]any{
-		"program_name":          programName,
-		"epoch_start_timestamp": epochStartTimestamp,
+		"program_name":          q.ProgramName,
+		"epoch_start_timestamp": q.EpochStartTimestamp,
 	}
 	var resp types.MakerProgramScore
 	if err := a.call(ctx, "public/get_maker_program_scores", params, &resp); err != nil {

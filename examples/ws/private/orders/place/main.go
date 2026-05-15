@@ -68,7 +68,7 @@ func main() {
 	if os.Getenv("DERIVE_RUN_LIVE_ORDERS") != "1" {
 		log.Fatal("set DERIVE_RUN_LIVE_ORDERS=1")
 	}
-	tk, err := c.GetTicker(ctx, instrument)
+	tk, err := c.GetTicker(ctx, types.TickerQuery{Name: instrument})
 	if err != nil {
 		log.Fatal(err)
 	}

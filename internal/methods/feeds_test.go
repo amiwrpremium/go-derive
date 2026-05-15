@@ -58,7 +58,7 @@ func TestGetLatestSignedFeeds_Decode(t *testing.T) {
 		"rate_data": map[string]any{},
 		"vol_data":  map[string]any{},
 	})
-	feeds, err := api.GetLatestSignedFeeds(context.Background(), "", 0)
+	feeds, err := api.GetLatestSignedFeeds(context.Background(), types.LatestSignedFeedsQuery{})
 	require.NoError(t, err)
 	require.NotNil(t, feeds)
 	require.Contains(t, feeds.SpotData, "BTC")
@@ -95,7 +95,7 @@ func TestGetPerpImpactTWAP_Decode(t *testing.T) {
 		"ask_impact_diff_twap": "1.2",
 		"bid_impact_diff_twap": "-0.8",
 	})
-	twap, err := api.GetPerpImpactTWAP(context.Background(), "BTC", 0, 1)
+	twap, err := api.GetPerpImpactTWAP(context.Background(), types.PerpImpactTWAPQuery{Currency: "BTC", EndTime: 1})
 	require.NoError(t, err)
 	assert.Equal(t, "BTC", twap.Currency)
 	assert.Equal(t, "0.5", twap.MidPriceDiffTWAP.String())

@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/amiwrpremium/go-derive/pkg/auth"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -61,7 +62,7 @@ func main() {
 	if label == "" {
 		log.Fatal("DERIVE_LABEL required")
 	}
-	if err := c.ChangeSubaccountLabel(ctx, label); err != nil {
+	if err := c.ChangeSubaccountLabel(ctx, types.ChangeSubaccountLabelInput{Label: label}); err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("%-30s %v\n", "label set:", label)

@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/amiwrpremium/go-derive/pkg/auth"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -64,7 +65,7 @@ func main() {
 	if id == "" {
 		log.Fatal("DERIVE_ORDER_ID required")
 	}
-	order, err := c.CancelOrder(ctx, instrument, id)
+	order, err := c.CancelOrder(ctx, types.CancelOrderInput{InstrumentName: instrument, OrderID: id})
 	if err != nil {
 		log.Fatal(err)
 	}

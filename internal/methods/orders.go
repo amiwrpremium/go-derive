@@ -231,14 +231,14 @@ func (a *API) SetTradeModule(addr common.Address) { a.tradeModule = addr }
 // Returns the cancelled order — useful to read back the final state
 // (cancel reason, last_update_timestamp) instead of having to call
 // get_order again.
-func (a *API) CancelOrder(ctx context.Context, instrument, orderID string) (types.Order, error) {
+func (a *API) CancelOrder(ctx context.Context, in types.CancelOrderInput) (types.Order, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return types.Order{}, err
 	}
 	params := map[string]any{
 		"subaccount_id":   a.Subaccount,
-		"instrument_name": instrument,
-		"order_id":        orderID,
+		"instrument_name": in.InstrumentName,
+		"order_id":        in.OrderID,
 	}
 	var resp types.Order
 	if err := a.call(ctx, "private/cancel", params, &resp); err != nil {
@@ -248,13 +248,13 @@ func (a *API) CancelOrder(ctx context.Context, instrument, orderID string) (type
 }
 
 // CancelByLabel cancels all orders carrying the given label. Private.
-func (a *API) CancelByLabel(ctx context.Context, label string) (cancelled int, err error) {
+func (a *API) CancelByLabel(ctx context.Context, in types.CancelByLabelInput) (cancelled int, err error) {
 	if err := a.requireSubaccount(); err != nil {
 		return 0, err
 	}
 	params := map[string]any{
 		"subaccount_id": a.Subaccount,
-		"label":         label,
+		"label":         in.Label,
 	}
 	var resp struct {
 		CancelledOrders int `json:"cancelled_orders"`
@@ -266,13 +266,13 @@ func (a *API) CancelByLabel(ctx context.Context, label string) (cancelled int, e
 }
 
 // CancelByInstrument cancels all open orders on the instrument. Private.
-func (a *API) CancelByInstrument(ctx context.Context, instrument string) (cancelled int, err error) {
+func (a *API) CancelByInstrument(ctx context.Context, in types.CancelByInstrumentInput) (cancelled int, err error) {
 	if err := a.requireSubaccount(); err != nil {
 		return 0, err
 	}
 	params := map[string]any{
 		"subaccount_id":   a.Subaccount,
-		"instrument_name": instrument,
+		"instrument_name": in.InstrumentName,
 	}
 	var resp struct {
 		CancelledOrders int `json:"cancelled_orders"`
@@ -299,13 +299,13 @@ func (a *API) CancelAll(ctx context.Context) (cancelled int, err error) {
 }
 
 // GetOrder fetches one order by id. Private.
-func (a *API) GetOrder(ctx context.Context, orderID string) (types.Order, error) {
+func (a *API) GetOrder(ctx context.Context, q types.OrderQuery) (types.Order, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return types.Order{}, err
 	}
 	params := map[string]any{
 		"subaccount_id": a.Subaccount,
-		"order_id":      orderID,
+		"order_id":      q.OrderID,
 	}
 	var resp struct {
 		Order types.Order `json:"order"`
@@ -462,7 +462,7 @@ func (a *API) OrderDebug(ctx context.Context, in types.PlaceOrderInput) (types.O
 //
 // Returns the number of orders that matched the (instrument,
 // nonce) tuple and were cancelled.
-func (a *API) CancelByNonce(ctx context.Context, instrument string, nonce uint64) (types.CancelByNonceResult, error) {
+func (a *API) CancelByNonce(ctx context.Context, in types.CancelByNonceInput) (types.CancelByNonceResult, error) {
 	if err := a.requireSigner(); err != nil {
 		return types.CancelByNonceResult{}, err
 	}
@@ -470,8 +470,8 @@ func (a *API) CancelByNonce(ctx context.Context, instrument string, nonce uint64
 		return types.CancelByNonceResult{}, err
 	}
 	params := map[string]any{
-		"instrument_name": instrument,
-		"nonce":           nonce,
+		"instrument_name": in.InstrumentName,
+		"nonce":           in.Nonce,
 		"wallet":          a.Signer.Owner().Hex(),
 		"subaccount_id":   a.Subaccount,
 	}
@@ -487,13 +487,13 @@ func (a *API) CancelByNonce(ctx context.Context, instrument string, nonce uint64
 // Returns the cancelled order (in `algo_active` -> `cancelled`
 // state). Counterpart to [API.CancelTriggerOrder] for algo orders
 // (e.g. TWAP) that have started slicing into the market.
-func (a *API) CancelAlgoOrder(ctx context.Context, orderID string) (types.Order, error) {
+func (a *API) CancelAlgoOrder(ctx context.Context, in types.CancelAlgoOrderInput) (types.Order, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return types.Order{}, err
 	}
 	params := map[string]any{
 		"subaccount_id": a.Subaccount,
-		"order_id":      orderID,
+		"order_id":      in.OrderID,
 	}
 	var resp types.Order
 	if err := a.call(ctx, "private/cancel_algo_order", params, &resp); err != nil {
@@ -560,13 +560,13 @@ func (a *API) GetTriggerOrders(ctx context.Context) ([]types.Order, error) {
 // Returns the cancelled order (in `untriggered` -> `cancelled`
 // state). Counterpart to [API.CancelOrder] for trigger orders that
 // have not yet fired.
-func (a *API) CancelTriggerOrder(ctx context.Context, orderID string) (types.Order, error) {
+func (a *API) CancelTriggerOrder(ctx context.Context, in types.CancelTriggerOrderInput) (types.Order, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return types.Order{}, err
 	}
 	params := map[string]any{
 		"subaccount_id": a.Subaccount,
-		"order_id":      orderID,
+		"order_id":      in.OrderID,
 	}
 	var resp types.Order
 	if err := a.call(ctx, "private/cancel_trigger_order", params, &resp); err != nil {
@@ -595,13 +595,13 @@ func (a *API) CancelAllTriggerOrders(ctx context.Context) error {
 //
 // Pass `enabled=true` to arm; `false` to disarm. The endpoint
 // returns plain `"ok"` on success — surfaced as a nil error.
-func (a *API) SetCancelOnDisconnect(ctx context.Context, enabled bool) error {
+func (a *API) SetCancelOnDisconnect(ctx context.Context, in types.SetCancelOnDisconnectInput) error {
 	if err := a.requireSigner(); err != nil {
 		return err
 	}
 	params := map[string]any{
 		"wallet":  a.Signer.Owner().Hex(),
-		"enabled": enabled,
+		"enabled": in.Enabled,
 	}
 	return a.call(ctx, "private/set_cancel_on_disconnect", params, nil)
 }

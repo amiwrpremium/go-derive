@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestGetAllReferralCodes_Decode(t *testing.T) {
@@ -26,7 +28,7 @@ func TestGetAllReferralCodes_Decode(t *testing.T) {
 func TestGetReferralCode_Decode(t *testing.T) {
 	api, ft := newAPI(t, false, 0)
 	ft.HandleResult("public/get_referral_code", "ALICE")
-	got, err := api.GetReferralCode(context.Background(), "0x1111111111111111111111111111111111111111")
+	got, err := api.GetReferralCode(context.Background(), types.ReferralCodeQuery{Wallet: "0x1111111111111111111111111111111111111111"})
 	require.NoError(t, err)
 	assert.Equal(t, "ALICE", got)
 }
@@ -37,7 +39,7 @@ func TestGetInviteCode_Decode(t *testing.T) {
 		"code":           "INVITE-ALICE",
 		"remaining_uses": int64(-1),
 	})
-	got, err := api.GetInviteCode(context.Background(), "0x1111111111111111111111111111111111111111")
+	got, err := api.GetInviteCode(context.Background(), types.InviteCodeQuery{Wallet: "0x1111111111111111111111111111111111111111"})
 	require.NoError(t, err)
 	assert.Equal(t, "INVITE-ALICE", got.Code)
 	assert.Equal(t, int64(-1), got.RemainingUses)
@@ -46,7 +48,7 @@ func TestGetInviteCode_Decode(t *testing.T) {
 func TestValidateInviteCode_Decode(t *testing.T) {
 	api, ft := newAPI(t, false, 0)
 	ft.HandleResult("public/validate_invite_code", "valid")
-	got, err := api.ValidateInviteCode(context.Background(), "INVITE-ALICE")
+	got, err := api.ValidateInviteCode(context.Background(), types.ValidateInviteCodeQuery{Code: "INVITE-ALICE"})
 	require.NoError(t, err)
 	assert.Equal(t, "valid", got)
 }

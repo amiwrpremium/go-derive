@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/amiwrpremium/go-derive/pkg/auth"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -60,7 +61,7 @@ func main() {
 	if id == "" {
 		log.Fatal("DERIVE_RFQ_ID required")
 	}
-	if err := c.CancelRFQ(ctx, id); err != nil {
+	if err := c.CancelRFQ(ctx, types.CancelRFQInput{RFQID: id}); err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("%-30s %v\n", "cancelled:", id)

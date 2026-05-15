@@ -42,7 +42,7 @@ func TestGetMakerProgramScores_Decode(t *testing.T) {
 		},
 		"total_score": "1", "total_volume": "1000",
 	})
-	got, err := api.GetMakerProgramScores(context.Background(), "options-q1", 1700000000)
+	got, err := api.GetMakerProgramScores(context.Background(), types.MakerProgramScoresQuery{ProgramName: "options-q1", EpochStartTimestamp: 1700000000})
 	require.NoError(t, err)
 	assert.Equal(t, "options-q1", got.Program.Name)
 	require.Len(t, got.Scores, 1)

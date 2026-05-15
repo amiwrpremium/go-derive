@@ -161,7 +161,7 @@ func TestGetInstruments_PopulatesCacheForSubsequentPlaceOrder(t *testing.T) {
 		},
 	})
 
-	insts, err := api.GetInstruments(context.Background(), "BTC", enums.InstrumentTypePerp)
+	insts, err := api.GetInstruments(context.Background(), types.InstrumentsQuery{Currency: "BTC", Kind: enums.InstrumentTypePerp})
 	require.NoError(t, err)
 	require.Len(t, insts, 2)
 

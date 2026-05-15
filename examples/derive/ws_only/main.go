@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/amiwrpremium/go-derive/pkg/derive"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -32,7 +33,7 @@ func main() {
 	if instrument == "" {
 		instrument = "BTC-PERP"
 	}
-	tk, err := c.WS.GetTicker(ctx, instrument)
+	tk, err := c.WS.GetTicker(ctx, types.TickerQuery{Name: instrument})
 	if err != nil {
 		log.Fatal(err)
 	}

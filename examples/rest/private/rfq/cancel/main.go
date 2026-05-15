@@ -13,6 +13,7 @@ import (
 
 	"github.com/amiwrpremium/go-derive/pkg/auth"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -54,7 +55,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	if err := c.CancelRFQ(ctx, id); err != nil {
+	if err := c.CancelRFQ(ctx, types.CancelRFQInput{RFQID: id}); err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("%-30s %v\n", "cancelled:", id)

@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/amiwrpremium/go-derive/pkg/auth"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -60,7 +61,7 @@ func main() {
 	if label == "" {
 		log.Fatal("DERIVE_LABEL required")
 	}
-	n, err := c.CancelByLabel(ctx, label)
+	n, err := c.CancelByLabel(ctx, types.CancelByLabelInput{Label: label})
 	if err != nil {
 		log.Fatal(err)
 	}

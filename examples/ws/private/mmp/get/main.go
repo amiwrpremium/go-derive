@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/amiwrpremium/go-derive/pkg/auth"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -57,7 +58,7 @@ func main() {
 		log.Fatalf("ws.Login: %v", err)
 	}
 	currency := os.Getenv("DERIVE_CURRENCY")
-	configs, err := c.GetMMPConfig(ctx, currency)
+	configs, err := c.GetMMPConfig(ctx, types.MMPConfigQuery{Currency: currency})
 	if err != nil {
 		log.Fatal(err)
 	}

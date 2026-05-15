@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/amiwrpremium/go-derive/pkg/rest"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -28,7 +29,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	s, err := c.GetUserStatistics(ctx, wallet)
+	s, err := c.GetUserStatistics(ctx, types.UserStatisticsQuery{Wallet: wallet})
 	if err != nil {
 		log.Fatal(err)
 	}

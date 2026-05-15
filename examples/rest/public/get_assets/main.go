@@ -14,6 +14,7 @@ import (
 
 	"github.com/amiwrpremium/go-derive/pkg/enums"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -37,7 +38,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	assets, err := c.GetAssets(ctx, assetType, currency, os.Getenv("DERIVE_INCLUDE_EXPIRED") == "1")
+	assets, err := c.GetAssets(ctx, types.AssetsQuery{AssetType: assetType, Currency: currency, Expired: os.Getenv("DERIVE_INCLUDE_EXPIRED") == "1"})
 	if err != nil {
 		log.Fatal(err)
 	}

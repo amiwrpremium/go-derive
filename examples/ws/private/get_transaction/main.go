@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/amiwrpremium/go-derive/pkg/auth"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -61,7 +62,7 @@ func main() {
 	if txID == "" {
 		log.Fatal("DERIVE_TX_ID required")
 	}
-	tx, err := c.GetTransaction(ctx, txID)
+	tx, err := c.GetTransaction(ctx, types.TransactionQuery{TransactionID: txID})
 	if err != nil {
 		log.Fatal(err)
 	}

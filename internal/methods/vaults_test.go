@@ -18,7 +18,7 @@ func TestGetVaultBalances_Decode(t *testing.T) {
 			"chain_id": int64(1), "vault_asset_type": "rswETHC", "amount": "12.5",
 		},
 	})
-	got, err := api.GetVaultBalances(context.Background(), "0x2222222222222222222222222222222222222222", "")
+	got, err := api.GetVaultBalances(context.Background(), types.VaultBalancesQuery{Wallet: "0x2222222222222222222222222222222222222222"})
 	require.NoError(t, err)
 	require.Len(t, got, 1)
 	assert.Equal(t, "rswETHC", got[0].Name)
@@ -89,7 +89,7 @@ func TestGetVaultRates_Decode(t *testing.T) {
 		"perp_balance":   "0",
 		"yearly_funding": "0.10",
 	})
-	got, err := api.GetVaultRates(context.Background(), "weeth")
+	got, err := api.GetVaultRates(context.Background(), types.VaultRatesQuery{VaultType: "weeth"})
 	require.NoError(t, err)
 	assert.Equal(t, "0.05", got.Rate.String())
 	assert.Equal(t, "0.07", got.TotalRate.String())

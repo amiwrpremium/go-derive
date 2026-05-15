@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/amiwrpremium/go-derive/pkg/rest"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -34,7 +35,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	balances, err := c.GetVaultBalances(ctx, wallet, owner)
+	balances, err := c.GetVaultBalances(ctx, types.VaultBalancesQuery{Wallet: wallet, SmartContractOwner: owner})
 	if err != nil {
 		log.Fatal(err)
 	}

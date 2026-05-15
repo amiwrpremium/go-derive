@@ -9,9 +9,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/amiwrpremium/go-derive/pkg/auth"
-	"github.com/amiwrpremium/go-derive/pkg/ws"
 	"github.com/ethereum/go-ethereum/common"
+
+	"github.com/amiwrpremium/go-derive/pkg/auth"
+	"github.com/amiwrpremium/go-derive/pkg/types"
+	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 func main() {
@@ -59,7 +61,7 @@ func main() {
 	if err := c.Login(ctx); err != nil {
 		log.Fatalf("ws.Login: %v", err)
 	}
-	n, err := c.CancelByInstrument(ctx, instrument)
+	n, err := c.CancelByInstrument(ctx, types.CancelByInstrumentInput{InstrumentName: instrument})
 	if err != nil {
 		log.Fatal(err)
 	}

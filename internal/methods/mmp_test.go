@@ -97,7 +97,7 @@ func TestSetMMPConfig_RequiresSubaccount(t *testing.T) {
 func TestResetMMP_Happy(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleResult("private/reset_mmp", nil)
-	require.NoError(t, api.ResetMMP(context.Background(), "BTC"))
+	require.NoError(t, api.ResetMMP(context.Background(), types.ResetMMPInput{Currency: "BTC"}))
 	params := paramsAsMap(t, ft.LastCall().Params)
 	assert.Equal(t, "BTC", params["currency"])
 	assert.Equal(t, float64(1), params["subaccount_id"])
@@ -105,7 +105,7 @@ func TestResetMMP_Happy(t *testing.T) {
 
 func TestResetMMP_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	err := api.ResetMMP(context.Background(), "BTC")
+	err := api.ResetMMP(context.Background(), types.ResetMMPInput{Currency: "BTC"})
 	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
 }
 
@@ -123,7 +123,7 @@ func TestGetMMPConfig_Decode(t *testing.T) {
 			"is_frozen":         false,
 		},
 	})
-	got, err := api.GetMMPConfig(context.Background(), "")
+	got, err := api.GetMMPConfig(context.Background(), types.MMPConfigQuery{})
 	require.NoError(t, err)
 	require.Len(t, got, 1)
 	assert.Equal(t, "BTC", got[0].Currency)
@@ -134,7 +134,7 @@ func TestGetMMPConfig_Decode(t *testing.T) {
 func TestGetMMPConfig_FilterByCurrency(t *testing.T) {
 	api, ft := newAPI(t, true, 7)
 	ft.HandleResult("private/get_mmp_config", []any{})
-	_, err := api.GetMMPConfig(context.Background(), "ETH")
+	_, err := api.GetMMPConfig(context.Background(), types.MMPConfigQuery{Currency: "ETH"})
 	require.NoError(t, err)
 	params := paramsAsMap(t, ft.LastCall().Params)
 	assert.Equal(t, "ETH", params["currency"])
@@ -143,7 +143,7 @@ func TestGetMMPConfig_FilterByCurrency(t *testing.T) {
 func TestGetMMPConfig_OmitsEmptyCurrency(t *testing.T) {
 	api, ft := newAPI(t, true, 7)
 	ft.HandleResult("private/get_mmp_config", []any{})
-	_, err := api.GetMMPConfig(context.Background(), "")
+	_, err := api.GetMMPConfig(context.Background(), types.MMPConfigQuery{})
 	require.NoError(t, err)
 	params := paramsAsMap(t, ft.LastCall().Params)
 	_, has := params["currency"]
@@ -152,13 +152,13 @@ func TestGetMMPConfig_OmitsEmptyCurrency(t *testing.T) {
 
 func TestGetMMPConfig_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	_, err := api.GetMMPConfig(context.Background(), "")
+	_, err := api.GetMMPConfig(context.Background(), types.MMPConfigQuery{})
 	assert.True(t, errors.Is(err, derrors.ErrSubaccountRequired))
 }
 
 func TestGetMMPConfig_PropagatesAPIError(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleError("private/get_mmp_config", boom)
-	_, err := api.GetMMPConfig(context.Background(), "")
+	_, err := api.GetMMPConfig(context.Background(), types.MMPConfigQuery{})
 	assert.ErrorAs(t, err, new(*derrors.APIError))
 }

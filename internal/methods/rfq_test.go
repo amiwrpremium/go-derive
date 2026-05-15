@@ -90,14 +90,14 @@ func TestPollRFQs_RequiresSubaccount(t *testing.T) {
 func TestCancelRFQ_Happy(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleResult("private/cancel_rfq", nil)
-	require.NoError(t, api.CancelRFQ(context.Background(), "R1"))
+	require.NoError(t, api.CancelRFQ(context.Background(), types.CancelRFQInput{RFQID: "R1"}))
 	params := paramsAsMap(t, ft.LastCall().Params)
 	assert.Equal(t, "R1", params["rfq_id"])
 }
 
 func TestCancelRFQ_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	err := api.CancelRFQ(context.Background(), "R1")
+	err := api.CancelRFQ(context.Background(), types.CancelRFQInput{RFQID: "R1"})
 	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
 }
 
@@ -212,7 +212,7 @@ func TestCancelQuote_Decode(t *testing.T) {
 		"creation_timestamp":    int64(1700000000000),
 		"last_update_timestamp": int64(1700000000000),
 	})
-	q, err := api.CancelQuote(context.Background(), "Q1")
+	q, err := api.CancelQuote(context.Background(), types.CancelQuoteInput{QuoteID: "Q1"})
 	require.NoError(t, err)
 	assert.Equal(t, "cancelled", string(q.Status))
 }

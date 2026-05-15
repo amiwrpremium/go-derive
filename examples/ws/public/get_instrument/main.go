@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -32,7 +33,7 @@ func main() {
 	if err := c.Connect(ctx); err != nil {
 		log.Fatalf("ws.Connect: %v", err)
 	}
-	inst, err := c.GetInstrument(ctx, instrument)
+	inst, err := c.GetInstrument(ctx, types.InstrumentQuery{Name: instrument})
 	if err != nil {
 		log.Fatal(err)
 	}

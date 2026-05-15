@@ -15,6 +15,7 @@ import (
 
 	"github.com/amiwrpremium/go-derive/pkg/auth"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -53,7 +54,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	configs, err := c.GetMMPConfig(ctx, currency)
+	configs, err := c.GetMMPConfig(ctx, types.MMPConfigQuery{Currency: currency})
 	if err != nil {
 		log.Fatal(err)
 	}

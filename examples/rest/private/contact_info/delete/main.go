@@ -14,6 +14,7 @@ import (
 
 	"github.com/amiwrpremium/go-derive/pkg/auth"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -59,7 +60,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	deletedID, deleted, err := c.DeleteContactInfo(ctx, id)
+	deletedID, deleted, err := c.DeleteContactInfo(ctx, types.DeleteContactInfoInput{ContactID: id})
 	if err != nil {
 		log.Fatal(err)
 	}
