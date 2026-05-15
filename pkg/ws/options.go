@@ -51,6 +51,7 @@ type config struct {
 	burst           float64
 	pingInterval    time.Duration
 	reconnect       bool
+	onReconnect     func(error)
 	expiry          int64
 	preloadAllInsts bool
 }
@@ -104,6 +105,32 @@ func WithPingInterval(d time.Duration) Option { return func(c *config) { c.pingI
 // configured), and re-issues every active subscription so user-facing
 // channels stay open across the gap.
 func WithReconnect(enabled bool) Option { return func(c *config) { c.reconnect = enabled } }
+
+// WithOnReconnect installs a callback invoked once per reconnect cycle,
+// after the redial succeeds, the internal re-login (if a signer is
+// configured) runs, and every active subscription has been
+// re-registered with the server. The callback's err is nil on full
+// recovery; non-nil when the post-redial chain partially failed (e.g.
+// re-login was rejected or resubscribe RPC errored) — in that case
+// public channels may still be delivering events while private ones
+// are wedged until the next cycle.
+//
+// Typical use: refetch a snapshot (order book, balances, open
+// orders) so that the gap during the outage is closed at the
+// application layer. The SDK guarantees no notifications were lost
+// after the callback returns successfully, but the gap during the
+// outage itself is intrinsic to the transport.
+//
+// The callback runs synchronously on the reconnect goroutine. Keep
+// it non-blocking. It is safe to issue Subscribe* calls and other
+// RPCs from inside the callback (a fresh connection is in place),
+// but do NOT call [Client.Close] from the callback — that would
+// deadlock waiting for the reconnect goroutine to exit.
+//
+// Has no effect when [WithReconnect] is disabled.
+func WithOnReconnect(fn func(err error)) Option {
+	return func(c *config) { c.onReconnect = fn }
+}
 
 // WithSignatureExpiry sets the seconds-from-now expiry on signed actions.
 // The default is 300 (5 minutes).

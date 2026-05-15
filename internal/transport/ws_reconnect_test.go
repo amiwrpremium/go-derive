@@ -3,6 +3,8 @@ package transport_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"sync"
 	"testing"
 	"time"
 
@@ -104,4 +106,147 @@ func TestWSTransport_ReconnectAndResubscribe(t *testing.T) {
 	// covering it here at least exercises the goroutine startup.
 	time.Sleep(100 * time.Millisecond)
 	assert.True(t, tt.IsConnected())
+}
+
+// TestWSTransport_OnReconnect_FiresOnceAfterDrop verifies that the
+// user-facing OnReconnect callback fires exactly once per reconnect
+// cycle, after PostDialHook and resubscribe both run.
+func TestWSTransport_OnReconnect_FiresOnceAfterDrop(t *testing.T) {
+	srv := testutil.NewMockWSServer()
+	defer srv.Close()
+
+	var (
+		mu             sync.Mutex
+		calls          []error
+		postDialCalls  int
+		resubAfterHook bool
+	)
+	tt, err := transport.NewWS(transport.WSConfig{
+		URL:          srv.URL(),
+		Reconnect:    true,
+		PingInterval: 30 * time.Millisecond,
+		PostDialHook: func(_ context.Context, _ *transport.WSTransport) error {
+			mu.Lock()
+			postDialCalls++
+			mu.Unlock()
+			return nil
+		},
+		OnReconnect: func(err error) {
+			mu.Lock()
+			calls = append(calls, err)
+			mu.Unlock()
+		},
+	})
+	require.NoError(t, err)
+	require.NoError(t, tt.Connect(context.Background()))
+	defer func() { _ = tt.Close() }()
+
+	dec := func(json.RawMessage) (any, error) { return nil, nil }
+	_, err = tt.Subscribe(context.Background(), "X", dec)
+	require.NoError(t, err)
+	require.True(t, srv.WaitSubscribed("X", time.Second))
+
+	// Initial Connect must not fire the user callback.
+	time.Sleep(100 * time.Millisecond)
+	mu.Lock()
+	require.Empty(t, calls, "OnReconnect should not fire on initial Connect")
+	mu.Unlock()
+
+	srv.DropClients()
+
+	require.Eventually(t, func() bool {
+		mu.Lock()
+		n := len(calls)
+		mu.Unlock()
+		return n >= 1
+	}, 15*time.Second, 25*time.Millisecond, "OnReconnect never fired after drop")
+
+	mu.Lock()
+	defer mu.Unlock()
+	require.Len(t, calls, 1, "OnReconnect must fire exactly once per cycle")
+	assert.NoError(t, calls[0])
+	assert.GreaterOrEqual(t, postDialCalls, 1)
+	resubAfterHook = postDialCalls >= 1 && srv.Subscribed("X")
+	assert.True(t, resubAfterHook, "resubscribe should have re-registered the channel")
+}
+
+// TestWSTransport_OnReconnect_NoSubsStillFires covers the empty-state
+// path — a client with zero subscriptions must still receive the
+// snapshot-refetch hook after reconnect.
+func TestWSTransport_OnReconnect_NoSubsStillFires(t *testing.T) {
+	srv := testutil.NewMockWSServer()
+	defer srv.Close()
+
+	var (
+		mu    sync.Mutex
+		calls []error
+	)
+	tt, err := transport.NewWS(transport.WSConfig{
+		URL:          srv.URL(),
+		Reconnect:    true,
+		PingInterval: 30 * time.Millisecond,
+		OnReconnect: func(err error) {
+			mu.Lock()
+			calls = append(calls, err)
+			mu.Unlock()
+		},
+	})
+	require.NoError(t, err)
+	require.NoError(t, tt.Connect(context.Background()))
+	defer func() { _ = tt.Close() }()
+
+	srv.DropClients()
+
+	require.Eventually(t, func() bool {
+		mu.Lock()
+		defer mu.Unlock()
+		return len(calls) >= 1
+	}, 15*time.Second, 25*time.Millisecond)
+
+	mu.Lock()
+	defer mu.Unlock()
+	assert.NoError(t, calls[0], "no-sub reconnect must still report success")
+}
+
+// TestWSTransport_OnReconnect_SurfacesPostDialError verifies that when
+// the post-dial hook returns an error, the user callback sees it.
+func TestWSTransport_OnReconnect_SurfacesPostDialError(t *testing.T) {
+	srv := testutil.NewMockWSServer()
+	defer srv.Close()
+
+	hookErr := errors.New("login rejected")
+	var (
+		mu    sync.Mutex
+		calls []error
+	)
+	tt, err := transport.NewWS(transport.WSConfig{
+		URL:          srv.URL(),
+		Reconnect:    true,
+		PingInterval: 30 * time.Millisecond,
+		PostDialHook: func(_ context.Context, _ *transport.WSTransport) error {
+			return hookErr
+		},
+		OnReconnect: func(err error) {
+			mu.Lock()
+			calls = append(calls, err)
+			mu.Unlock()
+		},
+	})
+	require.NoError(t, err)
+	require.NoError(t, tt.Connect(context.Background()))
+	defer func() { _ = tt.Close() }()
+
+	srv.DropClients()
+
+	require.Eventually(t, func() bool {
+		mu.Lock()
+		defer mu.Unlock()
+		return len(calls) >= 1
+	}, 15*time.Second, 25*time.Millisecond)
+
+	mu.Lock()
+	defer mu.Unlock()
+	require.Len(t, calls, 1)
+	require.Error(t, calls[0])
+	assert.ErrorIs(t, calls[0], hookErr)
 }

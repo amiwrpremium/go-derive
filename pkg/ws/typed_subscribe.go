@@ -11,6 +11,7 @@ import (
 	"fmt"
 
 	"github.com/amiwrpremium/go-derive/pkg/enums"
+	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
@@ -40,15 +41,20 @@ func (c *Client) SubscribeAuctionsWatch(ctx context.Context, opts ...SubscribeOp
 }
 
 // SubscribeOrderBook streams incremental order-book updates for one
-// instrument. Empty group defaults to "1" (no grouping); zero depth
-// defaults to 10. Wire channel:
-// `orderbook.{instrument}.{group}.{depth}`.
+// instrument.
+//
+// Valid `group` values: [Group1], [Group10], [Group100]. Empty string
+// is treated as [GroupDefault] ([Group1]). Valid `depth` values:
+// [Depth1], [Depth10], [Depth20], [Depth100]. Zero is treated as
+// [DepthDefault] ([Depth10]).
+//
+// Wire channel: `orderbook.{instrument}.{group}.{depth}`.
 func (c *Client) SubscribeOrderBook(ctx context.Context, instrument, group string, depth int, opts ...SubscribeOption) (*Subscription[types.OrderBook], error) {
 	if group == "" {
-		group = "1"
+		group = GroupDefault
 	}
 	if depth == 0 {
-		depth = 10
+		depth = DepthDefault
 	}
 	return Subscribe(ctx, c,
 		fmt.Sprintf("orderbook.%s.%s.%d", instrument, group, depth),
@@ -64,11 +70,15 @@ func (c *Client) SubscribeSpotFeed(ctx context.Context, currency string, opts ..
 }
 
 // SubscribeTicker streams the full ticker payload for one
-// instrument. Empty interval defaults to "1000". Wire channel:
-// `ticker.{instrument}.{interval}`.
+// instrument.
+//
+// Valid `interval` values: [Interval100], [Interval1000]. Empty
+// string is treated as [IntervalDefault] ([Interval1000]).
+//
+// Wire channel: `ticker.{instrument}.{interval}`.
 func (c *Client) SubscribeTicker(ctx context.Context, instrument, interval string, opts ...SubscribeOption) (*Subscription[types.InstrumentTickerFeed], error) {
 	if interval == "" {
-		interval = "1000"
+		interval = IntervalDefault
 	}
 	return Subscribe(ctx, c,
 		fmt.Sprintf("ticker.%s.%s", instrument, interval),
@@ -76,11 +86,15 @@ func (c *Client) SubscribeTicker(ctx context.Context, instrument, interval strin
 }
 
 // SubscribeTickerSlim streams the slim ticker payload for one
-// instrument. Empty interval defaults to "1000". Wire channel:
-// `ticker_slim.{instrument}.{interval}`.
+// instrument.
+//
+// Valid `interval` values: [Interval100], [Interval1000]. Empty
+// string is treated as [IntervalDefault] ([Interval1000]).
+//
+// Wire channel: `ticker_slim.{instrument}.{interval}`.
 func (c *Client) SubscribeTickerSlim(ctx context.Context, instrument, interval string, opts ...SubscribeOption) (*Subscription[types.TickerSlim], error) {
 	if interval == "" {
-		interval = "1000"
+		interval = IntervalDefault
 	}
 	return Subscribe(ctx, c,
 		fmt.Sprintf("ticker_slim.%s.%s", instrument, interval),
@@ -122,7 +136,12 @@ func (c *Client) SubscribeTradesByTypeWithStatus(ctx context.Context, instrument
 // describing every balance row that changed in the batch — the channel
 // is event-based, not a full snapshot. Wire channel:
 // `{subaccount_id}.balances`.
+//
+// Returns [derrors.ErrSubaccountRequired] when subaccountID is zero.
 func (c *Client) SubscribeBalances(ctx context.Context, subaccountID int64, opts ...SubscribeOption) (*Subscription[[]types.BalanceUpdate], error) {
+	if subaccountID == 0 {
+		return nil, derrors.ErrSubaccountRequired
+	}
 	return Subscribe(ctx, c,
 		fmt.Sprintf("%d.balances", subaccountID),
 		decodeJSON[[]types.BalanceUpdate], opts...)
@@ -130,7 +149,12 @@ func (c *Client) SubscribeBalances(ctx context.Context, subaccountID int64, opts
 
 // SubscribeOrders streams order lifecycle events for one
 // subaccount. Wire channel: `{subaccount_id}.orders`.
+//
+// Returns [derrors.ErrSubaccountRequired] when subaccountID is zero.
 func (c *Client) SubscribeOrders(ctx context.Context, subaccountID int64, opts ...SubscribeOption) (*Subscription[[]types.Order], error) {
+	if subaccountID == 0 {
+		return nil, derrors.ErrSubaccountRequired
+	}
 	return Subscribe(ctx, c,
 		fmt.Sprintf("%d.orders", subaccountID),
 		decodeJSON[[]types.Order], opts...)
@@ -139,7 +163,12 @@ func (c *Client) SubscribeOrders(ctx context.Context, subaccountID int64, opts .
 // SubscribeBestQuotes streams the running best-quote state for every
 // open RFQ on one subaccount. Wire channel:
 // `{subaccount_id}.best.quotes`.
+//
+// Returns [derrors.ErrSubaccountRequired] when subaccountID is zero.
 func (c *Client) SubscribeBestQuotes(ctx context.Context, subaccountID int64, opts ...SubscribeOption) (*Subscription[[]types.BestQuoteFeedEvent], error) {
+	if subaccountID == 0 {
+		return nil, derrors.ErrSubaccountRequired
+	}
 	return Subscribe(ctx, c,
 		fmt.Sprintf("%d.best.quotes", subaccountID),
 		decodeJSON[[]types.BestQuoteFeedEvent], opts...)
@@ -147,7 +176,17 @@ func (c *Client) SubscribeBestQuotes(ctx context.Context, subaccountID int64, op
 
 // SubscribeRFQs streams RFQ lifecycle events for one wallet across
 // every subaccount it owns. Wire channel: `{wallet}.rfqs`.
+//
+// Pass an empty `wallet` to default to the configured signer's
+// owner address. Returns [derrors.ErrUnauthorized] when the wallet
+// is empty and no signer is configured.
 func (c *Client) SubscribeRFQs(ctx context.Context, wallet string, opts ...SubscribeOption) (*Subscription[[]types.RFQ], error) {
+	if wallet == "" {
+		if c.signer == nil {
+			return nil, derrors.ErrUnauthorized
+		}
+		wallet = c.signer.OwnerAddress().Hex()
+	}
 	return Subscribe(ctx, c,
 		fmt.Sprintf("%s.rfqs", wallet),
 		decodeJSON[[]types.RFQ], opts...)
@@ -155,7 +194,12 @@ func (c *Client) SubscribeRFQs(ctx context.Context, wallet string, opts ...Subsc
 
 // SubscribeQuotes streams quote events for one subaccount. Wire
 // channel: `{subaccount_id}.quotes`.
+//
+// Returns [derrors.ErrSubaccountRequired] when subaccountID is zero.
 func (c *Client) SubscribeQuotes(ctx context.Context, subaccountID int64, opts ...SubscribeOption) (*Subscription[[]types.Quote], error) {
+	if subaccountID == 0 {
+		return nil, derrors.ErrSubaccountRequired
+	}
 	return Subscribe(ctx, c,
 		fmt.Sprintf("%d.quotes", subaccountID),
 		decodeJSON[[]types.Quote], opts...)
@@ -163,7 +207,12 @@ func (c *Client) SubscribeQuotes(ctx context.Context, subaccountID int64, opts .
 
 // SubscribeSubaccountTrades streams trade events for one
 // subaccount. Wire channel: `{subaccount_id}.trades`.
+//
+// Returns [derrors.ErrSubaccountRequired] when subaccountID is zero.
 func (c *Client) SubscribeSubaccountTrades(ctx context.Context, subaccountID int64, opts ...SubscribeOption) (*Subscription[[]types.Trade], error) {
+	if subaccountID == 0 {
+		return nil, derrors.ErrSubaccountRequired
+	}
 	return Subscribe(ctx, c,
 		fmt.Sprintf("%d.trades", subaccountID),
 		decodeJSON[[]types.Trade], opts...)
@@ -173,7 +222,12 @@ func (c *Client) SubscribeSubaccountTrades(ctx context.Context, subaccountID int
 // [Client.SubscribeSubaccountTrades] but also filters by on-chain
 // transaction status. Wire channel:
 // `{subaccount_id}.trades.{tx_status}`.
+//
+// Returns [derrors.ErrSubaccountRequired] when subaccountID is zero.
 func (c *Client) SubscribeSubaccountTradesByStatus(ctx context.Context, subaccountID int64, txStatus enums.TxStatus, opts ...SubscribeOption) (*Subscription[[]types.Trade], error) {
+	if subaccountID == 0 {
+		return nil, derrors.ErrSubaccountRequired
+	}
 	return Subscribe(ctx, c,
 		fmt.Sprintf("%d.trades.%s", subaccountID, txStatus),
 		decodeJSON[[]types.Trade], opts...)
