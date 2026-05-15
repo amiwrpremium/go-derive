@@ -30,6 +30,7 @@ package rest
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/pkg/auth"
@@ -44,6 +45,7 @@ type config struct {
 	signer          auth.Signer
 	subaccount      int64
 	httpClient      *http.Client
+	httpTimeout     time.Duration
 	userAgent       string
 	tps             float64
 	burst           float64
@@ -77,8 +79,21 @@ func WithSubaccount(id int64) Option { return func(c *config) { c.subaccount = i
 
 // WithHTTPClient swaps in a custom *http.Client (for custom transports,
 // proxies, mocking, etc.). The default is a *http.Client with a 30-second
-// timeout.
+// timeout. A non-nil HTTPClient takes precedence over [WithHTTPTimeout].
 func WithHTTPClient(h *http.Client) Option { return func(c *config) { c.httpClient = h } }
+
+// WithHTTPTimeout sets the total per-request timeout on the default
+// HTTP client. Default is 30 seconds. Pass 0 to disable the timeout
+// entirely (not recommended in production — a stuck request will
+// block the caller's goroutine forever).
+//
+// Ignored when [WithHTTPClient] is also used; the caller-supplied
+// *http.Client carries its own timeout. To customise both transport
+// and timeout, build the *http.Client yourself and pass it via
+// [WithHTTPClient].
+func WithHTTPTimeout(d time.Duration) Option {
+	return func(c *config) { c.httpTimeout = d }
+}
 
 // WithUserAgent overrides the default User-Agent header (which is
 // "go-derive/<version>"). Useful for distinguishing your fleet in

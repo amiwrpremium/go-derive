@@ -72,6 +72,60 @@ func TestRest_AllOptionsApplied(t *testing.T) {
 	assert.Equal(t, "custom-agent/1.0", srv.Requests()[0].Headers.Get("User-Agent"))
 }
 
+func TestRest_WithHTTPTimeout_FiresOnSlowResponse(t *testing.T) {
+	srv := testutil.NewMockServer()
+	defer srv.Close()
+	srv.Handle("public/get_time", func(_ testutil.MockRequest) (any, *jsonrpc.Error) {
+		// Outlast the configured timeout — caller should see a
+		// deadline-exceeded error before this returns.
+		time.Sleep(200 * time.Millisecond)
+		return 1700000000000, nil
+	})
+	cfg := netconf.Testnet()
+	cfg.HTTPURL = srv.URL()
+
+	c, err := rest.New(
+		rest.WithCustomNetwork(cfg),
+		rest.WithHTTPTimeout(50*time.Millisecond),
+	)
+	require.NoError(t, err)
+	defer func() { _ = c.Close() }()
+
+	_, err = c.GetTime(context.Background())
+	require.Error(t, err)
+	// http.Client surfaces a *url.Error wrapping a timeout. We don't
+	// care about the exact wrapper — just that it fired.
+	assert.Contains(t, err.Error(), "deadline exceeded",
+		"expected timeout error, got: %v", err)
+}
+
+func TestRest_WithHTTPClient_OverridesWithHTTPTimeout(t *testing.T) {
+	// Build a *http.Client whose timeout is longer than the slow
+	// handler so a "fast enough" response wins. If WithHTTPTimeout
+	// shadowed WithHTTPClient, the 50ms cap would fire and the call
+	// would fail — instead it succeeds because WithHTTPClient wins.
+	srv := testutil.NewMockServer()
+	defer srv.Close()
+	srv.Handle("public/get_time", func(_ testutil.MockRequest) (any, *jsonrpc.Error) {
+		time.Sleep(100 * time.Millisecond)
+		return 1700000000000, nil
+	})
+	cfg := netconf.Testnet()
+	cfg.HTTPURL = srv.URL()
+
+	c, err := rest.New(
+		rest.WithCustomNetwork(cfg),
+		rest.WithHTTPClient(&http.Client{Timeout: 5 * time.Second}),
+		rest.WithHTTPTimeout(50*time.Millisecond), // ignored
+	)
+	require.NoError(t, err)
+	defer func() { _ = c.Close() }()
+
+	got, err := c.GetTime(context.Background())
+	require.NoError(t, err, "WithHTTPClient must take precedence over WithHTTPTimeout")
+	assert.Equal(t, int64(1700000000000), got)
+}
+
 func TestRest_SignerAttachesAuthHeaders(t *testing.T) {
 	srv := testutil.NewMockServer()
 	defer srv.Close()

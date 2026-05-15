@@ -84,9 +84,18 @@ func New(opts ...Option) (*Client, error) {
 		return auth.HTTPHeaders(ctx, c.signer, time.Now())
 	}
 
+	// WithHTTPClient wins outright; WithHTTPTimeout is only consulted
+	// when the caller didn't supply a *http.Client. The "negative
+	// means use default 30s" wire-through preserves existing
+	// behaviour for callers that never set either option.
+	httpClient := c.httpClient
+	if httpClient == nil && c.httpTimeout != 0 {
+		httpClient = &http.Client{Timeout: c.httpTimeout}
+	}
+
 	httpT, err := transport.NewHTTP(transport.HTTPConfig{
 		URL:       c.network.HTTPURL,
-		Client:    c.httpClient,
+		Client:    httpClient,
 		UserAgent: c.userAgent,
 		Limiter:   transport.NewRateLimiter(c.tps, c.burst),
 		Headers:   hdrProv,
