@@ -58,7 +58,7 @@ func main() {
 	if err := c.Login(ctx); err != nil {
 		log.Fatalf("ws.Login: %v", err)
 	}
-	wallet := signer.Owner().Hex()
+	wallet := signer.OwnerAddress().Hex()
 	sub, err := c.SubscribeRFQs(ctx, wallet)
 	if err != nil {
 		log.Fatal(err)

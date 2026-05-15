@@ -51,5 +51,5 @@ func TestEIP191_RecoverableViaPersonalSignDigest(t *testing.T) {
 	digest := personalHash(msg)
 	pub, err := crypto.SigToPub(digest, normaliseV(sig[:]))
 	require.NoError(t, err)
-	assert.Equal(t, s.Address(), crypto.PubkeyToAddress(*pub))
+	assert.Equal(t, s.SessionAddress(), crypto.PubkeyToAddress(*pub))
 }

@@ -146,7 +146,7 @@ func TestRest_SignerAttachesAuthHeaders(t *testing.T) {
 
 	require.NotEmpty(t, srv.Requests())
 	headers := srv.Requests()[0].Headers
-	assert.Equal(t, signer.Owner().Hex(), headers.Get("X-LyraWallet"))
+	assert.Equal(t, signer.OwnerAddress().Hex(), headers.Get("X-LyraWallet"))
 	assert.NotEmpty(t, headers.Get("X-LyraTimestamp"))
 	assert.NotEmpty(t, headers.Get("X-LyraSignature"))
 }

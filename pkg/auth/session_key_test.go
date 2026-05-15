@@ -28,8 +28,8 @@ func TestSessionKeySigner_OwnerSeparateFromAddress(t *testing.T) {
 	owner := common.HexToAddress("0x1111111111111111111111111111111111111111")
 	s, err := auth.NewSessionKeySigner(testKey, owner)
 	require.NoError(t, err)
-	assert.NotEqual(t, s.Address(), s.Owner())
-	assert.Equal(t, owner, s.Owner())
+	assert.NotEqual(t, s.SessionAddress(), s.OwnerAddress())
+	assert.Equal(t, owner, s.OwnerAddress())
 }
 
 func TestSessionKeySigner_SignAuthHeaderDelegates(t *testing.T) {

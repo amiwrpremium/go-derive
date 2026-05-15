@@ -22,7 +22,7 @@ import (
 func (a *API) GetReferralCode(ctx context.Context, q types.ReferralCodeQuery) (string, error) {
 	wallet := q.Wallet
 	if wallet == "" && a.Signer != nil {
-		wallet = a.Signer.Owner().Hex()
+		wallet = a.Signer.OwnerAddress().Hex()
 	}
 	params := map[string]any{}
 	if wallet != "" {
@@ -44,7 +44,7 @@ func (a *API) GetReferralCode(ctx context.Context, q types.ReferralCodeQuery) (s
 func (a *API) GetInviteCode(ctx context.Context, q types.InviteCodeQuery) (types.InviteCode, error) {
 	wallet := q.Wallet
 	if wallet == "" && a.Signer != nil {
-		wallet = a.Signer.Owner().Hex()
+		wallet = a.Signer.OwnerAddress().Hex()
 	}
 	params := map[string]any{}
 	if wallet != "" {
@@ -76,7 +76,7 @@ func (a *API) ValidateInviteCode(ctx context.Context, q types.ValidateInviteCode
 func (a *API) GetAllReferralCodes(ctx context.Context) ([]types.ReferralCodeRecord, error) {
 	params := map[string]any{}
 	if a.Signer != nil {
-		params["wallet"] = a.Signer.Owner().Hex()
+		params["wallet"] = a.Signer.OwnerAddress().Hex()
 	}
 	var resp []types.ReferralCodeRecord
 	if err := a.call(ctx, "public/get_all_referral_codes", params, &resp); err != nil {

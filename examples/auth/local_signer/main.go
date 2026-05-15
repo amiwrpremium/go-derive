@@ -26,6 +26,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("signer: %v", err)
 	}
-	fmt.Printf("%-30s %v\n", "address:", s.Address())
-	fmt.Printf("%-30s %v\n", "owner:", s.Owner())
+	fmt.Printf("%-30s %v\n", "address:", s.SessionAddress())
+	fmt.Printf("%-30s %v\n", "owner:", s.OwnerAddress())
 }

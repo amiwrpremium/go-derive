@@ -24,7 +24,7 @@ func TestHTTPHeaders_PopulatesAllThreeFields(t *testing.T) {
 	now := time.Unix(1700000000, 123_000_000) // millisecond-precise
 	h, err := auth.HTTPHeaders(context.Background(), s, now)
 	require.NoError(t, err)
-	assert.Equal(t, s.Owner().Hex(), h.Get("X-LyraWallet"))
+	assert.Equal(t, s.OwnerAddress().Hex(), h.Get("X-LyraWallet"))
 	assert.Equal(t, "1700000000123", h.Get("X-LyraTimestamp"))
 	assert.True(t, strings.HasPrefix(h.Get("X-LyraSignature"), "0x"))
 	assert.Len(t, h.Get("X-LyraSignature"), 2+65*2)

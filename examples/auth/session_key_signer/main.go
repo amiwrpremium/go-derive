@@ -22,6 +22,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("%-30s %v\n", "address (session key):", s.Address())
-	fmt.Printf("%-30s %v\n", "owner (smart account):", s.Owner())
+	fmt.Printf("%-30s %v\n", "address (session key):", s.SessionAddress())
+	fmt.Printf("%-30s %v\n", "owner (smart account):", s.OwnerAddress())
 }
