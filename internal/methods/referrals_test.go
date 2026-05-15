@@ -4,9 +4,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestGetAllReferralCodes_Decode(t *testing.T) {
