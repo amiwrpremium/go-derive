@@ -65,16 +65,16 @@ func NewSessionKeySigner(sessionHexKey string, owner common.Address) (*SessionKe
 	return &SessionKeySigner{inner: inner, owner: owner}, nil
 }
 
-// Address returns the session key address.
-func (s *SessionKeySigner) Address() common.Address { return s.inner.Address() }
+// SessionAddress returns the session key's own EOA address.
+func (s *SessionKeySigner) SessionAddress() common.Address { return s.inner.SessionAddress() }
 
-// Owner returns the smart account owner address.
-func (s *SessionKeySigner) Owner() common.Address { return s.owner }
+// OwnerAddress returns the smart-account owner address.
+func (s *SessionKeySigner) OwnerAddress() common.Address { return s.owner }
 
 // SignAction populates Owner with the wallet owner address before signing.
 func (s *SessionKeySigner) SignAction(ctx context.Context, domain netconf.Domain, action ActionData) (Signature, error) {
 	action.Owner = s.owner
-	action.Signer = s.inner.Address()
+	action.Signer = s.inner.SessionAddress()
 	return s.inner.SignAction(ctx, domain, action)
 }
 

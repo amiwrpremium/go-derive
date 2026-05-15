@@ -41,13 +41,13 @@ func TestLocalSigner_AddressMatchesPublicKey(t *testing.T) {
 	require.NoError(t, err)
 	k, err := crypto.HexToECDSA(strings.TrimPrefix(testKey, "0x"))
 	require.NoError(t, err)
-	assert.Equal(t, crypto.PubkeyToAddress(k.PublicKey), s.Address())
+	assert.Equal(t, crypto.PubkeyToAddress(k.PublicKey), s.SessionAddress())
 }
 
 func TestLocalSigner_OwnerEqualsAddress(t *testing.T) {
 	s, err := auth.NewLocalSigner(testKey)
 	require.NoError(t, err)
-	assert.Equal(t, s.Address(), s.Owner(), "LocalSigner has no separate owner")
+	assert.Equal(t, s.SessionAddress(), s.OwnerAddress(), "LocalSigner has no separate owner")
 }
 
 func TestLocalSigner_SignAuthHeader_Recover(t *testing.T) {
@@ -62,7 +62,7 @@ func TestLocalSigner_SignAuthHeader_Recover(t *testing.T) {
 	digest := personalHash(msg)
 	pub, err := crypto.SigToPub(digest, normaliseV(sig[:]))
 	require.NoError(t, err)
-	assert.Equal(t, s.Address(), crypto.PubkeyToAddress(*pub))
+	assert.Equal(t, s.SessionAddress(), crypto.PubkeyToAddress(*pub))
 }
 
 func TestLocalSigner_SignAction_Determinism(t *testing.T) {

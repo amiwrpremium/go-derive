@@ -66,7 +66,7 @@ func HTTPHeaders(ctx context.Context, signer Signer, now time.Time) (http.Header
 		return nil, err
 	}
 	h := make(http.Header, 3)
-	h.Set("X-LyraWallet", signer.Owner().Hex())
+	h.Set("X-LyraWallet", signer.OwnerAddress().Hex())
 	h.Set("X-LyraTimestamp", strconv.FormatInt(now.UnixMilli(), 10))
 	h.Set("X-LyraSignature", sig.Hex())
 	return h, nil

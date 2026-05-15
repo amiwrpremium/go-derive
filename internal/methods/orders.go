@@ -98,8 +98,8 @@ func (a *API) signedOrderParams(ctx context.Context, in types.PlaceOrderInput) (
 		Module:       module,
 		Data:         dataHash,
 		Expiry:       expiry,
-		Owner:        a.Signer.Owner(),
-		Signer:       a.Signer.Address(),
+		Owner:        a.Signer.OwnerAddress(),
+		Signer:       a.Signer.SessionAddress(),
 	}
 	sig, err := a.Signer.SignAction(ctx, a.Domain, action)
 	if err != nil {
@@ -115,7 +115,7 @@ func (a *API) signedOrderParams(ctx context.Context, in types.PlaceOrderInput) (
 		"max_fee":              in.MaxFee,
 		"subaccount_id":        a.Subaccount,
 		"nonce":                nonce,
-		"signer":               a.Signer.Address().Hex(),
+		"signer":               a.Signer.SessionAddress().Hex(),
 		"signature":            sig.Hex(),
 		"signature_expiry_sec": expiry,
 	}
@@ -472,7 +472,7 @@ func (a *API) CancelByNonce(ctx context.Context, in types.CancelByNonceInput) (t
 	params := map[string]any{
 		"instrument_name": in.InstrumentName,
 		"nonce":           in.Nonce,
-		"wallet":          a.Signer.Owner().Hex(),
+		"wallet":          a.Signer.OwnerAddress().Hex(),
 		"subaccount_id":   a.Subaccount,
 	}
 	var resp types.CancelByNonceResult
@@ -600,7 +600,7 @@ func (a *API) SetCancelOnDisconnect(ctx context.Context, in types.SetCancelOnDis
 		return err
 	}
 	params := map[string]any{
-		"wallet":  a.Signer.Owner().Hex(),
+		"wallet":  a.Signer.OwnerAddress().Hex(),
 		"enabled": in.Enabled,
 	}
 	return a.call(ctx, "private/set_cancel_on_disconnect", params, nil)

@@ -140,7 +140,7 @@ func (c *Client) Login(ctx context.Context) error {
 		return err
 	}
 	params := map[string]any{
-		"wallet":    c.signer.Owner().Hex(),
+		"wallet":    c.signer.OwnerAddress().Hex(),
 		"timestamp": strconv.FormatInt(now.UnixMilli(), 10),
 		"signature": sig.Hex(),
 	}

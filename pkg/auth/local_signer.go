@@ -71,11 +71,12 @@ func NewLocalSigner(hexKey string) (*LocalSigner, error) {
 	return &LocalSigner{key: k, addr: crypto.PubkeyToAddress(k.PublicKey)}, nil
 }
 
-// Address returns the signer's public address.
-func (s *LocalSigner) Address() common.Address { return s.addr }
+// SessionAddress returns the signer's public address.
+func (s *LocalSigner) SessionAddress() common.Address { return s.addr }
 
-// Owner returns the same address as Address — a LocalSigner has no separate owner.
-func (s *LocalSigner) Owner() common.Address { return s.addr }
+// OwnerAddress returns the same address as SessionAddress — a
+// LocalSigner has no separate owner.
+func (s *LocalSigner) OwnerAddress() common.Address { return s.addr }
 
 // SignAction signs Derive's EIP-712 Action struct.
 func (s *LocalSigner) SignAction(_ context.Context, domain netconf.Domain, action ActionData) (Signature, error) {

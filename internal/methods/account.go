@@ -24,7 +24,7 @@ func (a *API) GetAccount(ctx context.Context) (types.AccountResult, error) {
 	if err := a.requireSigner(); err != nil {
 		return types.AccountResult{}, err
 	}
-	params := map[string]any{"wallet": a.Signer.Owner().Hex()}
+	params := map[string]any{"wallet": a.Signer.OwnerAddress().Hex()}
 	var resp types.AccountResult
 	if err := a.call(ctx, "private/get_account", params, &resp); err != nil {
 		return types.AccountResult{}, err
@@ -44,7 +44,7 @@ func (a *API) GetAllPortfolios(ctx context.Context) ([]types.Portfolio, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
-	params := map[string]any{"wallet": a.Signer.Owner().Hex()}
+	params := map[string]any{"wallet": a.Signer.OwnerAddress().Hex()}
 	var resp []types.Portfolio
 	if err := a.call(ctx, "private/get_all_portfolios", params, &resp); err != nil {
 		return nil, err

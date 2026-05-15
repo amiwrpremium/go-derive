@@ -406,8 +406,8 @@ func (a *API) signedQuoteParams(ctx context.Context, in types.SendQuoteInput) (m
 		Module:       a.rfqModule,
 		Data:         dataHash,
 		Expiry:       expiry,
-		Owner:        a.Signer.Owner(),
-		Signer:       a.Signer.Address(),
+		Owner:        a.Signer.OwnerAddress(),
+		Signer:       a.Signer.SessionAddress(),
 	}
 	sig, err := a.Signer.SignAction(ctx, a.Domain, action)
 	if err != nil {
@@ -422,7 +422,7 @@ func (a *API) signedQuoteParams(ctx context.Context, in types.SendQuoteInput) (m
 		"max_fee":              in.MaxFee,
 		"nonce":                nonce,
 		"signature":            sig.Hex(),
-		"signer":               a.Signer.Address().Hex(),
+		"signer":               a.Signer.SessionAddress().Hex(),
 		"signature_expiry_sec": expiry,
 	}
 	if in.Label != "" {
@@ -476,8 +476,8 @@ func (a *API) signedExecuteQuoteParams(ctx context.Context, in types.ExecuteQuot
 		Module:       a.rfqModule,
 		Data:         dataHash,
 		Expiry:       expiry,
-		Owner:        a.Signer.Owner(),
-		Signer:       a.Signer.Address(),
+		Owner:        a.Signer.OwnerAddress(),
+		Signer:       a.Signer.SessionAddress(),
 	}
 	sig, err := a.Signer.SignAction(ctx, a.Domain, action)
 	if err != nil {
@@ -493,7 +493,7 @@ func (a *API) signedExecuteQuoteParams(ctx context.Context, in types.ExecuteQuot
 		"max_fee":              in.MaxFee,
 		"nonce":                nonce,
 		"signature":            sig.Hex(),
-		"signer":               a.Signer.Address().Hex(),
+		"signer":               a.Signer.SessionAddress().Hex(),
 		"signature_expiry_sec": expiry,
 	}
 	if in.Label != "" {

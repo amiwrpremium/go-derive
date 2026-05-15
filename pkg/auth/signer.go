@@ -78,15 +78,16 @@ func (s Signature) Hex() string {
 // External implementations are welcome: a hardware wallet, KMS-backed
 // key, or HSM-backed key all fit cleanly behind this interface.
 type Signer interface {
-	// Address returns the public address whose signatures the
+	// SessionAddress returns the public address whose signatures the
 	// implementation produces. For session keys this is the session
-	// key's address, not the owner's.
-	Address() common.Address
+	// key's own EOA; for [LocalSigner] it equals [Signer.OwnerAddress].
+	SessionAddress() common.Address
 
-	// Owner returns the owner (smart-account) address. For [LocalSigner]
-	// this equals [Signer.Address]; for [SessionKeySigner] it is the
-	// distinct registered owner.
-	Owner() common.Address
+	// OwnerAddress returns the owner (smart-account) address — the
+	// long-lived wallet that authorised this signer. For [LocalSigner]
+	// it equals [Signer.SessionAddress]; for [SessionKeySigner] it is
+	// the distinct registered owner.
+	OwnerAddress() common.Address
 
 	// SignAction produces an EIP-712 signature over the action struct
 	// hash with Derive's per-network domain. The implementation is

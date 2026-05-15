@@ -23,7 +23,7 @@ func (a *API) GetContactInfo(ctx context.Context, q types.ContactInfoQuery) ([]t
 		return nil, err
 	}
 	params := map[string]any{
-		"wallet": a.Signer.Owner().Hex(),
+		"wallet": a.Signer.OwnerAddress().Hex(),
 	}
 	if q.ContactType != "" {
 		params["contact_type"] = q.ContactType
@@ -45,7 +45,7 @@ func (a *API) UpdateContactInfo(ctx context.Context, in types.UpdateContactInfoI
 		return types.Contact{}, err
 	}
 	params := map[string]any{
-		"wallet":        a.Signer.Owner().Hex(),
+		"wallet":        a.Signer.OwnerAddress().Hex(),
 		"contact_id":    in.ContactID,
 		"contact_value": in.NewValue,
 	}
@@ -65,7 +65,7 @@ func (a *API) DeleteContactInfo(ctx context.Context, in types.DeleteContactInfoI
 		return 0, false, err
 	}
 	params := map[string]any{
-		"wallet":     a.Signer.Owner().Hex(),
+		"wallet":     a.Signer.OwnerAddress().Hex(),
 		"contact_id": in.ContactID,
 	}
 	var resp struct {
@@ -89,7 +89,7 @@ func (a *API) CreateContactInfo(ctx context.Context, in types.CreateContactInfoI
 		return types.Contact{}, err
 	}
 	params := map[string]any{
-		"wallet":        a.Signer.Owner().Hex(),
+		"wallet":        a.Signer.OwnerAddress().Hex(),
 		"contact_type":  in.ContactType,
 		"contact_value": in.ContactValue,
 	}

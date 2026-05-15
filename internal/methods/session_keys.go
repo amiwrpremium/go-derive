@@ -22,7 +22,7 @@ func (a *API) SessionKeys(ctx context.Context) ([]types.SessionKey, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, err
 	}
-	params := map[string]any{"wallet": a.Signer.Owner().Hex()}
+	params := map[string]any{"wallet": a.Signer.OwnerAddress().Hex()}
 	var resp struct {
 		PublicSessionKeys []types.SessionKey `json:"public_session_keys"`
 	}
@@ -49,7 +49,7 @@ func (a *API) EditSessionKey(ctx context.Context, in types.EditSessionKeyInput) 
 		return types.SessionKey{}, err
 	}
 	params := map[string]any{
-		"wallet":             a.Signer.Owner().Hex(),
+		"wallet":             a.Signer.OwnerAddress().Hex(),
 		"public_session_key": in.PublicSessionKey.String(),
 	}
 	if in.Disable {
@@ -87,7 +87,7 @@ func (a *API) RegisterScopedSessionKey(ctx context.Context, in types.RegisterSco
 		return types.RegisterScopedSessionKeyResult{}, err
 	}
 	params := map[string]any{
-		"wallet":             a.Signer.Owner().Hex(),
+		"wallet":             a.Signer.OwnerAddress().Hex(),
 		"public_session_key": in.PublicSessionKey.String(),
 		"expiry_sec":         in.ExpirySec,
 	}

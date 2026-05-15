@@ -42,7 +42,7 @@ func (a *API) GetSubaccounts(ctx context.Context) ([]int64, error) {
 		SubaccountIDs []int64 `json:"subaccount_ids"`
 	}
 	err := a.call(ctx, "private/get_subaccounts", map[string]any{
-		"wallet": a.Signer.Owner().Hex(),
+		"wallet": a.Signer.OwnerAddress().Hex(),
 	}, &resp)
 	return resp.SubaccountIDs, err
 }
