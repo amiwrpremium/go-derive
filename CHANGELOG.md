@@ -7,6 +7,18 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.18.0](https://github.com/amiwrpremium/go-derive/compare/v0.17.0...v0.18.0) (2026-05-15)
+
+
+### Features
+
+* **ws:** subscription ergonomics — constants, validation, callbacks ([#140](https://github.com/amiwrpremium/go-derive/issues/140)) ([f82bed9](https://github.com/amiwrpremium/go-derive/commit/f82bed913b444e9a660cf75cd14a6e562fcc0710))
+
+
+### Tests
+
+* **ws:** close DropClients race in OnReconnect tests ([#142](https://github.com/amiwrpremium/go-derive/issues/142)) ([6417ac6](https://github.com/amiwrpremium/go-derive/commit/6417ac63fe1a71425c3b2647e67f416fca0a5a9c))
+
 ## [0.17.0](https://github.com/amiwrpremium/go-derive/compare/v0.16.0...v0.17.0) (2026-05-15)
 
 
