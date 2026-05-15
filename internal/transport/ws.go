@@ -42,8 +42,15 @@ type WSConfig struct {
 	// Reconnect, if true, runs a reconnect loop with exponential backoff after
 	// the connection drops. Subscriptions are restored automatically.
 	Reconnect bool
-	// OnReconnect is invoked after a successful reconnect (e.g. to re-login).
-	OnReconnect func(ctx context.Context, t *WSTransport) error
+	// PostDialHook is invoked right after a successful redial, before
+	// resubscribe — used internally to replay public/login so that
+	// resubscribe runs against an authenticated session.
+	PostDialHook func(ctx context.Context, t *WSTransport) error
+	// OnReconnect is invoked once per full reconnect cycle: after redial,
+	// PostDialHook, and resubscribe all complete. err is nil on full
+	// recovery, or the joined error from PostDialHook + resubscribe
+	// otherwise. Caller-facing.
+	OnReconnect func(err error)
 	// HTTPHeaders are sent on the upgrade request (e.g. for auth).
 	HTTPHeaders http.Header
 }
@@ -514,12 +521,20 @@ func (t *WSTransport) failConnection(cause error) {
 	}
 }
 
-// reconnectLoop dials in a loop with backoff after a drop.
+// reconnectLoop dials in a loop with backoff after a drop. On each
+// successful redial it runs the configured PostDialHook (re-login),
+// then resubscribe, then the user-facing OnReconnect callback with
+// the joined error from the two prior steps. OnReconnect fires
+// exactly once per cycle.
 func (t *WSTransport) reconnectLoop() {
 	bo := retry.NewBackoff()
 	for {
 		t.mu.Lock()
 		connected := t.conn != nil
+		// Snapshot the callbacks under the lock so a concurrent
+		// SetPostDialHook / SetOnReconnect can't race with the read.
+		postHook := t.cfg.PostDialHook
+		userCB := t.cfg.OnReconnect
 		t.mu.Unlock()
 		if !connected {
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -531,19 +546,30 @@ func (t *WSTransport) reconnectLoop() {
 			cancel()
 			bo.Reset()
 
-			if t.cfg.OnReconnect != nil {
+			var postErr error
+			if postHook != nil {
 				cctx, ccancel := context.WithTimeout(context.Background(), 30*time.Second)
-				_ = t.cfg.OnReconnect(cctx, t)
+				postErr = postHook(cctx, t)
 				ccancel()
 			}
-			t.resubscribe()
+			// Run resubscribe unconditionally even if the post-dial
+			// hook (re-login) failed: public channels can still
+			// recover, and the user callback below surfaces the
+			// partial-recovery state via the joined error.
+			resubErr := t.resubscribe()
+
+			if userCB != nil {
+				userCB(errors.Join(postErr, resubErr))
+			}
 		}
 		time.Sleep(time.Second)
 	}
 }
 
 // resubscribe re-issues subscribe RPCs for every active subscription.
-func (t *WSTransport) resubscribe() {
+// Returns nil when there are no subs to re-register or the call
+// succeeded, otherwise the transport error.
+func (t *WSTransport) resubscribe() error {
 	t.mu.Lock()
 	channels := make([]string, 0, len(t.subs))
 	for ch := range t.subs {
@@ -551,11 +577,11 @@ func (t *WSTransport) resubscribe() {
 	}
 	t.mu.Unlock()
 	if len(channels) == 0 {
-		return
+		return nil
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	_ = t.Call(ctx, "subscribe", map[string]any{"channels": channels}, nil)
+	return t.Call(ctx, "subscribe", map[string]any{"channels": channels}, nil)
 }
 
 // Close terminates the connection and unblocks any pumps.
@@ -603,10 +629,20 @@ func (t *WSTransport) IsConnected() bool {
 	return t.conn != nil
 }
 
-// SetOnReconnect registers a callback invoked after a successful reconnect.
-// Use it to re-issue a login or any other re-warmup. Safe to call before or
-// after Connect.
-func (t *WSTransport) SetOnReconnect(fn func(ctx context.Context, t *WSTransport) error) {
+// SetPostDialHook registers the internal hook invoked after a successful
+// redial but before resubscribe. Used to replay public/login. Safe to call
+// before or after Connect.
+func (t *WSTransport) SetPostDialHook(fn func(ctx context.Context, t *WSTransport) error) {
+	t.mu.Lock()
+	t.cfg.PostDialHook = fn
+	t.mu.Unlock()
+}
+
+// SetOnReconnect registers the user-facing callback invoked once per
+// reconnect cycle, after redial + PostDialHook + resubscribe. err is
+// nil on full recovery or the joined error from the post-dial chain.
+// Safe to call before or after Connect.
+func (t *WSTransport) SetOnReconnect(fn func(err error)) {
 	t.mu.Lock()
 	t.cfg.OnReconnect = fn
 	t.mu.Unlock()

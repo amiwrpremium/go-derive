@@ -1,6 +1,8 @@
 package ws_test
 
 import (
+	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -73,4 +75,45 @@ func TestWS_DefaultsApplied(t *testing.T) {
 	c, err := ws.New(ws.WithTestnet())
 	require.NoError(t, err)
 	defer func() { _ = c.Close() }()
+}
+
+// TestWS_WithOnReconnect_FiresAfterDrop confirms the option plumbs
+// through to the transport — when the server severs every client
+// connection the callback fires exactly once with a nil error.
+func TestWS_WithOnReconnect_FiresAfterDrop(t *testing.T) {
+	srv := testutil.NewMockWSServer()
+	defer srv.Close()
+	cfg := netconf.Testnet()
+	cfg.WSURL = srv.URL()
+
+	var (
+		mu    sync.Mutex
+		calls []error
+	)
+	c, err := ws.New(
+		ws.WithCustomNetwork(cfg),
+		ws.WithReconnect(true),
+		ws.WithPingInterval(50*time.Millisecond),
+		ws.WithOnReconnect(func(err error) {
+			mu.Lock()
+			calls = append(calls, err)
+			mu.Unlock()
+		}),
+	)
+	require.NoError(t, err)
+	defer func() { _ = c.Close() }()
+	require.NoError(t, c.Connect(context.Background()))
+
+	srv.DropClients()
+
+	require.Eventually(t, func() bool {
+		mu.Lock()
+		defer mu.Unlock()
+		return len(calls) >= 1
+	}, 5*time.Second, 20*time.Millisecond)
+
+	mu.Lock()
+	defer mu.Unlock()
+	require.Len(t, calls, 1)
+	assert.NoError(t, calls[0])
 }

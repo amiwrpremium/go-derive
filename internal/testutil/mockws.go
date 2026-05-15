@@ -78,6 +78,25 @@ func (m *MockWSServer) Close() {
 	m.server.Close()
 }
 
+// DropClients severs every currently-open client connection while
+// leaving the underlying HTTP server running on the same port — so a
+// reconnecting client can redial against the same URL and succeed.
+// Use this to simulate a transient connection drop in tests.
+func (m *MockWSServer) DropClients() {
+	m.mu.Lock()
+	conns := m.conns
+	m.conns = nil
+	m.mu.Unlock()
+	for _, c := range conns {
+		c.writeMu.Lock()
+		_ = c.c.WriteControl(websocket.CloseMessage,
+			websocket.FormatCloseMessage(websocket.CloseAbnormalClosure, "drop"),
+			time.Now().Add(time.Second))
+		c.writeMu.Unlock()
+		_ = c.c.Close()
+	}
+}
+
 // Handle registers a handler for one method.
 func (m *MockWSServer) Handle(method string, h MockWSHandler) {
 	m.mu.Lock()

@@ -85,6 +85,7 @@ func New(opts ...Option) (*Client, error) {
 		UserAgent:    c.userAgent,
 		PingInterval: c.pingInterval,
 		Reconnect:    c.reconnect,
+		OnReconnect:  c.onReconnect,
 	})
 	if err != nil {
 		return nil, err
@@ -148,9 +149,11 @@ func (c *Client) Login(ctx context.Context) error {
 }
 
 // installReconnectLogin tells the underlying transport to re-issue the
-// `public/login` RPC each time the socket is re-established.
+// `public/login` RPC each time the socket is re-established. Runs as
+// the transport's PostDialHook so the relogin completes before
+// resubscribe.
 func (c *Client) installReconnectLogin() {
-	c.wt.SetOnReconnect(func(ctx context.Context, _ *transport.WSTransport) error {
+	c.wt.SetPostDialHook(func(ctx context.Context, _ *transport.WSTransport) error {
 		return c.Login(ctx)
 	})
 }

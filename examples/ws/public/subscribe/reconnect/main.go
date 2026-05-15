@@ -2,12 +2,17 @@
 // subscribing to a ticker_slim feed and printing the update count seen in
 // each 10-second window for 60 seconds total.
 //
-// Reconnect is enabled by default (ws.WithReconnect(true)). This example
-// keeps that default and runs as a steady-state observer — when the
-// connection drops naturally the SDK redials with exponential backoff
-// (internal/retry.Backoff), then re-issues `subscribe` for every active
-// channel. Updates resume on the same Updates() channel without the caller
-// noticing.
+// Reconnect is enabled by default (ws.WithReconnect(true)). When the
+// connection drops the SDK redials with exponential backoff
+// (internal/retry.Backoff), replays login (if a signer is configured),
+// and re-issues `subscribe` for every active channel. Updates resume on
+// the same Updates() channel.
+//
+// WithOnReconnect installs a callback that fires once per reconnect
+// cycle, AFTER redial + re-login + resubscribe complete. err is nil on
+// full recovery, or the joined post-dial error otherwise. The hook is
+// the place to refetch a snapshot (order book / balances / open orders)
+// so the gap during the outage is closed at the application layer.
 //
 // To verify the reconnect path manually:
 //
@@ -15,7 +20,8 @@
 //  2. Block testnet from your network for ~5 s, e.g.
 //     `echo '127.0.0.1 api-demo.lyra.finance' | sudo tee -a /etc/hosts`
 //     then revert.
-//  3. Watch the count drop to 0 for one window, then resume.
+//  3. Watch the count drop to 0 for one window, the `reconnected:` line
+//     appear once redial finishes, then count resume.
 //
 // Disable reconnect via `ws.WithReconnect(false)` to confirm that without
 // it the same disruption produces a permanent disconnect.
@@ -49,7 +55,16 @@ func main() {
 	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
 		wsNetwork = ws.WithMainnet()
 	}
-	c, err := ws.New(wsNetwork)
+	c, err := ws.New(
+		wsNetwork,
+		ws.WithOnReconnect(func(err error) {
+			if err != nil {
+				fmt.Printf("%-30s %v\n", "reconnect partial:", err)
+				return
+			}
+			fmt.Printf("%-30s %v\n", "reconnected:", "snapshot refetch would go here")
+		}),
+	)
 	if err != nil {
 		log.Fatalf("ws.New: %v", err)
 	}
