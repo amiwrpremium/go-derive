@@ -73,8 +73,8 @@ func main() {
 
 	subID, history, err := c.GetSubaccountValueHistory(ctx, types.SubaccountValueHistoryQuery{
 		HistoryWindow: types.HistoryWindow{
-			StartTimestamp: types.NewMillisTime(time.UnixMilli(from)),
-			EndTimestamp:   types.NewMillisTime(time.UnixMilli(to)),
+			StartTimestamp: types.MillisTimeFromMillis(from),
+			EndTimestamp:   types.MillisTimeFromMillis(to),
 		},
 		PeriodSec: period,
 	})

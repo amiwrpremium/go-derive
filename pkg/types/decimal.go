@@ -65,6 +65,15 @@ func DecimalFromInt(n int64) Decimal {
 	return Decimal{d: decimal.NewFromInt(n)}
 }
 
+// DecimalFromShopspring wraps an already-constructed
+// shopspring/decimal.Decimal without the string round-trip [NewDecimal]
+// performs. Use it when the caller already holds a value from a
+// shopspring API (arithmetic, an upstream library, etc.) and just needs
+// the SDK's typed wrapper.
+func DecimalFromShopspring(d decimal.Decimal) Decimal {
+	return Decimal{d: d}
+}
+
 // String returns the canonical decimal representation — the same string
 // shopspring/decimal would produce, with trailing zeroes stripped.
 func (d Decimal) String() string { return d.d.String() }

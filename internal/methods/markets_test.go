@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -92,7 +91,7 @@ func TestGetPublicTradeHistory(t *testing.T) {
 			InstrumentName: "BTC-PERP",
 			Currency:       "BTC",
 			TxStatus:       "settled",
-			FromTimestamp:  types.NewMillisTime(time.UnixMilli(1700000000000)),
+			FromTimestamp:  types.MillisTimeFromMillis(1700000000000),
 		},
 		types.PageRequest{Page: 2, PageSize: 50})
 	require.NoError(t, err)
