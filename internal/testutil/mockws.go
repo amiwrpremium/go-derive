@@ -78,6 +78,26 @@ func (m *MockWSServer) Close() {
 	m.server.Close()
 }
 
+// WaitClients blocks until at least n connections have been registered
+// on the server, or the timeout fires. The server records each new
+// client only after upgrader.Upgrade returns, which is after the
+// client's dial-side handshake completes — so a test that calls
+// DropClients immediately after Connect can race with the server's
+// registration. Call WaitClients first to close that window.
+func (m *MockWSServer) WaitClients(n int, timeout time.Duration) bool {
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		m.mu.Lock()
+		have := len(m.conns)
+		m.mu.Unlock()
+		if have >= n {
+			return true
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+	return false
+}
+
 // DropClients severs every currently-open client connection while
 // leaving the underlying HTTP server running on the same port — so a
 // reconnecting client can redial against the same URL and succeed.
