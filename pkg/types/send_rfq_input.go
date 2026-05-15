@@ -5,7 +5,11 @@
 // wrapping `private/send_rfq`.
 package types
 
-import "github.com/amiwrpremium/go-derive/pkg/enums"
+import (
+	"strconv"
+
+	"github.com/amiwrpremium/go-derive/pkg/enums"
+)
 
 // SendRFQInput parameterises a request-for-quote submission. Only
 // [SendRFQInput.Legs] is required; every other field is optional and
@@ -50,4 +54,19 @@ type SendRFQInput struct {
 	// ExtraFee is an optional caller-paid tip on top of the
 	// standard fee schedule. Denominated in quote currency.
 	ExtraFee Decimal
+}
+
+// Validate enforces Legs is non-empty and every leg passes
+// [RFQLeg.Validate]. Returns nil on success or a wrapped
+// [ErrInvalidParams].
+func (in SendRFQInput) Validate() error {
+	if len(in.Legs) == 0 {
+		return invalidParam("legs", "at least one leg is required")
+	}
+	for i, leg := range in.Legs {
+		if err := leg.Validate(); err != nil {
+			return invalidParam("legs", "leg "+strconv.Itoa(i)+": "+err.Error())
+		}
+	}
+	return nil
 }

@@ -109,6 +109,14 @@ type MarginWatchQuery struct {
 	IsDelayedLiquidation bool
 }
 
+// Validate enforces SubaccountID is populated.
+func (q MarginWatchQuery) Validate() error {
+	if q.SubaccountID == 0 {
+		return invalidParam("subaccount_id", "required")
+	}
+	return nil
+}
+
 // LatestSignedFeedsQuery parameterises public/get_latest_signed_feeds.
 type LatestSignedFeedsQuery struct {
 	// Currency selects the underlying currency.
