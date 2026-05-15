@@ -7,6 +7,17 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.19.0](https://github.com/amiwrpremium/go-derive/compare/v0.18.0...v0.19.0) (2026-05-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* **methods:** normalize GetOrders / GetOrderHistory query+page shape ([#143](https://github.com/amiwrpremium/go-derive/issues/143))
+
+### Features
+
+* **methods:** normalize GetOrders / GetOrderHistory query+page shape ([#143](https://github.com/amiwrpremium/go-derive/issues/143)) ([fbff14b](https://github.com/amiwrpremium/go-derive/commit/fbff14bc21aa23b9d5ec5e3bdb190a8f13f92365))
+
 ## [0.18.0](https://github.com/amiwrpremium/go-derive/compare/v0.17.0...v0.18.0) (2026-05-15)
 
 
