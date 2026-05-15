@@ -1,17 +1,13 @@
 // Package types declares the domain types used in REST and WebSocket
 // requests and responses.
-//
-// This file holds the filter DTO for `GetOrders` — previously declared
-// in internal/methods, lifted here so callers only need to import
-// pkg/types for the SDK's domain types.
 package types
 
 import "github.com/amiwrpremium/go-derive/pkg/enums"
 
-// GetOrdersFilter narrows a paginated `private/get_orders` request.
+// OrdersQuery narrows a paginated `private/get_orders` request.
 // Each field is optional; the zero value asks the engine for
 // unfiltered results.
-type GetOrdersFilter struct {
+type OrdersQuery struct {
 	// InstrumentName filters to one instrument.
 	InstrumentName string
 	// Label filters to orders carrying the user-defined label.

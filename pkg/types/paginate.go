@@ -51,7 +51,7 @@ type PaginateOptions struct {
 //
 //	all, err := types.Paginate(ctx, types.PaginateOptions{MaxItems: 1000},
 //	    func(ctx context.Context, p types.PageRequest) ([]types.Order, types.Page, error) {
-//	        return c.GetOrderHistory(ctx, p, q)
+//	        return c.GetOrderHistory(ctx, q, p)
 //	    })
 func Paginate[T any](
 	ctx context.Context,

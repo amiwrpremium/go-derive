@@ -81,7 +81,7 @@ func TestGetOrdersAll_ThreadsFilter(t *testing.T) {
 	})
 
 	all, err := api.GetOrdersAll(context.Background(),
-		&types.GetOrdersFilter{InstrumentName: "BTC-PERP"},
+		types.OrdersQuery{InstrumentName: "BTC-PERP"},
 		types.PaginateOptions{})
 	require.NoError(t, err)
 	assert.Len(t, all, 2)

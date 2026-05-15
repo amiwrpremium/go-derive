@@ -328,15 +328,15 @@ func (a *API) GetOpenOrders(ctx context.Context) ([]types.Order, error) {
 }
 
 // GetOrders paginates orders on the configured subaccount, narrowed
-// by the supplied filter. Private.
+// by the supplied query. Private.
 //
-// Wraps `/private/get_orders`. Pass `filter == nil` to omit all
-// filters and page through every order on the subaccount.
+// Wraps `/private/get_orders`. Pass the zero-value [types.OrdersQuery]
+// to omit all filters and page through every order on the subaccount.
 //
 // To page through orders by time window, use [API.GetOrderHistory]
 // instead — `/private/get_orders` only filters by status /
 // instrument / label, not by time.
-func (a *API) GetOrders(ctx context.Context, page types.PageRequest, filter *types.GetOrdersFilter) ([]types.Order, types.Page, error) {
+func (a *API) GetOrders(ctx context.Context, q types.OrdersQuery, page types.PageRequest) ([]types.Order, types.Page, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return nil, types.Page{}, err
 	}
@@ -347,16 +347,14 @@ func (a *API) GetOrders(ctx context.Context, page types.PageRequest, filter *typ
 	if page.PageSize > 0 {
 		params["page_size"] = page.PageSize
 	}
-	if filter != nil {
-		if filter.InstrumentName != "" {
-			params["instrument_name"] = filter.InstrumentName
-		}
-		if filter.Label != "" {
-			params["label"] = filter.Label
-		}
-		if filter.Status != "" {
-			params["status"] = filter.Status
-		}
+	if q.InstrumentName != "" {
+		params["instrument_name"] = q.InstrumentName
+	}
+	if q.Label != "" {
+		params["label"] = q.Label
+	}
+	if q.Status != "" {
+		params["status"] = q.Status
 	}
 	var resp struct {
 		Orders     []types.Order `json:"orders"`
@@ -375,7 +373,7 @@ func (a *API) GetOrders(ctx context.Context, page types.PageRequest, filter *typ
 // threaded through when both Wallet is empty and the subaccount is
 // non-zero — supply a Wallet to query across every subaccount the
 // wallet owns.
-func (a *API) GetOrderHistory(ctx context.Context, page types.PageRequest, q types.OrderHistoryQuery) ([]types.Order, types.Page, error) {
+func (a *API) GetOrderHistory(ctx context.Context, q types.OrderHistoryQuery, page types.PageRequest) ([]types.Order, types.Page, error) {
 	if err := a.requireSigner(); err != nil {
 		return nil, types.Page{}, err
 	}

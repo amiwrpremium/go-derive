@@ -375,7 +375,7 @@ func TestGetOrders_NoFilter(t *testing.T) {
 		"orders":     []any{},
 		"pagination": map[string]any{"num_pages": 2, "count": 100},
 	})
-	_, page, err := api.GetOrders(context.Background(), types.PageRequest{Page: 1, PageSize: 50}, nil)
+	_, page, err := api.GetOrders(context.Background(), types.OrdersQuery{}, types.PageRequest{Page: 1, PageSize: 50})
 	require.NoError(t, err)
 	assert.Equal(t, 2, page.NumPages)
 	assert.Equal(t, 100, page.Count)
@@ -394,11 +394,11 @@ func TestGetOrders_WithFilter(t *testing.T) {
 		"orders":     []any{},
 		"pagination": map[string]any{"num_pages": 1, "count": 0},
 	})
-	_, _, err := api.GetOrders(context.Background(), types.PageRequest{}, &types.GetOrdersFilter{
+	_, _, err := api.GetOrders(context.Background(), types.OrdersQuery{
 		InstrumentName: "BTC-PERP",
 		Label:          "alpha",
 		Status:         enums.OrderStatusOpen,
-	})
+	}, types.PageRequest{})
 	require.NoError(t, err)
 	params := paramsAsMap(t, ft.LastCall().Params)
 	assert.Equal(t, "BTC-PERP", params["instrument_name"])
@@ -408,7 +408,7 @@ func TestGetOrders_WithFilter(t *testing.T) {
 
 func TestGetOrders_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	_, _, err := api.GetOrders(context.Background(), types.PageRequest{}, nil)
+	_, _, err := api.GetOrders(context.Background(), types.OrdersQuery{}, types.PageRequest{})
 	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
 }
 
@@ -428,10 +428,10 @@ func TestGetOrderHistory_Decode(t *testing.T) {
 		},
 		"pagination": map[string]any{"num_pages": 1, "count": 1},
 	})
-	orders, page, err := api.GetOrderHistory(context.Background(), types.PageRequest{}, types.OrderHistoryQuery{
+	orders, page, err := api.GetOrderHistory(context.Background(), types.OrderHistoryQuery{
 		FromTimestamp: types.MillisTime{T: time.UnixMilli(1700000000000)},
 		ToTimestamp:   types.MillisTime{T: time.UnixMilli(1700000060000)},
-	})
+	}, types.PageRequest{})
 	require.NoError(t, err)
 	require.Len(t, orders, 1)
 	assert.Equal(t, "O42", orders[0].OrderID)
@@ -445,7 +445,7 @@ func TestGetOrderHistory_Decode(t *testing.T) {
 
 func TestGetOrderHistory_RequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
-	_, _, err := api.GetOrderHistory(context.Background(), types.PageRequest{}, types.OrderHistoryQuery{})
+	_, _, err := api.GetOrderHistory(context.Background(), types.OrderHistoryQuery{}, types.PageRequest{})
 	assert.True(t, errors.Is(err, derrors.ErrUnauthorized))
 }
 
@@ -456,7 +456,7 @@ func TestGetOrderHistory_AcceptsWalletWithoutSubaccount(t *testing.T) {
 		"orders":        []any{},
 		"pagination":    map[string]any{"num_pages": 0, "count": 0},
 	})
-	_, _, err := api.GetOrderHistory(context.Background(), types.PageRequest{}, types.OrderHistoryQuery{Wallet: "0xabc"})
+	_, _, err := api.GetOrderHistory(context.Background(), types.OrderHistoryQuery{Wallet: "0xabc"}, types.PageRequest{})
 	require.NoError(t, err)
 	params := paramsAsMap(t, ft.LastCall().Params)
 	_, hasSub := params["subaccount_id"]
@@ -466,7 +466,7 @@ func TestGetOrderHistory_AcceptsWalletWithoutSubaccount(t *testing.T) {
 
 func TestGetOrderHistory_RequiresSubaccountWhenWalletAbsent(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	_, _, err := api.GetOrderHistory(context.Background(), types.PageRequest{}, types.OrderHistoryQuery{})
+	_, _, err := api.GetOrderHistory(context.Background(), types.OrderHistoryQuery{}, types.PageRequest{})
 	assert.True(t, errors.Is(err, derrors.ErrSubaccountRequired))
 }
 
@@ -607,7 +607,7 @@ func TestPrivateMethods_RequireSubaccount_Across(t *testing.T) {
 		"GetOrder":      func() error { _, e := api.GetOrder(context.Background(), types.OrderQuery{OrderID: "x"}); return e },
 		"GetOpenOrders": func() error { _, e := api.GetOpenOrders(context.Background()); return e },
 		"GetOrders": func() error {
-			_, _, e := api.GetOrders(context.Background(), types.PageRequest{}, nil)
+			_, _, e := api.GetOrders(context.Background(), types.OrdersQuery{}, types.PageRequest{})
 			return e
 		},
 		"CancelByLabel": func() error {

@@ -57,7 +57,7 @@ func main() {
 	if err := c.Login(ctx); err != nil {
 		log.Fatalf("ws.Login: %v", err)
 	}
-	orders, _, err := c.GetOrderHistory(ctx, types.PageRequest{PageSize: 10}, types.OrderHistoryQuery{})
+	orders, _, err := c.GetOrderHistory(ctx, types.OrderHistoryQuery{}, types.PageRequest{PageSize: 10})
 	if err != nil {
 		log.Fatal(err)
 	}

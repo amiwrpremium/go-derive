@@ -14,16 +14,16 @@ import (
 )
 
 // GetOrdersAll exhausts pagination on [API.GetOrders].
-func (a *API) GetOrdersAll(ctx context.Context, filter *types.GetOrdersFilter, opts types.PaginateOptions) ([]types.Order, error) {
+func (a *API) GetOrdersAll(ctx context.Context, q types.OrdersQuery, opts types.PaginateOptions) ([]types.Order, error) {
 	return types.Paginate(ctx, opts, func(ctx context.Context, page types.PageRequest) ([]types.Order, types.Page, error) {
-		return a.GetOrders(ctx, page, filter)
+		return a.GetOrders(ctx, q, page)
 	})
 }
 
 // GetOrderHistoryAll exhausts pagination on [API.GetOrderHistory].
 func (a *API) GetOrderHistoryAll(ctx context.Context, q types.OrderHistoryQuery, opts types.PaginateOptions) ([]types.Order, error) {
 	return types.Paginate(ctx, opts, func(ctx context.Context, page types.PageRequest) ([]types.Order, types.Page, error) {
-		return a.GetOrderHistory(ctx, page, q)
+		return a.GetOrderHistory(ctx, q, page)
 	})
 }
 
