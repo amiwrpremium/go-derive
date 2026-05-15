@@ -95,6 +95,16 @@ func WithBufferSize(n int) SubscribeOption {
 
 // WithDropPolicy sets the policy used when the buffer is full. See
 // [DropPolicy] for the trade-offs.
+//
+// Each [Subscription] has its OWN buffer, so the drop policy fires
+// per subscription — not per client. A slow consumer that
+// multiplexes several subscriptions in one select loop will fill
+// the OTHER subscriptions' buffers while it's stuck, and those
+// neighbours will start dropping per their configured policy
+// regardless of the slow path's policy. See the "Multi-subscription
+// gotcha" section on [Subscription.Updates] for the failure modes
+// and recommended patterns; observe drops in real time by also
+// passing [WithErrorHandler].
 func WithDropPolicy(p DropPolicy) SubscribeOption {
 	return func(c *subscribeConfig) { c.dropPolicy = p }
 }
