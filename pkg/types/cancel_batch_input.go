@@ -27,3 +27,15 @@ type CancelBatchInput struct {
 	// Nonce restricts the cancel to one specific signed nonce.
 	Nonce uint64
 }
+
+// Validate enforces that at least one filter beyond SubaccountID is
+// populated. An all-zero input would no-op server-side, almost always
+// meaning the caller forgot to set a filter; this catches that case
+// before a wasted round-trip.
+func (in CancelBatchInput) Validate() error {
+	if in.RFQID == "" && in.QuoteID == "" && in.Label == "" && in.Nonce == 0 {
+		return invalidParam("filter",
+			"at least one of rfq_id, quote_id, label, nonce is required")
+	}
+	return nil
+}
