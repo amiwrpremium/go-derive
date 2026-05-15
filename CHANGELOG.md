@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.14.2](https://github.com/amiwrpremium/go-derive/compare/v0.14.1...v0.14.2) (2026-05-15)
+
+
+### Features
+
+* **types:** add Validate() to every input/query missing one ([#131](https://github.com/amiwrpremium/go-derive/issues/131)) ([e6d1a7c](https://github.com/amiwrpremium/go-derive/commit/e6d1a7c879183e74bce6dc1314fc2dad8491e562))
+
 ## [0.14.1](https://github.com/amiwrpremium/go-derive/compare/v0.14.0...v0.14.1) (2026-05-14)
 
 
