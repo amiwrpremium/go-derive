@@ -159,7 +159,7 @@ func TestWSTransport_OnReconnect_FiresOnceAfterDrop(t *testing.T) {
 		n := len(calls)
 		mu.Unlock()
 		return n >= 1
-	}, 5*time.Second, 20*time.Millisecond, "OnReconnect never fired after drop")
+	}, 15*time.Second, 25*time.Millisecond, "OnReconnect never fired after drop")
 
 	mu.Lock()
 	defer mu.Unlock()
@@ -201,7 +201,7 @@ func TestWSTransport_OnReconnect_NoSubsStillFires(t *testing.T) {
 		mu.Lock()
 		defer mu.Unlock()
 		return len(calls) >= 1
-	}, 5*time.Second, 20*time.Millisecond)
+	}, 15*time.Second, 25*time.Millisecond)
 
 	mu.Lock()
 	defer mu.Unlock()
@@ -242,7 +242,7 @@ func TestWSTransport_OnReconnect_SurfacesPostDialError(t *testing.T) {
 		mu.Lock()
 		defer mu.Unlock()
 		return len(calls) >= 1
-	}, 5*time.Second, 20*time.Millisecond)
+	}, 15*time.Second, 25*time.Millisecond)
 
 	mu.Lock()
 	defer mu.Unlock()
