@@ -14,6 +14,7 @@ import (
 
 	"github.com/amiwrpremium/go-derive/pkg/auth"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -51,7 +52,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	contacts, err := c.GetContactInfo(ctx, os.Getenv("DERIVE_CONTACT_TYPE"))
+	contacts, err := c.GetContactInfo(ctx, types.ContactInfoQuery{ContactType: os.Getenv("DERIVE_CONTACT_TYPE")})
 	if err != nil {
 		log.Fatal(err)
 	}

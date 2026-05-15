@@ -115,7 +115,8 @@ func TestGetAllInstrumentsAll_ThreadsKindAndExpired(t *testing.T) {
 	})
 
 	all, err := api.GetAllInstrumentsAll(context.Background(),
-		enums.InstrumentTypeOption, true, types.PaginateOptions{})
+		types.AllInstrumentsQuery{Kind: enums.InstrumentTypeOption, IncludeExpired: true},
+		types.PaginateOptions{})
 	require.NoError(t, err)
 	assert.Empty(t, all)
 	assert.Equal(t, 1, calls)

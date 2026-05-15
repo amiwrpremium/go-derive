@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/amiwrpremium/go-derive/pkg/auth"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -61,7 +62,7 @@ func main() {
 	if quoteID == "" {
 		log.Fatal("DERIVE_QUOTE_ID required")
 	}
-	q, err := c.CancelQuote(ctx, quoteID)
+	q, err := c.CancelQuote(ctx, types.CancelQuoteInput{QuoteID: quoteID})
 	if err != nil {
 		log.Fatal(err)
 	}

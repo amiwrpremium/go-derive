@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	derrors "github.com/amiwrpremium/go-derive/pkg/errors"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func TestCreateContactInfo_Decode(t *testing.T) {
@@ -21,7 +22,7 @@ func TestCreateContactInfo_Decode(t *testing.T) {
 			"updated_at_sec": int64(1700000000),
 		},
 	})
-	got, err := api.CreateContactInfo(context.Background(), "email", "alice@example.com")
+	got, err := api.CreateContactInfo(context.Background(), types.CreateContactInfoInput{ContactType: "email", ContactValue: "alice@example.com"})
 	require.NoError(t, err)
 	require.NotNil(t, got)
 	assert.Equal(t, int64(7), got.ID)
@@ -33,7 +34,7 @@ func TestCreateContactInfo_Decode(t *testing.T) {
 
 func TestCreateContactInfo_RequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
-	_, err := api.CreateContactInfo(context.Background(), "email", "x@y.z")
+	_, err := api.CreateContactInfo(context.Background(), types.CreateContactInfoInput{ContactType: "email", ContactValue: "x@y.z"})
 	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
 }
 
@@ -51,7 +52,7 @@ func TestGetContactInfo_Decode(t *testing.T) {
 			},
 		},
 	})
-	got, err := api.GetContactInfo(context.Background(), "")
+	got, err := api.GetContactInfo(context.Background(), types.ContactInfoQuery{})
 	require.NoError(t, err)
 	require.Len(t, got, 2)
 	assert.Equal(t, "telegram", got[1].ContactType)
@@ -60,7 +61,7 @@ func TestGetContactInfo_Decode(t *testing.T) {
 func TestGetContactInfo_AppliesTypeFilter(t *testing.T) {
 	api, ft := newAPI(t, true, 0)
 	ft.HandleResult("private/get_contact_info", map[string]any{"contacts": []any{}})
-	_, err := api.GetContactInfo(context.Background(), "email")
+	_, err := api.GetContactInfo(context.Background(), types.ContactInfoQuery{ContactType: "email"})
 	require.NoError(t, err)
 	params := paramsAsMap(t, ft.LastCall().Params)
 	assert.Equal(t, "email", params["contact_type"])
@@ -74,7 +75,7 @@ func TestUpdateContactInfo_Decode(t *testing.T) {
 			"created_at_sec": int64(1700000000), "updated_at_sec": int64(1700000060),
 		},
 	})
-	got, err := api.UpdateContactInfo(context.Background(), 7, "alice@new.com")
+	got, err := api.UpdateContactInfo(context.Background(), types.UpdateContactInfoInput{ContactID: 7, NewValue: "alice@new.com"})
 	require.NoError(t, err)
 	assert.Equal(t, "alice@new.com", got.ContactValue)
 	assert.Equal(t, int64(1700000060), got.UpdatedAtSec)
@@ -89,7 +90,7 @@ func TestDeleteContactInfo_Decode(t *testing.T) {
 		"contact_id": int64(7),
 		"deleted":    true,
 	})
-	id, deleted, err := api.DeleteContactInfo(context.Background(), 7)
+	id, deleted, err := api.DeleteContactInfo(context.Background(), types.DeleteContactInfoInput{ContactID: 7})
 	require.NoError(t, err)
 	assert.Equal(t, int64(7), id)
 	assert.True(t, deleted)
@@ -97,10 +98,10 @@ func TestDeleteContactInfo_Decode(t *testing.T) {
 
 func TestContactInfo_AllRequireSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
-	_, err := api.GetContactInfo(context.Background(), "")
+	_, err := api.GetContactInfo(context.Background(), types.ContactInfoQuery{})
 	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
-	_, err = api.UpdateContactInfo(context.Background(), 1, "x")
+	_, err = api.UpdateContactInfo(context.Background(), types.UpdateContactInfoInput{ContactID: 1, NewValue: "x"})
 	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
-	_, _, err = api.DeleteContactInfo(context.Background(), 1)
+	_, _, err = api.DeleteContactInfo(context.Background(), types.DeleteContactInfoInput{ContactID: 1})
 	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
 }

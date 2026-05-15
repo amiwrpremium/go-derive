@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/amiwrpremium/go-derive/pkg/rest"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -30,7 +31,7 @@ func main() {
 	defer cancel()
 
 	now := time.Now()
-	twap, err := c.GetPerpImpactTWAP(ctx, "BTC", now.Add(-time.Hour).UnixMilli(), now.UnixMilli())
+	twap, err := c.GetPerpImpactTWAP(ctx, types.PerpImpactTWAPQuery{Currency: "BTC", StartTime: now.Add(-time.Hour).UnixMilli(), EndTime: now.UnixMilli()})
 	if err != nil {
 		log.Fatal(err)
 	}

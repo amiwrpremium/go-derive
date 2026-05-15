@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/amiwrpremium/go-derive/pkg/rest"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -29,7 +30,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	a, err := c.GetAsset(ctx, name)
+	a, err := c.GetAsset(ctx, types.AssetQuery{Name: name})
 	if err != nil {
 		log.Fatal(err)
 	}

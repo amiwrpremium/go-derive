@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/amiwrpremium/go-derive/pkg/rest"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -30,7 +31,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	res, err := c.GetPoints(ctx, name, wallet)
+	res, err := c.GetPoints(ctx, types.PointsQuery{Program: name, Wallet: wallet})
 	if err != nil {
 		log.Fatal(err)
 	}

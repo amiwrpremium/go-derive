@@ -11,7 +11,6 @@ package methods
 import (
 	"context"
 
-	"github.com/amiwrpremium/go-derive/pkg/enums"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
@@ -21,13 +20,13 @@ import (
 // As a side effect, the returned instruments' on-chain metadata is
 // stored in the SDK's instrument cache so subsequent signed actions on
 // any of them skip the per-instrument get_instrument lookup.
-func (a *API) GetInstruments(ctx context.Context, currency string, kind enums.InstrumentType) ([]types.Instrument, error) {
+func (a *API) GetInstruments(ctx context.Context, q types.InstrumentsQuery) ([]types.Instrument, error) {
 	params := map[string]any{}
-	if currency != "" {
-		params["currency"] = currency
+	if q.Currency != "" {
+		params["currency"] = q.Currency
 	}
-	if kind != "" {
-		params["instrument_type"] = kind
+	if q.Kind != "" {
+		params["instrument_type"] = q.Kind
 	}
 	params["expired"] = false
 	var insts []types.Instrument
@@ -43,9 +42,9 @@ func (a *API) GetInstruments(ctx context.Context, currency string, kind enums.In
 // As a side effect, the returned instrument's on-chain metadata is
 // stored in the SDK's instrument cache so subsequent signed actions on
 // it skip the lookup.
-func (a *API) GetInstrument(ctx context.Context, name string) (types.Instrument, error) {
+func (a *API) GetInstrument(ctx context.Context, q types.InstrumentQuery) (types.Instrument, error) {
 	var inst types.Instrument
-	err := a.call(ctx, "public/get_instrument", map[string]any{"instrument_name": name}, &inst)
+	err := a.call(ctx, "public/get_instrument", map[string]any{"instrument_name": q.Name}, &inst)
 	if err == nil {
 		a.instCache().populateOne(inst)
 	}
@@ -53,9 +52,9 @@ func (a *API) GetInstrument(ctx context.Context, name string) (types.Instrument,
 }
 
 // GetTicker fetches the public ticker for one instrument. Public.
-func (a *API) GetTicker(ctx context.Context, name string) (types.Ticker, error) {
+func (a *API) GetTicker(ctx context.Context, q types.TickerQuery) (types.Ticker, error) {
 	var t types.Ticker
-	err := a.call(ctx, "public/get_ticker", map[string]any{"instrument_name": name}, &t)
+	err := a.call(ctx, "public/get_ticker", map[string]any{"instrument_name": q.Name}, &t)
 	return t, err
 }
 
@@ -143,9 +142,9 @@ func (a *API) GetCurrencies(ctx context.Context) ([]string, error) {
 //
 // Counterpart to the plural [API.GetCurrencies] (which returns just
 // the currency names).
-func (a *API) GetCurrency(ctx context.Context, currency string) (types.Currency, error) {
+func (a *API) GetCurrency(ctx context.Context, q types.CurrencyQuery) (types.Currency, error) {
 	var c types.Currency
-	if err := a.call(ctx, "public/get_currency", map[string]any{"currency": currency}, &c); err != nil {
+	if err := a.call(ctx, "public/get_currency", map[string]any{"currency": q.Currency}, &c); err != nil {
 		return types.Currency{}, err
 	}
 	return c, nil
@@ -158,10 +157,10 @@ func (a *API) GetCurrency(ctx context.Context, currency string) (types.Currency,
 // for the live, currency-filtered list a UI uses; this method backs
 // `public/get_all_instruments`, which paginates across all
 // currencies and can include expired instruments via `includeExpired`.
-func (a *API) GetAllInstruments(ctx context.Context, kind enums.InstrumentType, includeExpired bool, page types.PageRequest) ([]types.Instrument, types.Page, error) {
+func (a *API) GetAllInstruments(ctx context.Context, q types.AllInstrumentsQuery, page types.PageRequest) ([]types.Instrument, types.Page, error) {
 	params := map[string]any{
-		"instrument_type": kind,
-		"expired":         includeExpired,
+		"instrument_type": q.Kind,
+		"expired":         q.IncludeExpired,
 	}
 	if page.Page > 0 {
 		params["page"] = page.Page
@@ -193,15 +192,15 @@ func (a *API) GetAllInstruments(ctx context.Context, kind enums.InstrumentType, 
 // [types.TickerSlim], which wraps the same payload with an outer
 // `{timestamp, instrument_ticker}` shape that this REST endpoint
 // does not emit.
-func (a *API) GetTickers(ctx context.Context, instrumentType enums.InstrumentType, currency string, expiryDate int64) (map[string]types.InstrumentTickerSlim, error) {
+func (a *API) GetTickers(ctx context.Context, q types.TickersQuery) (map[string]types.InstrumentTickerSlim, error) {
 	params := map[string]any{
-		"instrument_type": instrumentType,
+		"instrument_type": q.InstrumentType,
 	}
-	if currency != "" {
-		params["currency"] = currency
+	if q.Currency != "" {
+		params["currency"] = q.Currency
 	}
-	if expiryDate != 0 {
-		params["expiry_date"] = expiryDate
+	if q.ExpiryDate != 0 {
+		params["expiry_date"] = q.ExpiryDate
 	}
 	var resp struct {
 		Tickers map[string]types.InstrumentTickerSlim `json:"tickers"`
@@ -217,11 +216,11 @@ func (a *API) GetTickers(ctx context.Context, instrumentType enums.InstrumentTyp
 //
 // Pre-settlement entries return Price as the zero-value Decimal
 // (the wire field is null until the expiry settles on chain).
-func (a *API) GetOptionSettlementPrices(ctx context.Context, currency string) ([]types.OptionSettlementPrice, error) {
+func (a *API) GetOptionSettlementPrices(ctx context.Context, q types.OptionSettlementPricesQuery) ([]types.OptionSettlementPrice, error) {
 	var resp struct {
 		Expiries []types.OptionSettlementPrice `json:"expiries"`
 	}
-	if err := a.call(ctx, "public/get_option_settlement_prices", map[string]any{"currency": currency}, &resp); err != nil {
+	if err := a.call(ctx, "public/get_option_settlement_prices", map[string]any{"currency": q.Currency}, &resp); err != nil {
 		return nil, err
 	}
 	return resp.Expiries, nil
@@ -247,10 +246,10 @@ func (a *API) GetLiveIncidents(ctx context.Context) ([]types.Incident, error) {
 //
 // Optional `endTime` (Unix seconds) — pass 0 for the engine's
 // default (now).
-func (a *API) GetAllStatistics(ctx context.Context, endTime int64) ([]types.AggregateStatistics, error) {
+func (a *API) GetAllStatistics(ctx context.Context, q types.AllStatisticsQuery) ([]types.AggregateStatistics, error) {
 	params := map[string]any{}
-	if endTime > 0 {
-		params["end_time"] = endTime
+	if q.EndTime > 0 {
+		params["end_time"] = q.EndTime
 	}
 	var resp []types.AggregateStatistics
 	if err := a.call(ctx, "public/all_statistics", params, &resp); err != nil {
@@ -268,10 +267,10 @@ func (a *API) GetAllStatistics(ctx context.Context, endTime int64) ([]types.Aggr
 // instrument_name, is_rfq, start_time) per docs.derive.xyz that
 // this overload does not surface; if you need them, route through
 // the lower-level call helpers.
-func (a *API) GetAllUserStatistics(ctx context.Context, endTimeSec int64) ([]types.UserStatistics, error) {
+func (a *API) GetAllUserStatistics(ctx context.Context, q types.AllUserStatisticsQuery) ([]types.UserStatistics, error) {
 	params := map[string]any{}
-	if endTimeSec != 0 {
-		params["end_time"] = endTimeSec
+	if q.EndTimeSec != 0 {
+		params["end_time"] = q.EndTimeSec
 	}
 	var resp []types.UserStatistics
 	if err := a.call(ctx, "public/all_user_statistics", params, &resp); err != nil {
@@ -286,9 +285,9 @@ func (a *API) GetAllUserStatistics(ctx context.Context, endTimeSec int64) ([]typ
 // The engine accepts additional optional filters (currency,
 // end_time, instrument_name, is_rfq, start_time) per
 // docs.derive.xyz that this overload does not surface.
-func (a *API) GetUserStatistics(ctx context.Context, wallet string) (types.UserStatistics, error) {
+func (a *API) GetUserStatistics(ctx context.Context, q types.UserStatisticsQuery) (types.UserStatistics, error) {
 	params := map[string]any{
-		"wallet": wallet,
+		"wallet": q.Wallet,
 	}
 	var resp types.UserStatistics
 	if err := a.call(ctx, "public/user_statistics", params, &resp); err != nil {
@@ -302,9 +301,9 @@ func (a *API) GetUserStatistics(ctx context.Context, wallet string) (types.UserS
 // Distinct from [API.GetInstrument]: an asset is the on-chain
 // ERC-1155 entity (token id, decimals, address); an instrument adds
 // the orderbook / pricing surface.
-func (a *API) GetAsset(ctx context.Context, name string) (types.Asset, error) {
+func (a *API) GetAsset(ctx context.Context, q types.AssetQuery) (types.Asset, error) {
 	var resp types.Asset
-	if err := a.call(ctx, "public/get_asset", map[string]any{"asset_name": name}, &resp); err != nil {
+	if err := a.call(ctx, "public/get_asset", map[string]any{"asset_name": q.Name}, &resp); err != nil {
 		return types.Asset{}, err
 	}
 	return resp, nil
@@ -316,11 +315,11 @@ func (a *API) GetAsset(ctx context.Context, name string) (types.Asset, error) {
 // Per docs.derive.xyz all three arguments are required:
 // `assetType` ("erc20", "option", "perp"), `currency` (e.g.
 // "ETH"), and `expired` (include expired assets).
-func (a *API) GetAssets(ctx context.Context, assetType enums.AssetType, currency string, expired bool) ([]types.Asset, error) {
+func (a *API) GetAssets(ctx context.Context, q types.AssetsQuery) ([]types.Asset, error) {
 	params := map[string]any{
-		"asset_type": assetType,
-		"currency":   currency,
-		"expired":    expired,
+		"asset_type": q.AssetType,
+		"currency":   q.Currency,
+		"expired":    q.Expired,
 	}
 	var resp []types.Asset
 	if err := a.call(ctx, "public/get_assets", params, &resp); err != nil {
@@ -366,10 +365,10 @@ func (a *API) GetStDRVSnapshots(ctx context.Context, q types.STDRVSnapshotsQuery
 //
 // The `Descendants` field is preserved as raw JSON because the wire
 // shape is recursive; decode further at the call site.
-func (a *API) GetDescendantTree(ctx context.Context, walletOrInviteCode string) (types.DescendantTree, error) {
+func (a *API) GetDescendantTree(ctx context.Context, q types.DescendantTreeQuery) (types.DescendantTree, error) {
 	var resp types.DescendantTree
 	if err := a.call(ctx, "public/get_descendant_tree", map[string]any{
-		"wallet_or_invite_code": walletOrInviteCode,
+		"wallet_or_invite_code": q.WalletOrInviteCode,
 	}, &resp); err != nil {
 		return types.DescendantTree{}, err
 	}
@@ -402,14 +401,14 @@ func (a *API) GetTreeRoots(ctx context.Context) (types.TreeRoots, error) {
 // `margin_watch` WebSocket channel. The RPC returns a single
 // snapshot for one subaccount; the channel emits a stream of
 // at-risk subaccounts engine-wide.
-func (a *API) MarginWatch(ctx context.Context, subaccountID int64, forceOnchain, isDelayedLiquidation bool) (types.MarginSnapshot, error) {
+func (a *API) MarginWatch(ctx context.Context, q types.MarginWatchQuery) (types.MarginSnapshot, error) {
 	params := map[string]any{
-		"subaccount_id": subaccountID,
+		"subaccount_id": q.SubaccountID,
 	}
-	if forceOnchain {
+	if q.ForceOnchain {
 		params["force_onchain"] = true
 	}
-	if isDelayedLiquidation {
+	if q.IsDelayedLiquidation {
 		params["is_delayed_liquidation"] = true
 	}
 	var resp types.MarginSnapshot

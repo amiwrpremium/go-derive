@@ -28,7 +28,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	insts, page, err := c.GetAllInstruments(ctx, enums.InstrumentTypePerp, false, types.PageRequest{PageSize: 50})
+	insts, page, err := c.GetAllInstruments(ctx, types.AllInstrumentsQuery{Kind: enums.InstrumentTypePerp}, types.PageRequest{PageSize: 50})
 	if err != nil {
 		log.Fatal(err)
 	}

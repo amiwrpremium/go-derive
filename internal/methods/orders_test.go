@@ -303,7 +303,7 @@ func TestCancelOrder(t *testing.T) {
 		"signer":             "0x0000000000000000000000000000000000000000",
 		"creation_timestamp": 1, "last_update_timestamp": 2,
 	})
-	order, err := api.CancelOrder(context.Background(), "BTC-PERP", "O1")
+	order, err := api.CancelOrder(context.Background(), types.CancelOrderInput{InstrumentName: "BTC-PERP", OrderID: "O1"})
 	require.NoError(t, err)
 	assert.Equal(t, "O1", order.OrderID)
 	assert.Equal(t, "cancelled", string(order.OrderStatus))
@@ -315,14 +315,14 @@ func TestCancelOrder(t *testing.T) {
 
 func TestCancelOrder_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	_, err := api.CancelOrder(context.Background(), "BTC-PERP", "O1")
+	_, err := api.CancelOrder(context.Background(), types.CancelOrderInput{InstrumentName: "BTC-PERP", OrderID: "O1"})
 	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
 }
 
 func TestCancelByLabel(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleResult("private/cancel_by_label", map[string]any{"cancelled_orders": 3})
-	n, err := api.CancelByLabel(context.Background(), "alpha")
+	n, err := api.CancelByLabel(context.Background(), types.CancelByLabelInput{Label: "alpha"})
 	require.NoError(t, err)
 	assert.Equal(t, 3, n)
 	assert.Equal(t, "private/cancel_by_label", ft.LastCall().Method)
@@ -331,7 +331,7 @@ func TestCancelByLabel(t *testing.T) {
 func TestCancelByInstrument(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleResult("private/cancel_by_instrument", map[string]any{"cancelled_orders": 2})
-	n, err := api.CancelByInstrument(context.Background(), "BTC-PERP")
+	n, err := api.CancelByInstrument(context.Background(), types.CancelByInstrumentInput{InstrumentName: "BTC-PERP"})
 	require.NoError(t, err)
 	assert.Equal(t, 2, n)
 }
@@ -356,7 +356,7 @@ func TestGetOrder(t *testing.T) {
 			"creation_timestamp": 1, "last_update_timestamp": 1,
 		},
 	})
-	o, err := api.GetOrder(context.Background(), "O1")
+	o, err := api.GetOrder(context.Background(), types.OrderQuery{OrderID: "O1"})
 	require.NoError(t, err)
 	assert.Equal(t, "O1", o.OrderID)
 }
@@ -481,7 +481,7 @@ func TestCancelAlgoOrder_Decode(t *testing.T) {
 		"creation_timestamp": int64(1700000000000), "last_update_timestamp": int64(1700000060000),
 		"algo_type": "twap", "algo_duration_sec": int64(3600), "algo_num_slices": int64(60),
 	})
-	got, err := api.CancelAlgoOrder(context.Background(), "A1")
+	got, err := api.CancelAlgoOrder(context.Background(), types.CancelAlgoOrderInput{OrderID: "A1"})
 	require.NoError(t, err)
 	assert.Equal(t, "A1", got.OrderID)
 	params := paramsAsMap(t, ft.LastCall().Params)
@@ -491,7 +491,7 @@ func TestCancelAlgoOrder_Decode(t *testing.T) {
 
 func TestCancelAlgoOrder_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	_, err := api.CancelAlgoOrder(context.Background(), "A1")
+	_, err := api.CancelAlgoOrder(context.Background(), types.CancelAlgoOrderInput{OrderID: "A1"})
 	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
 }
 
@@ -573,7 +573,7 @@ func TestCancelTriggerOrder_Decode(t *testing.T) {
 		"signer":             "0x0000000000000000000000000000000000000000",
 		"creation_timestamp": int64(1700000000000), "last_update_timestamp": int64(1700000060000),
 	})
-	got, err := api.CancelTriggerOrder(context.Background(), "T1")
+	got, err := api.CancelTriggerOrder(context.Background(), types.CancelTriggerOrderInput{OrderID: "T1"})
 	require.NoError(t, err)
 	assert.Equal(t, "T1", got.OrderID)
 	params := paramsAsMap(t, ft.LastCall().Params)
@@ -583,7 +583,7 @@ func TestCancelTriggerOrder_Decode(t *testing.T) {
 
 func TestCancelTriggerOrder_RequiresSubaccount(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
-	_, err := api.CancelTriggerOrder(context.Background(), "T1")
+	_, err := api.CancelTriggerOrder(context.Background(), types.CancelTriggerOrderInput{OrderID: "T1"})
 	assert.ErrorIs(t, err, derrors.ErrSubaccountRequired)
 }
 
@@ -604,15 +604,21 @@ func TestCancelAllTriggerOrders_RequiresSubaccount(t *testing.T) {
 func TestPrivateMethods_RequireSubaccount_Across(t *testing.T) {
 	api, _ := newAPI(t, true, 0)
 	cases := map[string]func() error{
-		"GetOrder":      func() error { _, e := api.GetOrder(context.Background(), "x"); return e },
+		"GetOrder":      func() error { _, e := api.GetOrder(context.Background(), types.OrderQuery{OrderID: "x"}); return e },
 		"GetOpenOrders": func() error { _, e := api.GetOpenOrders(context.Background()); return e },
 		"GetOrders": func() error {
 			_, _, e := api.GetOrders(context.Background(), types.PageRequest{}, nil)
 			return e
 		},
-		"CancelByLabel":      func() error { _, e := api.CancelByLabel(context.Background(), "x"); return e },
-		"CancelByInstrument": func() error { _, e := api.CancelByInstrument(context.Background(), "x"); return e },
-		"CancelAll":          func() error { _, e := api.CancelAll(context.Background()); return e },
+		"CancelByLabel": func() error {
+			_, e := api.CancelByLabel(context.Background(), types.CancelByLabelInput{Label: "x"})
+			return e
+		},
+		"CancelByInstrument": func() error {
+			_, e := api.CancelByInstrument(context.Background(), types.CancelByInstrumentInput{InstrumentName: "x"})
+			return e
+		},
+		"CancelAll": func() error { _, e := api.CancelAll(context.Background()); return e },
 	}
 	for name, fn := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -707,7 +713,7 @@ func TestOrderDebug_PropagatesAPIError(t *testing.T) {
 func TestCancelByNonce_Decode(t *testing.T) {
 	api, ft := newAPI(t, true, 7)
 	ft.HandleResult("private/cancel_by_nonce", map[string]any{"cancelled_orders": int64(2)})
-	res, err := api.CancelByNonce(context.Background(), "BTC-PERP", 42)
+	res, err := api.CancelByNonce(context.Background(), types.CancelByNonceInput{InstrumentName: "BTC-PERP", Nonce: 42})
 	require.NoError(t, err)
 	assert.Equal(t, int64(2), res.CancelledOrders)
 }
@@ -715,13 +721,13 @@ func TestCancelByNonce_Decode(t *testing.T) {
 func TestSetCancelOnDisconnect_Happy(t *testing.T) {
 	api, ft := newAPI(t, true, 1)
 	ft.HandleResult("private/set_cancel_on_disconnect", "ok")
-	require.NoError(t, api.SetCancelOnDisconnect(context.Background(), true))
+	require.NoError(t, api.SetCancelOnDisconnect(context.Background(), types.SetCancelOnDisconnectInput{Enabled: true}))
 	params := paramsAsMap(t, ft.LastCall().Params)
 	assert.Equal(t, true, params["enabled"])
 }
 
 func TestSetCancelOnDisconnect_RequiresSigner(t *testing.T) {
 	api, _ := newAPI(t, false, 0)
-	err := api.SetCancelOnDisconnect(context.Background(), true)
+	err := api.SetCancelOnDisconnect(context.Background(), types.SetCancelOnDisconnectInput{Enabled: true})
 	assert.True(t, errors.Is(err, derrors.ErrUnauthorized))
 }

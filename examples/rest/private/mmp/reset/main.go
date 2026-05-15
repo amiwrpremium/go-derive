@@ -11,6 +11,7 @@ import (
 
 	"github.com/amiwrpremium/go-derive/pkg/auth"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -49,7 +50,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	if err := c.ResetMMP(ctx, "BTC"); err != nil {
+	if err := c.ResetMMP(ctx, types.ResetMMPInput{Currency: "BTC"}); err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("%-30s %v\n", "reset:", "ok")

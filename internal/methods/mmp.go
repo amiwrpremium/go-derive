@@ -35,13 +35,13 @@ func (a *API) SetMMPConfig(ctx context.Context, cfg types.MMPConfig) error {
 }
 
 // ResetMMP unfreezes the subaccount's MMP for a currency. Private.
-func (a *API) ResetMMP(ctx context.Context, currency string) error {
+func (a *API) ResetMMP(ctx context.Context, in types.ResetMMPInput) error {
 	if err := a.requireSubaccount(); err != nil {
 		return err
 	}
 	return a.call(ctx, "private/reset_mmp", map[string]any{
 		"subaccount_id": a.Subaccount,
-		"currency":      currency,
+		"currency":      in.Currency,
 	}, nil)
 }
 
@@ -51,13 +51,13 @@ func (a *API) ResetMMP(ctx context.Context, currency string) error {
 //
 // Pass an empty currency to return every rule. The response is one
 // record per (subaccount, currency) pair.
-func (a *API) GetMMPConfig(ctx context.Context, currency string) ([]types.MMPConfigResult, error) {
+func (a *API) GetMMPConfig(ctx context.Context, q types.MMPConfigQuery) ([]types.MMPConfigResult, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return nil, err
 	}
 	params := map[string]any{"subaccount_id": a.Subaccount}
-	if currency != "" {
-		params["currency"] = currency
+	if q.Currency != "" {
+		params["currency"] = q.Currency
 	}
 	var resp []types.MMPConfigResult
 	if err := a.call(ctx, "private/get_mmp_config", params, &resp); err != nil {

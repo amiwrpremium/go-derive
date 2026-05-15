@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/amiwrpremium/go-derive/pkg/rest"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -25,7 +26,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	code, err := c.GetReferralCode(ctx, os.Getenv("DERIVE_WALLET"))
+	code, err := c.GetReferralCode(ctx, types.ReferralCodeQuery{Wallet: os.Getenv("DERIVE_WALLET")})
 	if err != nil {
 		log.Fatal(err)
 	}

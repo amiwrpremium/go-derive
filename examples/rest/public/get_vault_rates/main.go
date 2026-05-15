@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/amiwrpremium/go-derive/pkg/rest"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -26,7 +27,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	rates, err := c.GetVaultRates(ctx, os.Getenv("DERIVE_VAULT_TYPE"))
+	rates, err := c.GetVaultRates(ctx, types.VaultRatesQuery{VaultType: os.Getenv("DERIVE_VAULT_TYPE")})
 	if err != nil {
 		log.Fatal(err)
 	}

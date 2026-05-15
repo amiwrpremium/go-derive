@@ -13,6 +13,7 @@ import (
 
 	"github.com/amiwrpremium/go-derive/pkg/auth"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -54,7 +55,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	tx, err := c.GetTransaction(ctx, txID)
+	tx, err := c.GetTransaction(ctx, types.TransactionQuery{TransactionID: txID})
 	if err != nil {
 		log.Fatal(err)
 	}

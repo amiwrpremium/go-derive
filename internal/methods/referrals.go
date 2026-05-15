@@ -19,7 +19,8 @@ import (
 //
 // Pass an empty `wallet` to default to the configured signer's
 // wallet (if any).
-func (a *API) GetReferralCode(ctx context.Context, wallet string) (string, error) {
+func (a *API) GetReferralCode(ctx context.Context, q types.ReferralCodeQuery) (string, error) {
+	wallet := q.Wallet
 	if wallet == "" && a.Signer != nil {
 		wallet = a.Signer.Owner().Hex()
 	}
@@ -40,7 +41,8 @@ func (a *API) GetReferralCode(ctx context.Context, wallet string) (string, error
 //
 // Pass an empty `wallet` to default to the configured signer's
 // wallet (if any).
-func (a *API) GetInviteCode(ctx context.Context, wallet string) (types.InviteCode, error) {
+func (a *API) GetInviteCode(ctx context.Context, q types.InviteCodeQuery) (types.InviteCode, error) {
+	wallet := q.Wallet
 	if wallet == "" && a.Signer != nil {
 		wallet = a.Signer.Owner().Hex()
 	}
@@ -57,10 +59,10 @@ func (a *API) GetInviteCode(ctx context.Context, wallet string) (types.InviteCod
 
 // ValidateInviteCode checks whether one invite code is valid and
 // has remaining uses. Public.
-func (a *API) ValidateInviteCode(ctx context.Context, code string) (string, error) {
+func (a *API) ValidateInviteCode(ctx context.Context, q types.ValidateInviteCodeQuery) (string, error) {
 	var status string
 	if err := a.call(ctx, "public/validate_invite_code", map[string]any{
-		"code": code,
+		"code": q.Code,
 	}, &status); err != nil {
 		return "", err
 	}

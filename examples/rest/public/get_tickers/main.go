@@ -12,6 +12,7 @@ import (
 
 	"github.com/amiwrpremium/go-derive/pkg/enums"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -27,7 +28,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	tickers, err := c.GetTickers(ctx, enums.InstrumentTypePerp, "", 0)
+	tickers, err := c.GetTickers(ctx, types.TickersQuery{InstrumentType: enums.InstrumentTypePerp})
 	if err != nil {
 		log.Fatal(err)
 	}

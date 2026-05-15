@@ -15,6 +15,7 @@ import (
 
 	"github.com/amiwrpremium/go-derive/pkg/auth"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -53,7 +54,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	if err := c.SetCancelOnDisconnect(ctx, true); err != nil {
+	if err := c.SetCancelOnDisconnect(ctx, types.SetCancelOnDisconnectInput{Enabled: true}); err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("%-30s %v\n", "set_cancel_on_disconnect:", "armed")

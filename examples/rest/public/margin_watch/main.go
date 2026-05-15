@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/amiwrpremium/go-derive/pkg/rest"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -35,7 +36,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	snap, err := c.MarginWatch(ctx, id, false, false)
+	snap, err := c.MarginWatch(ctx, types.MarginWatchQuery{SubaccountID: id})
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/amiwrpremium/go-derive/pkg/enums"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
@@ -28,7 +29,7 @@ func main() {
 	if err := c.Connect(ctx); err != nil {
 		log.Fatalf("ws.Connect: %v", err)
 	}
-	insts, err := c.GetInstruments(ctx, "BTC", enums.InstrumentTypePerp)
+	insts, err := c.GetInstruments(ctx, types.InstrumentsQuery{Currency: "BTC", Kind: enums.InstrumentTypePerp})
 	if err != nil {
 		log.Fatal(err)
 	}

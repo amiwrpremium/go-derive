@@ -110,7 +110,7 @@ func TestGetTransaction_Decode(t *testing.T) {
 		"status":           "settled",
 		"transaction_hash": "0xabc",
 	})
-	got, err := api.GetTransaction(context.Background(), "tx-1")
+	got, err := api.GetTransaction(context.Background(), types.TransactionQuery{TransactionID: "tx-1"})
 	require.NoError(t, err)
 	assert.Equal(t, enums.TxStatusSettled, got.Status)
 	assert.Equal(t, "0xabc", got.TransactionHash)
@@ -125,7 +125,7 @@ func TestGetTransaction_FailedTx(t *testing.T) {
 		"status":           "reverted",
 		"transaction_hash": nil,
 	})
-	got, err := api.GetTransaction(context.Background(), "tx-1")
+	got, err := api.GetTransaction(context.Background(), types.TransactionQuery{TransactionID: "tx-1"})
 	require.NoError(t, err)
 	assert.Equal(t, enums.TxStatusReverted, got.Status)
 	assert.Equal(t, "reverted: insufficient", got.ErrorLog)

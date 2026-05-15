@@ -110,7 +110,7 @@ func (a *API) resolveInstrument(ctx context.Context, name string) (instrumentMet
 	if meta, ok := a.instCache().get(name); ok {
 		return meta, nil
 	}
-	inst, err := a.GetInstrument(ctx, name)
+	inst, err := a.GetInstrument(ctx, types.InstrumentQuery{Name: name})
 	if err != nil {
 		return instrumentMeta{}, err
 	}
@@ -147,7 +147,7 @@ func (a *API) PreloadInstruments(ctx context.Context, currencies ...string) erro
 	}
 	for _, ccy := range currencies {
 		for _, kind := range kinds {
-			if _, err := a.GetInstruments(ctx, ccy, kind); err != nil {
+			if _, err := a.GetInstruments(ctx, types.InstrumentsQuery{Currency: ccy, Kind: kind}); err != nil {
 				return fmt.Errorf("methods: preload %s %s: %w", ccy, kind, err)
 			}
 		}
@@ -171,7 +171,7 @@ func (a *API) PreloadAllInstruments(ctx context.Context) error {
 	}
 	opts := types.PaginateOptions{PageSize: 1000}
 	for _, kind := range kinds {
-		if _, err := a.GetAllInstrumentsAll(ctx, kind, false, opts); err != nil {
+		if _, err := a.GetAllInstrumentsAll(ctx, types.AllInstrumentsQuery{Kind: kind}, opts); err != nil {
 			return fmt.Errorf("methods: preload all %s: %w", kind, err)
 		}
 	}

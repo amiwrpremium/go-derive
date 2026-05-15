@@ -10,7 +10,6 @@ package methods
 import (
 	"context"
 
-	"github.com/amiwrpremium/go-derive/pkg/enums"
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
@@ -58,12 +57,11 @@ func (a *API) GetWithdrawalHistoryAll(ctx context.Context, opts types.PaginateOp
 
 // GetAllInstrumentsAll exhausts pagination on [API.GetAllInstruments].
 //
-// The `includeExpired` flag is threaded through to every fetch. Use it
-// to opt into expired instruments for historical lookups; leave it
-// false for trading-side cache warming.
-func (a *API) GetAllInstrumentsAll(ctx context.Context, kind enums.InstrumentType, includeExpired bool, opts types.PaginateOptions) ([]types.Instrument, error) {
+// `q.IncludeExpired` is threaded through to every fetch. Set it for
+// historical lookups; leave it false for trading-side cache warming.
+func (a *API) GetAllInstrumentsAll(ctx context.Context, q types.AllInstrumentsQuery, opts types.PaginateOptions) ([]types.Instrument, error) {
 	return types.Paginate(ctx, opts, func(ctx context.Context, page types.PageRequest) ([]types.Instrument, types.Page, error) {
-		return a.GetAllInstruments(ctx, kind, includeExpired, page)
+		return a.GetAllInstruments(ctx, q, page)
 	})
 }
 

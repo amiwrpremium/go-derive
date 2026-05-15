@@ -14,6 +14,7 @@ import (
 
 	"github.com/amiwrpremium/go-derive/pkg/auth"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -55,7 +56,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	if err := c.ChangeSubaccountLabel(ctx, label); err != nil {
+	if err := c.ChangeSubaccountLabel(ctx, types.ChangeSubaccountLabelInput{Label: label}); err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("%-30s %v\n", "label set:", label)

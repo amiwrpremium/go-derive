@@ -23,19 +23,19 @@ func TestNoArgWrappers_PropagateError(t *testing.T) {
 	t.Run("CancelByNonce", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/cancel_by_nonce", boom)
-		_, err := api.CancelByNonce(context.Background(), "BTC-PERP", 42)
+		_, err := api.CancelByNonce(context.Background(), types.CancelByNonceInput{InstrumentName: "BTC-PERP", Nonce: 42})
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 	t.Run("SetCancelOnDisconnect", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/set_cancel_on_disconnect", boom)
-		err := api.SetCancelOnDisconnect(context.Background(), true)
+		err := api.SetCancelOnDisconnect(context.Background(), types.SetCancelOnDisconnectInput{Enabled: true})
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 	t.Run("ChangeSubaccountLabel", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/change_subaccount_label", boom)
-		err := api.ChangeSubaccountLabel(context.Background(), "newlabel")
+		err := api.ChangeSubaccountLabel(context.Background(), types.ChangeSubaccountLabelInput{Label: "newlabel"})
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 	t.Run("GetStatistics", func(t *testing.T) {
@@ -47,7 +47,7 @@ func TestNoArgWrappers_PropagateError(t *testing.T) {
 	t.Run("GetTransaction", func(t *testing.T) {
 		api, ft := newAPI(t, true, 0)
 		ft.HandleError("public/get_transaction", boom)
-		_, err := api.GetTransaction(context.Background(), "TX1")
+		_, err := api.GetTransaction(context.Background(), types.TransactionQuery{TransactionID: "TX1"})
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 	t.Run("GetFundingRateHistory", func(t *testing.T) {
@@ -65,7 +65,7 @@ func TestNoArgWrappers_PropagateError(t *testing.T) {
 	t.Run("GetLatestSignedFeeds", func(t *testing.T) {
 		api, ft := newAPI(t, true, 0)
 		ft.HandleError("public/get_latest_signed_feeds", boom)
-		_, err := api.GetLatestSignedFeeds(context.Background(), "", 0)
+		_, err := api.GetLatestSignedFeeds(context.Background(), types.LatestSignedFeedsQuery{})
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 	t.Run("GetCurrencies", func(t *testing.T) {
@@ -77,13 +77,13 @@ func TestNoArgWrappers_PropagateError(t *testing.T) {
 	t.Run("CancelByLabel", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/cancel_by_label", boom)
-		_, err := api.CancelByLabel(context.Background(), "L")
+		_, err := api.CancelByLabel(context.Background(), types.CancelByLabelInput{Label: "L"})
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 	t.Run("CancelByInstrument", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/cancel_by_instrument", boom)
-		_, err := api.CancelByInstrument(context.Background(), "BTC-PERP")
+		_, err := api.CancelByInstrument(context.Background(), types.CancelByInstrumentInput{InstrumentName: "BTC-PERP"})
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 	t.Run("CancelAll", func(t *testing.T) {
@@ -119,7 +119,7 @@ func TestNoArgWrappers_PropagateError(t *testing.T) {
 	t.Run("GetPerpImpactTWAP", func(t *testing.T) {
 		api, ft := newAPI(t, true, 0)
 		ft.HandleError("public/get_perp_impact_twap", boom)
-		_, err := api.GetPerpImpactTWAP(context.Background(), "BTC", 0, 1)
+		_, err := api.GetPerpImpactTWAP(context.Background(), types.PerpImpactTWAPQuery{Currency: "BTC", EndTime: 1})
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 }

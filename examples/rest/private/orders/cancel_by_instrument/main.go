@@ -11,6 +11,7 @@ import (
 
 	"github.com/amiwrpremium/go-derive/pkg/auth"
 	"github.com/amiwrpremium/go-derive/pkg/rest"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -53,7 +54,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	n, err := c.CancelByInstrument(ctx, instrument)
+	n, err := c.CancelByInstrument(ctx, types.CancelByInstrumentInput{InstrumentName: instrument})
 	if err != nil {
 		log.Fatal(err)
 	}

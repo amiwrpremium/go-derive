@@ -21,7 +21,7 @@ func TestGetInstruments(t *testing.T) {
 			"tick_size": "0.5", "minimum_amount": "0.001", "maximum_amount": "100", "amount_step": "0.001"},
 	})
 
-	insts, err := api.GetInstruments(context.Background(), "BTC", enums.InstrumentTypePerp)
+	insts, err := api.GetInstruments(context.Background(), types.InstrumentsQuery{Currency: "BTC", Kind: enums.InstrumentTypePerp})
 	require.NoError(t, err)
 	require.Len(t, insts, 1)
 	assert.Equal(t, "BTC-PERP", insts[0].Name)
@@ -38,7 +38,7 @@ func TestGetInstruments_NoFilters(t *testing.T) {
 	api, ft := newAPI(t, false, 0)
 	ft.HandleResult("public/get_instruments", []map[string]any{})
 
-	_, err := api.GetInstruments(context.Background(), "", "")
+	_, err := api.GetInstruments(context.Background(), types.InstrumentsQuery{})
 	require.NoError(t, err)
 	params := paramsAsMap(t, ft.LastCall().Params)
 	_, hasCurrency := params["currency"]
@@ -61,7 +61,7 @@ func TestGetInstrument(t *testing.T) {
 		"amount_step":     "0.001",
 	})
 
-	got, err := api.GetInstrument(context.Background(), "BTC-PERP")
+	got, err := api.GetInstrument(context.Background(), types.InstrumentQuery{Name: "BTC-PERP"})
 	require.NoError(t, err)
 	assert.Equal(t, "BTC-PERP", got.Name)
 }
@@ -76,7 +76,7 @@ func TestGetTicker(t *testing.T) {
 		"index_price": "100.5",
 		"timestamp":   1700000000000,
 	})
-	got, err := api.GetTicker(context.Background(), "BTC-PERP")
+	got, err := api.GetTicker(context.Background(), types.TickerQuery{Name: "BTC-PERP"})
 	require.NoError(t, err)
 	assert.Equal(t, "BTC-PERP", got.InstrumentName)
 }
@@ -169,7 +169,7 @@ func TestGetCurrency_Decode(t *testing.T) {
 		"srm_im_discount":                  "0", "srm_mm_discount": "0",
 		"borrow_apy": "0", "supply_apy": "0", "total_borrow": "0", "total_supply": "0",
 	})
-	got, err := api.GetCurrency(context.Background(), "ETH")
+	got, err := api.GetCurrency(context.Background(), types.CurrencyQuery{Currency: "ETH"})
 	require.NoError(t, err)
 	assert.Equal(t, "ETH", got.Currency)
 	assert.Equal(t, "2500", got.SpotPrice.String())
@@ -188,7 +188,7 @@ func TestGetAllInstruments_Decode(t *testing.T) {
 		},
 		"pagination": map[string]any{"num_pages": 3, "count": 250},
 	})
-	insts, page, err := api.GetAllInstruments(context.Background(), enums.InstrumentTypePerp, true, types.PageRequest{Page: 2, PageSize: 100})
+	insts, page, err := api.GetAllInstruments(context.Background(), types.AllInstrumentsQuery{Kind: enums.InstrumentTypePerp, IncludeExpired: true}, types.PageRequest{Page: 2, PageSize: 100})
 	require.NoError(t, err)
 	require.Len(t, insts, 1)
 	assert.Equal(t, "BTC-PERP", insts[0].Name)
@@ -213,7 +213,7 @@ func TestGetTickers_Decode(t *testing.T) {
 			},
 		},
 	})
-	tickers, err := api.GetTickers(context.Background(), enums.InstrumentTypePerp, "", 0)
+	tickers, err := api.GetTickers(context.Background(), types.TickersQuery{InstrumentType: enums.InstrumentTypePerp})
 	require.NoError(t, err)
 	require.Contains(t, tickers, "BTC-PERP")
 	assert.Equal(t, "65000", tickers["BTC-PERP"].MarkPrice.String())
@@ -227,7 +227,7 @@ func TestGetOptionSettlementPrices_Decode(t *testing.T) {
 			map[string]any{"expiry_date": "20260626", "utc_expiry_sec": int64(1782604800), "price": nil},
 		},
 	})
-	prices, err := api.GetOptionSettlementPrices(context.Background(), "BTC")
+	prices, err := api.GetOptionSettlementPrices(context.Background(), types.OptionSettlementPricesQuery{Currency: "BTC"})
 	require.NoError(t, err)
 	require.Len(t, prices, 2)
 	assert.Equal(t, "65000", prices[0].Price.String())
@@ -263,7 +263,7 @@ func TestGetAllStatistics_Decode(t *testing.T) {
 			"total_trades": int64(25000),
 		},
 	})
-	got, err := api.GetAllStatistics(context.Background(), 0)
+	got, err := api.GetAllStatistics(context.Background(), types.AllStatisticsQuery{})
 	require.NoError(t, err)
 	require.Len(t, got, 1)
 	assert.Equal(t, "BTC", got[0].Currency)
@@ -283,7 +283,7 @@ func TestGetAllUserStatistics_Decode(t *testing.T) {
 			"last_trade_timestamp":  int64(1700100000000),
 		},
 	})
-	got, err := api.GetAllUserStatistics(context.Background(), 0)
+	got, err := api.GetAllUserStatistics(context.Background(), types.AllUserStatisticsQuery{})
 	require.NoError(t, err)
 	require.Len(t, got, 1)
 	assert.Equal(t, "0x1111111111111111111111111111111111111111", got[0].Wallet)
@@ -300,7 +300,7 @@ func TestGetUserStatistics_Decode(t *testing.T) {
 		"first_trade_timestamp": int64(1700000000000),
 		"last_trade_timestamp":  int64(1700100000000),
 	})
-	got, err := api.GetUserStatistics(context.Background(), "0x1111111111111111111111111111111111111111")
+	got, err := api.GetUserStatistics(context.Background(), types.UserStatisticsQuery{Wallet: "0x1111111111111111111111111111111111111111"})
 	require.NoError(t, err)
 	require.NotNil(t, got)
 	assert.Equal(t, int64(7), got.TotalTrades)
@@ -320,7 +320,7 @@ func TestGetAsset_Decode(t *testing.T) {
 		"option_details": nil,
 		"perp_details":   nil,
 	})
-	got, err := api.GetAsset(context.Background(), "USDC")
+	got, err := api.GetAsset(context.Background(), types.AssetQuery{Name: "USDC"})
 	require.NoError(t, err)
 	assert.Equal(t, "USDC", got.AssetName)
 	assert.True(t, got.IsCollateral)
@@ -335,7 +335,7 @@ func TestGetAssets_Decode(t *testing.T) {
 			"currency": "USDC", "is_collateral": true, "is_position": false,
 		},
 	})
-	got, err := api.GetAssets(context.Background(), enums.AssetTypeERC20, "USDC", false)
+	got, err := api.GetAssets(context.Background(), types.AssetsQuery{AssetType: enums.AssetTypeERC20, Currency: "USDC"})
 	require.NoError(t, err)
 	require.Len(t, got, 1)
 	assert.Equal(t, "USDC", got[0].AssetName)
@@ -378,7 +378,7 @@ func TestGetDescendantTree_Decode(t *testing.T) {
 		"parent":      "0x1111111111111111111111111111111111111111",
 		"descendants": []any{},
 	})
-	got, err := api.GetDescendantTree(context.Background(), "0x1111111111111111111111111111111111111111")
+	got, err := api.GetDescendantTree(context.Background(), types.DescendantTreeQuery{WalletOrInviteCode: "0x1111111111111111111111111111111111111111"})
 	require.NoError(t, err)
 	assert.Equal(t, "0x1111111111111111111111111111111111111111", got.Parent)
 	assert.NotEmpty(t, got.Descendants, "descendants is preserved as raw JSON")
@@ -402,7 +402,7 @@ func TestMarginWatch_Decode(t *testing.T) {
 		"maintenance_margin": "50", "valuation_timestamp": int64(1700000000),
 		"collaterals": []any{}, "positions": []any{},
 	})
-	got, err := api.MarginWatch(context.Background(), 7, false, false)
+	got, err := api.MarginWatch(context.Background(), types.MarginWatchQuery{SubaccountID: 7})
 	require.NoError(t, err)
 	assert.Equal(t, int64(7), got.SubaccountID)
 	assert.Equal(t, "PM", got.MarginType)

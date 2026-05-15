@@ -85,13 +85,13 @@ func (a *API) PollRFQs(ctx context.Context) ([]types.RFQ, error) {
 }
 
 // CancelRFQ cancels an outstanding RFQ. Private.
-func (a *API) CancelRFQ(ctx context.Context, rfqID string) error {
+func (a *API) CancelRFQ(ctx context.Context, in types.CancelRFQInput) error {
 	if err := a.requireSubaccount(); err != nil {
 		return err
 	}
 	return a.call(ctx, "private/cancel_rfq", map[string]any{
 		"subaccount_id": a.Subaccount,
-		"rfq_id":        rfqID,
+		"rfq_id":        in.RFQID,
 	}, nil)
 }
 
@@ -254,7 +254,7 @@ func (a *API) ExecuteQuote(ctx context.Context, in types.ExecuteQuoteInput) (typ
 }
 
 // CancelQuote cancels one outstanding maker quote by id. Private.
-func (a *API) CancelQuote(ctx context.Context, quoteID string) (types.Quote, error) {
+func (a *API) CancelQuote(ctx context.Context, in types.CancelQuoteInput) (types.Quote, error) {
 	if err := a.requireSigner(); err != nil {
 		return types.Quote{}, err
 	}
@@ -263,7 +263,7 @@ func (a *API) CancelQuote(ctx context.Context, quoteID string) (types.Quote, err
 	}
 	params := map[string]any{
 		"subaccount_id": a.Subaccount,
-		"quote_id":      quoteID,
+		"quote_id":      in.QuoteID,
 	}
 	var resp types.Quote
 	if err := a.call(ctx, "private/cancel_quote", params, &resp); err != nil {

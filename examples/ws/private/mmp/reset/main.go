@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/amiwrpremium/go-derive/pkg/auth"
+	"github.com/amiwrpremium/go-derive/pkg/types"
 	"github.com/amiwrpremium/go-derive/pkg/ws"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -55,7 +56,7 @@ func main() {
 	if err := c.Login(ctx); err != nil {
 		log.Fatalf("ws.Login: %v", err)
 	}
-	if err := c.ResetMMP(ctx, "BTC"); err != nil {
+	if err := c.ResetMMP(ctx, types.ResetMMPInput{Currency: "BTC"}); err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("%-30s %v\n", "reset:", "ok")
