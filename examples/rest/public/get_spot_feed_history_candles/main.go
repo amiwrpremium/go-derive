@@ -36,8 +36,8 @@ func main() {
 
 	cur, candles, err := c.GetSpotFeedHistoryCandles(ctx, types.SpotFeedHistoryCandlesQuery{
 		HistoryWindow: types.HistoryWindow{
-			StartTimestamp: types.NewMillisTime(start),
-			EndTimestamp:   types.NewMillisTime(end),
+			StartTimestamp: types.MillisTimeFromTime(start),
+			EndTimestamp:   types.MillisTimeFromTime(end),
 		},
 		Currency:  currency,
 		PeriodSec: 60,

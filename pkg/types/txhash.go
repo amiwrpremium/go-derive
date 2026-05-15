@@ -42,6 +42,23 @@ func NewTxHash(s string) (TxHash, error) {
 	return TxHash(common.HexToHash(s)), nil
 }
 
+// MustTxHash is [NewTxHash] that panics on failure. Appropriate in
+// tests and constants where the input is known-good.
+func MustTxHash(s string) TxHash {
+	h, err := NewTxHash(s)
+	if err != nil {
+		panic(err)
+	}
+	return h
+}
+
+// TxHashFromCommon wraps an already-parsed [common.Hash] without the
+// hex round-trip [NewTxHash] performs. Use it when the caller already
+// holds a value from a go-ethereum API.
+func TxHashFromCommon(h common.Hash) TxHash {
+	return TxHash(h)
+}
+
 // String returns the 0x-prefixed lowercase-hex representation.
 func (h TxHash) String() string { return common.Hash(h).Hex() }
 

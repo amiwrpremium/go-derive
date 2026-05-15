@@ -59,6 +59,15 @@ func MustAddress(s string) Address {
 	return a
 }
 
+// AddressFromCommon wraps an already-parsed [common.Address] without
+// the hex round-trip [NewAddress] performs. Use it when the caller
+// already holds a value from a go-ethereum API (e.g.
+// `common.HexToAddress`, an ABI decode, a `common.Address` field on
+// an external struct).
+func AddressFromCommon(a common.Address) Address {
+	return Address(a)
+}
+
 // String returns the EIP-55 mixed-case hex form, including the "0x" prefix.
 func (a Address) String() string { return common.Address(a).Hex() }
 

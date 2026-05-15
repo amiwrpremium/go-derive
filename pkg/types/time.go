@@ -20,6 +20,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"time"
 )
@@ -36,8 +37,50 @@ type MillisTime struct {
 	T time.Time
 }
 
-// NewMillisTime wraps a [time.Time] as a [MillisTime].
-func NewMillisTime(t time.Time) MillisTime { return MillisTime{T: t} }
+// NewMillisTime parses a string into a [MillisTime]. The input may be
+// either an integer count of milliseconds since the Unix epoch
+// (matching Derive's wire format) or an RFC3339 timestamp. Empty
+// string yields the zero value with no error.
+//
+// For known-good string literals use [MustMillisTime]. For an
+// already-parsed [time.Time] use [MillisTimeFromTime]; for a raw
+// epoch-millis integer use [MillisTimeFromMillis].
+func NewMillisTime(s string) (MillisTime, error) {
+	if s == "" {
+		return MillisTime{}, nil
+	}
+	if n, err := strconv.ParseInt(s, 10, 64); err == nil {
+		return MillisTime{T: time.UnixMilli(n)}, nil
+	}
+	if t, err := time.Parse(time.RFC3339Nano, s); err == nil {
+		return MillisTime{T: t}, nil
+	}
+	if t, err := time.Parse(time.RFC3339, s); err == nil {
+		return MillisTime{T: t}, nil
+	}
+	return MillisTime{}, fmt.Errorf("types: invalid MillisTime %q (want epoch millis or RFC3339)", s)
+}
+
+// MustMillisTime is [NewMillisTime] that panics on failure. Appropriate
+// in tests and constants where the input is known-good.
+func MustMillisTime(s string) MillisTime {
+	m, err := NewMillisTime(s)
+	if err != nil {
+		panic(err)
+	}
+	return m
+}
+
+// MillisTimeFromTime wraps a [time.Time] as a [MillisTime] without
+// a string round-trip. The previous name was [NewMillisTime]; callers
+// were migrated when the New* slot was reassigned to the string-parsing
+// constructor.
+func MillisTimeFromTime(t time.Time) MillisTime { return MillisTime{T: t} }
+
+// MillisTimeFromMillis wraps a raw epoch-millis integer as a
+// [MillisTime]. Equivalent to passing the integer through
+// [time.UnixMilli] and then [MillisTimeFromTime].
+func MillisTimeFromMillis(ms int64) MillisTime { return MillisTime{T: time.UnixMilli(ms)} }
 
 // Time returns the underlying [time.Time].
 func (m MillisTime) Time() time.Time { return m.T }
