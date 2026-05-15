@@ -195,6 +195,8 @@ func TestWSTransport_OnReconnect_NoSubsStillFires(t *testing.T) {
 	require.NoError(t, tt.Connect(context.Background()))
 	defer func() { _ = tt.Close() }()
 
+	require.True(t, srv.WaitClients(1, time.Second),
+		"server didn't register the initial client before DropClients")
 	srv.DropClients()
 
 	require.Eventually(t, func() bool {
@@ -236,6 +238,8 @@ func TestWSTransport_OnReconnect_SurfacesPostDialError(t *testing.T) {
 	require.NoError(t, tt.Connect(context.Background()))
 	defer func() { _ = tt.Close() }()
 
+	require.True(t, srv.WaitClients(1, time.Second),
+		"server didn't register the initial client before DropClients")
 	srv.DropClients()
 
 	require.Eventually(t, func() bool {

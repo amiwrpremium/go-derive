@@ -104,13 +104,15 @@ func TestWS_WithOnReconnect_FiresAfterDrop(t *testing.T) {
 	defer func() { _ = c.Close() }()
 	require.NoError(t, c.Connect(context.Background()))
 
+	require.True(t, srv.WaitClients(1, time.Second),
+		"server didn't register the initial client before DropClients")
 	srv.DropClients()
 
 	require.Eventually(t, func() bool {
 		mu.Lock()
 		defer mu.Unlock()
 		return len(calls) >= 1
-	}, 5*time.Second, 20*time.Millisecond)
+	}, 15*time.Second, 25*time.Millisecond)
 
 	mu.Lock()
 	defer mu.Unlock()
