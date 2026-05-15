@@ -10,9 +10,17 @@ do not edit it by hand.
 ## [0.15.0](https://github.com/amiwrpremium/go-derive/compare/v0.14.1...v0.15.0) (2026-05-15)
 
 
+### ⚠ BREAKING CHANGES
+
+* **methods:** convert positional args to typed Input/Query structs ([#130](https://github.com/amiwrpremium/go-derive/issues/130))
+* **types:** symmetric constructors across named identifier types ([#133](https://github.com/amiwrpremium/go-derive/issues/133))
+
+
 ### Features
 
+* **methods:** convert positional args to typed Input/Query structs ([#130](https://github.com/amiwrpremium/go-derive/issues/130)) ([33950b5](https://github.com/amiwrpremium/go-derive/commit/33950b5))
 * **types:** add Validate() to every input/query missing one ([#131](https://github.com/amiwrpremium/go-derive/issues/131)) ([e6d1a7c](https://github.com/amiwrpremium/go-derive/commit/e6d1a7c879183e74bce6dc1314fc2dad8491e562))
+* **types:** symmetric constructors across named identifier types ([#133](https://github.com/amiwrpremium/go-derive/issues/133)) ([06b6674](https://github.com/amiwrpremium/go-derive/commit/06b6674))
 
 
 ### Miscellaneous
