@@ -40,15 +40,20 @@ func (c *Client) SubscribeAuctionsWatch(ctx context.Context, opts ...SubscribeOp
 }
 
 // SubscribeOrderBook streams incremental order-book updates for one
-// instrument. Empty group defaults to "1" (no grouping); zero depth
-// defaults to 10. Wire channel:
-// `orderbook.{instrument}.{group}.{depth}`.
+// instrument.
+//
+// Valid `group` values: [Group1], [Group10], [Group100]. Empty string
+// is treated as [GroupDefault] ([Group1]). Valid `depth` values:
+// [Depth1], [Depth10], [Depth20], [Depth100]. Zero is treated as
+// [DepthDefault] ([Depth10]).
+//
+// Wire channel: `orderbook.{instrument}.{group}.{depth}`.
 func (c *Client) SubscribeOrderBook(ctx context.Context, instrument, group string, depth int, opts ...SubscribeOption) (*Subscription[types.OrderBook], error) {
 	if group == "" {
-		group = "1"
+		group = GroupDefault
 	}
 	if depth == 0 {
-		depth = 10
+		depth = DepthDefault
 	}
 	return Subscribe(ctx, c,
 		fmt.Sprintf("orderbook.%s.%s.%d", instrument, group, depth),
@@ -64,11 +69,15 @@ func (c *Client) SubscribeSpotFeed(ctx context.Context, currency string, opts ..
 }
 
 // SubscribeTicker streams the full ticker payload for one
-// instrument. Empty interval defaults to "1000". Wire channel:
-// `ticker.{instrument}.{interval}`.
+// instrument.
+//
+// Valid `interval` values: [Interval100], [Interval1000]. Empty
+// string is treated as [IntervalDefault] ([Interval1000]).
+//
+// Wire channel: `ticker.{instrument}.{interval}`.
 func (c *Client) SubscribeTicker(ctx context.Context, instrument, interval string, opts ...SubscribeOption) (*Subscription[types.InstrumentTickerFeed], error) {
 	if interval == "" {
-		interval = "1000"
+		interval = IntervalDefault
 	}
 	return Subscribe(ctx, c,
 		fmt.Sprintf("ticker.%s.%s", instrument, interval),
@@ -76,11 +85,15 @@ func (c *Client) SubscribeTicker(ctx context.Context, instrument, interval strin
 }
 
 // SubscribeTickerSlim streams the slim ticker payload for one
-// instrument. Empty interval defaults to "1000". Wire channel:
-// `ticker_slim.{instrument}.{interval}`.
+// instrument.
+//
+// Valid `interval` values: [Interval100], [Interval1000]. Empty
+// string is treated as [IntervalDefault] ([Interval1000]).
+//
+// Wire channel: `ticker_slim.{instrument}.{interval}`.
 func (c *Client) SubscribeTickerSlim(ctx context.Context, instrument, interval string, opts ...SubscribeOption) (*Subscription[types.TickerSlim], error) {
 	if interval == "" {
-		interval = "1000"
+		interval = IntervalDefault
 	}
 	return Subscribe(ctx, c,
 		fmt.Sprintf("ticker_slim.%s.%s", instrument, interval),
