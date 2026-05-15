@@ -7,6 +7,17 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.17.0](https://github.com/amiwrpremium/go-derive/compare/v0.16.0...v0.17.0) (2026-05-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* **auth:** rename Signer Address/Owner to SessionAddress/OwnerAddress ([#138](https://github.com/amiwrpremium/go-derive/issues/138))
+
+### Features
+
+* **auth:** rename Signer Address/Owner to SessionAddress/OwnerAddress ([#138](https://github.com/amiwrpremium/go-derive/issues/138)) ([a39c0a9](https://github.com/amiwrpremium/go-derive/commit/a39c0a9ed0188562f8dab1c79f738a9476ba8c30))
+
 ## [0.16.0](https://github.com/amiwrpremium/go-derive/compare/v0.15.0...v0.16.0) (2026-05-15)
 
 
