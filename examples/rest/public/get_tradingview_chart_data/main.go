@@ -37,8 +37,8 @@ func main() {
 
 	bars, err := c.GetTradingViewChartData(ctx, types.TradingViewChartQuery{
 		HistoryWindow: types.HistoryWindow{
-			StartTimestamp: types.NewMillisTime(start),
-			EndTimestamp:   types.NewMillisTime(end),
+			StartTimestamp: types.MillisTimeFromTime(start),
+			EndTimestamp:   types.MillisTimeFromTime(end),
 		},
 		InstrumentName: instrument,
 		PeriodSec:      60,

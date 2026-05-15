@@ -35,8 +35,8 @@ func main() {
 
 	candles, err := c.GetIndexChartData(ctx, types.IndexChartQuery{
 		HistoryWindow: types.HistoryWindow{
-			StartTimestamp: types.NewMillisTime(start),
-			EndTimestamp:   types.NewMillisTime(end),
+			StartTimestamp: types.MillisTimeFromTime(start),
+			EndTimestamp:   types.MillisTimeFromTime(end),
 		},
 		Currency:  currency,
 		PeriodSec: 60,

@@ -13,7 +13,7 @@ import (
 
 func TestMillisTime_RoundTripFromNumber(t *testing.T) {
 	now := time.Date(2026, 5, 2, 10, 0, 0, 0, time.UTC)
-	mt := types.NewMillisTime(now)
+	mt := types.MillisTimeFromTime(now)
 	b, err := json.Marshal(mt)
 	require.NoError(t, err)
 
