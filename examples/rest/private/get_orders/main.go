@@ -55,7 +55,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	orders, page, err := c.GetOrders(ctx, types.PageRequest{PageSize: 10}, nil)
+	orders, page, err := c.GetOrders(ctx, types.OrdersQuery{}, types.PageRequest{PageSize: 10})
 	if err != nil {
 		log.Fatal(err)
 	}
