@@ -146,7 +146,6 @@ pkg/channels             typed WebSocket subscriptions
 pkg/auth                 EIP-712 signing, session keys
 pkg/types, pkg/enums     domain types, named-string enums
 pkg/errors               sentinel errors + APIError
-pkg/contracts            on-chain helpers (deposit/withdraw/session keys) — stubs returning ErrNotImplemented
 
 internal/jsonrpc         JSON-RPC 2.0 framing
 internal/transport       HTTP + WS transports (shared interface)
