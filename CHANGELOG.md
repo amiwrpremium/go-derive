@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.22.1](https://github.com/amiwrpremium/go-derive/compare/v0.22.0...v0.22.1) (2026-05-16)
+
+
+### Documentation
+
+* refresh README and add MIGRATING.md ([#151](https://github.com/amiwrpremium/go-derive/issues/151)) ([6066441](https://github.com/amiwrpremium/go-derive/commit/6066441c08d72171739acd29883663d3e6e0ee18))
+
 ## [0.22.0](https://github.com/amiwrpremium/go-derive/compare/v0.21.0...v0.22.0) (2026-05-16)
 
 
