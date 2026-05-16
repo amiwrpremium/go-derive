@@ -38,58 +38,44 @@
 package auth
 
 import (
-	"sync"
-	"sync/atomic"
+	"math/rand/v2"
 	"time"
 )
 
-// NonceGen produces strictly-increasing nonces for action signing.
+// NonceGen produces nonces in the format Derive's engine documents:
 //
-// Derive requires nonces to be unique per subaccount across an action's
-// lifetime. This generator returns millisecond-timestamp-based nonces in
-// the upper bits combined with a 16-bit incrementing suffix in the lower
-// bits, which gives both human-readable ordering (the timestamp prefix)
-// and collision resistance for many actions in the same millisecond.
+//	nonce = (UTC milliseconds since epoch) * 1000 + random[0..999]
 //
-// The zero value is not usable; construct via [NewNonceGen].
-type NonceGen struct {
-	last atomic.Uint64
-	mu   sync.Mutex
-	rand uint16
-}
+// That format keeps every nonce inside JSON's safe-integer range (2^53,
+// the IEEE-754 double's max precise integer), so the engine's JSON
+// parser doesn't truncate the value when it recomputes the EIP-712
+// digest server-side. Any wider format silently breaks signature
+// verification with a 14014 error.
+//
+// The shape and meaning match the official Python reference at
+// derivexyz/v2-action-signing-python (utils.get_action_nonce) exactly.
+//
+// The engine only requires uniqueness, not strict monotonicity (the
+// Python reference uses non-monotonic `random.randint(0, 999)` and
+// works fine in production). The 1000-bucket suffix gives ample
+// collision headroom — birthday-paradox 50% probability at ~37
+// calls per millisecond, well above any non-HFT workload.
+//
+// The zero value is usable. NewNonceGen is kept for source
+// compatibility with prior versions.
+type NonceGen struct{}
 
-// NewNonceGen returns a generator seeded from the current time.
-//
-// The returned generator is safe for concurrent use.
-func NewNonceGen() *NonceGen {
-	g := &NonceGen{}
-	// Take only the lower 16 bits of UnixNano() as the counter seed —
-	// the explicit mask documents intent so gosec G115 sees the
-	// narrowing as deliberate.
-	g.rand = uint16(time.Now().UnixNano() & 0xFFFF)
-	return g
-}
+// NewNonceGen returns a generator. The returned value is safe for
+// concurrent use; math/rand/v2's default Source has internal locking
+// and is auto-seeded from crypto/rand at package init.
+func NewNonceGen() *NonceGen { return &NonceGen{} }
 
-// Next returns the next nonce.
-//
-// Under contention the algorithm bumps to (prev + 1) so the
-// strict-monotonic property holds even when many goroutines call Next in
-// the same millisecond.
+// Next returns a fresh nonce in the documented format,
+// unix_ms*1000 + suffix where suffix ∈ [0, 999]. The engine only
+// requires uniqueness, not cryptographic secrecy, so math/rand/v2
+// is the right tool — using crypto/rand here would buy nothing and
+// cost a syscall per call.
 func (g *NonceGen) Next() uint64 {
-	g.mu.Lock()
-	g.rand++
-	suffix := uint64(g.rand)
-	g.mu.Unlock()
-
-	for {
-		ms := uint64(time.Now().UnixMilli())
-		candidate := ms<<16 | suffix
-		prev := g.last.Load()
-		if candidate <= prev {
-			candidate = prev + 1
-		}
-		if g.last.CompareAndSwap(prev, candidate) {
-			return candidate
-		}
-	}
+	//nolint:gosec // G404: see doc comment — nonce uniqueness only.
+	return uint64(time.Now().UTC().UnixMilli())*1000 + uint64(rand.IntN(1000))
 }
