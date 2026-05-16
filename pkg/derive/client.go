@@ -12,19 +12,32 @@
 //	)
 //	defer c.Close()
 //
-//	insts, _ := c.REST.GetInstruments(ctx, "BTC", enums.InstrumentTypePerp)
+//	insts, _ := c.REST.GetInstruments(ctx, types.InstrumentsQuery{Currency: "BTC", Kind: enums.InstrumentTypePerp})
 //	c.WS.Connect(ctx)
 //	c.WS.Login(ctx)
 //
+// # Option parity with the transports
+//
+// Every option that pkg/rest or pkg/ws accepts is also exposed here.
+// Common options ([WithSigner], [WithSubaccount], [WithUserAgent],
+// [WithRateLimit], [WithSignatureExpiry], [WithInstrumentPreload]) flow
+// to both transports. Transport-specific options route to whichever
+// transport supports them: [WithHTTPClient] and [WithHTTPTimeout] go to
+// REST only; [WithPingInterval], [WithReconnect], and [WithOnReconnect]
+// go to WS only.
+//
 // # When to skip the facade
 //
-// Use pkg/rest or pkg/ws directly when you only need one transport — both
-// expose the full RPC method surface independently. The facade is just a
-// shortcut for the common case where you want both.
+// Use pkg/rest or pkg/ws directly when you only need one transport —
+// both expose the full RPC method surface independently. The facade is
+// a shortcut for the common case where you want both bundled under
+// one signer + subaccount.
 package derive
 
 import (
 	"context"
+	"net/http"
+	"time"
 
 	"github.com/amiwrpremium/go-derive/internal/netconf"
 	"github.com/amiwrpremium/go-derive/pkg/auth"
@@ -52,12 +65,32 @@ type Client struct {
 // With* helpers and pass them to [NewClient].
 type Option func(*config)
 
+// config carries the facade-side state. Most fields are nilable so the
+// facade can distinguish "user explicitly set this" from "user left the
+// default" — when unset, the transport's own default applies, so we
+// don't have to track the transport defaults here (and risk drifting
+// from them).
 type config struct {
 	network      netconf.Config
 	signer       auth.Signer
 	subaccount   int64
 	connectWS    bool
 	preloadInsts bool
+
+	// Common options (forwarded to both REST and WS when set).
+	userAgent string // "" means unset
+	tps       *float64
+	burst     *float64
+	expiry    *int64
+
+	// REST-only options.
+	httpClient  *http.Client
+	httpTimeout *time.Duration
+
+	// WS-only options.
+	pingInterval *time.Duration
+	reconnect    *bool
+	onReconnect  func(error)
 }
 
 // WithMainnet selects Derive's mainnet endpoints.
@@ -93,6 +126,67 @@ func WithConnectWS(b bool) Option { return func(c *config) { c.connectWS = b } }
 // [rest.WithInstrumentPreload] for details.
 func WithInstrumentPreload() Option { return func(c *config) { c.preloadInsts = true } }
 
+// WithUserAgent overrides the User-Agent header on both REST requests
+// and the WS upgrade. Default is "go-derive/<version>". See
+// [rest.WithUserAgent] and [ws.WithUserAgent].
+func WithUserAgent(ua string) Option { return func(c *config) { c.userAgent = ua } }
+
+// WithRateLimit configures the per-client token-bucket rate limiter
+// for both REST and WS. tps is the sustained transactions-per-second;
+// burst sets the bucket capacity (capacity = tps × burst). Pass tps
+// <= 0 to disable. Default: 10 TPS, burst 5. See
+// [rest.WithRateLimit] and [ws.WithRateLimit].
+func WithRateLimit(tps, burst float64) Option {
+	return func(c *config) {
+		c.tps = &tps
+		c.burst = &burst
+	}
+}
+
+// WithSignatureExpiry sets the seconds-from-now expiry on signed actions
+// for both REST and WS. Default is 300 (5 minutes). See
+// [rest.WithSignatureExpiry] and [ws.WithSignatureExpiry].
+func WithSignatureExpiry(seconds int64) Option {
+	return func(c *config) { c.expiry = &seconds }
+}
+
+// WithHTTPClient swaps in a custom *http.Client for the REST transport
+// (for custom transports, proxies, mocking). REST-only — the WS
+// transport doesn't use *http.Client for its persistent connection.
+// See [rest.WithHTTPClient].
+func WithHTTPClient(h *http.Client) Option { return func(c *config) { c.httpClient = h } }
+
+// WithHTTPTimeout sets the total per-request timeout on the REST
+// client's default *http.Client. Default is 30 seconds. Pass 0 to
+// disable. Ignored when [WithHTTPClient] is also set. REST-only.
+// See [rest.WithHTTPTimeout].
+func WithHTTPTimeout(d time.Duration) Option {
+	return func(c *config) { c.httpTimeout = &d }
+}
+
+// WithPingInterval overrides the periodic application-level ping
+// cadence on the WS transport. Default is 20 seconds. WS-only.
+// See [ws.WithPingInterval].
+func WithPingInterval(d time.Duration) Option {
+	return func(c *config) { c.pingInterval = &d }
+}
+
+// WithReconnect controls whether the WS client auto-reconnects after
+// the underlying connection drops. Default is true. WS-only.
+// See [ws.WithReconnect].
+func WithReconnect(enabled bool) Option {
+	return func(c *config) { c.reconnect = &enabled }
+}
+
+// WithOnReconnect installs a callback invoked once per WS reconnect
+// cycle, after the redial, internal re-login, and resubscribe all
+// complete. err is nil on full recovery; non-nil when the post-redial
+// chain partially failed. WS-only. See [ws.WithOnReconnect] for full
+// semantics and the safety contract.
+func WithOnReconnect(fn func(err error)) Option {
+	return func(c *config) { c.onReconnect = fn }
+}
+
 // NewClient constructs a [Client] from the supplied options.
 //
 // One of [WithMainnet], [WithTestnet], or [WithCustomNetwork] must be
@@ -118,10 +212,44 @@ func NewClient(opts ...Option) (*Client, error) {
 		ws.WithSigner(cfg.signer),
 		ws.WithSubaccount(cfg.subaccount),
 	}
+
+	// Common options forwarded to both transports.
+	if cfg.userAgent != "" {
+		restOpts = append(restOpts, rest.WithUserAgent(cfg.userAgent))
+		wsOpts = append(wsOpts, ws.WithUserAgent(cfg.userAgent))
+	}
+	if cfg.tps != nil && cfg.burst != nil {
+		restOpts = append(restOpts, rest.WithRateLimit(*cfg.tps, *cfg.burst))
+		wsOpts = append(wsOpts, ws.WithRateLimit(*cfg.tps, *cfg.burst))
+	}
+	if cfg.expiry != nil {
+		restOpts = append(restOpts, rest.WithSignatureExpiry(*cfg.expiry))
+		wsOpts = append(wsOpts, ws.WithSignatureExpiry(*cfg.expiry))
+	}
 	if cfg.preloadInsts {
 		restOpts = append(restOpts, rest.WithInstrumentPreload())
 		wsOpts = append(wsOpts, ws.WithInstrumentPreload())
 	}
+
+	// REST-only options.
+	if cfg.httpClient != nil {
+		restOpts = append(restOpts, rest.WithHTTPClient(cfg.httpClient))
+	}
+	if cfg.httpTimeout != nil {
+		restOpts = append(restOpts, rest.WithHTTPTimeout(*cfg.httpTimeout))
+	}
+
+	// WS-only options.
+	if cfg.pingInterval != nil {
+		wsOpts = append(wsOpts, ws.WithPingInterval(*cfg.pingInterval))
+	}
+	if cfg.reconnect != nil {
+		wsOpts = append(wsOpts, ws.WithReconnect(*cfg.reconnect))
+	}
+	if cfg.onReconnect != nil {
+		wsOpts = append(wsOpts, ws.WithOnReconnect(cfg.onReconnect))
+	}
+
 	r, err := rest.New(restOpts...)
 	if err != nil {
 		return nil, err

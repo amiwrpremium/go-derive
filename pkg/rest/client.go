@@ -61,12 +61,12 @@ type Client struct {
 // [github.com/amiwrpremium/go-derive/pkg/errors.ErrInvalidConfig].
 //
 // All other options have sensible defaults: 30-second HTTP timeout, 10 TPS
-// rate limit with 5x burst, 5-minute signature expiry, and the SDK's default
+// rate limit with 5x burst, ~17-minute signature expiry, and the SDK's default
 // User-Agent. See the With* helpers in options.go for what's tunable.
 func New(opts ...Option) (*Client, error) {
 	c := &config{
 		userAgent: goderive.UserAgent(),
-		expiry:    300, // 5 minutes
+		expiry:    1_000, // seconds (~16m 40s); engine rejects anything <5 min from now
 		tps:       10,
 		burst:     5,
 	}

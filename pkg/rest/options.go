@@ -114,9 +114,12 @@ func WithRateLimit(tps, burst float64) Option {
 
 // WithSignatureExpiry sets the seconds-from-now expiry on signed actions.
 //
-// The default is 300 (5 minutes). Use a longer value if you sign orders
-// far in advance of submission, or a shorter value if you need tighter
-// replay-protection bounds.
+// The default is 1000 (~16m 40s) — comfortably above the engine's
+// minimum (>5 minutes from now) so network and parsing latency between
+// signing and engine-side verification never push the effective expiry
+// under the floor. Use a longer value if you sign orders far in advance
+// of submission, or a shorter value (down to but not below 300) if you
+// need tighter replay-protection bounds.
 func WithSignatureExpiry(seconds int64) Option {
 	return func(c *config) { c.expiry = seconds }
 }

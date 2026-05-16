@@ -133,7 +133,9 @@ func WithOnReconnect(fn func(err error)) Option {
 }
 
 // WithSignatureExpiry sets the seconds-from-now expiry on signed actions.
-// The default is 300 (5 minutes).
+// The default is 1000 (~16m 40s) — see [rest.WithSignatureExpiry] for
+// the rationale on the floor; the engine rejects anything less than
+// 5 minutes from now at validation time.
 func WithSignatureExpiry(seconds int64) Option { return func(c *config) { c.expiry = seconds } }
 
 // WithInstrumentPreload kicks off a background fetch of every live
