@@ -17,8 +17,9 @@ The threat model focuses on those three responsibilities.
 ## Out of scope
 
 - **Mainnet smart-contract bugs.** The SDK signs structured data; it
-  doesn't audit the contracts that consume those signatures. Any use
-  of `pkg/contracts` should be preceded by independent contract review.
+  doesn't audit the contracts that consume those signatures. Callers
+  performing on-chain operations against those contracts (deposits,
+  withdrawals, session-key registration) own that review independently.
 - **The user's wallet OS / hardware.** If the host is compromised, the
   session key is compromised — the SDK can't help.
 - **Derive's API itself.** Server-side bugs are reported to the Derive
