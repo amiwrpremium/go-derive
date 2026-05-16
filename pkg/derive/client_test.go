@@ -1,7 +1,9 @@
 package derive_test
 
 import (
+	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -67,4 +69,36 @@ func TestClient_CloseIdempotent(t *testing.T) {
 	require.NoError(t, c.Close())
 	// Second close on REST is a no-op; WS close on never-connected is also fine.
 	_ = c.Close() // tolerate any additional close cleanup
+}
+
+// TestNewClient_AllOptionsCompose exercises every facade-side option in
+// one call to confirm the plumbing accepts the full set without error.
+// Per-option functional verification lives in pkg/rest/options_test.go
+// and pkg/ws/options_test.go — the facade's job is just to forward.
+func TestNewClient_AllOptionsCompose(t *testing.T) {
+	signer, err := auth.NewLocalSigner(testKey)
+	require.NoError(t, err)
+
+	c, err := derive.NewClient(
+		derive.WithTestnet(),
+		derive.WithSigner(signer),
+		derive.WithSubaccount(7),
+		derive.WithUserAgent("derive-facade-test/1"),
+		derive.WithRateLimit(50, 2),
+		derive.WithSignatureExpiry(600),
+		derive.WithHTTPClient(&http.Client{Timeout: 5 * time.Second}),
+		// WithHTTPTimeout is intentionally also set — exercising the
+		// "both set; HTTPClient wins" precedence rule in rest.New
+		// without asserting on it here (rest tests already do).
+		derive.WithHTTPTimeout(2*time.Second),
+		derive.WithPingInterval(100*time.Millisecond),
+		derive.WithReconnect(false),
+		derive.WithOnReconnect(func(error) {}),
+		derive.WithInstrumentPreload(),
+	)
+	require.NoError(t, err)
+	defer func() { _ = c.Close() }()
+
+	assert.NotNil(t, c.REST)
+	assert.NotNil(t, c.WS)
 }
