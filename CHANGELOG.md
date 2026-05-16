@@ -7,6 +7,17 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.21.0](https://github.com/amiwrpremium/go-derive/compare/v0.20.0...v0.21.0) (2026-05-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* **types:** remove unused OrderParams builder pattern ([#147](https://github.com/amiwrpremium/go-derive/issues/147))
+
+### Features
+
+* **types:** remove unused OrderParams builder pattern ([#147](https://github.com/amiwrpremium/go-derive/issues/147)) ([5d1867b](https://github.com/amiwrpremium/go-derive/commit/5d1867ba63dcdf95e6b60a7440e1707f9943e2c3))
+
 ## [0.20.0](https://github.com/amiwrpremium/go-derive/compare/v0.19.0...v0.20.0) (2026-05-16)
 
 
