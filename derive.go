@@ -25,7 +25,7 @@ package goderive
 // Version is the SDK semantic version. It is reported in the User-Agent header
 // of REST requests and in the WebSocket connect handshake. The literal is
 // maintained by release-please via the x-release-please-version annotation.
-const Version = "0.19.0" // x-release-please-version
+const Version = "0.20.0" // x-release-please-version
 
 // UserAgent returns the default User-Agent string used by transports.
 func UserAgent() string {
