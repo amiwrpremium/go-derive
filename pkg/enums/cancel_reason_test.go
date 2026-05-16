@@ -20,6 +20,9 @@ func TestCancelReason_Valid_AllArms(t *testing.T) {
 		enums.CancelReasonSessionKey,
 		enums.CancelReasonSubaccountWithdrawn,
 		enums.CancelReasonCompliance,
+		enums.CancelReasonTriggerFailed,
+		enums.CancelReasonValidationFailed,
+		enums.CancelReasonAlgoCompleted,
 	}
 	for _, c := range cases {
 		t.Run(string(c), func(t *testing.T) {
