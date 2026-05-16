@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.22.2](https://github.com/amiwrpremium/go-derive/compare/v0.22.1...v0.22.2) (2026-05-16)
+
+
+### Bug Fixes
+
+* **auth:** correct mainnet TradeModule address ([#153](https://github.com/amiwrpremium/go-derive/issues/153)) ([a396df4](https://github.com/amiwrpremium/go-derive/commit/a396df49b96793e9034e9755115c7334980c2f09))
+
 ## [0.22.1](https://github.com/amiwrpremium/go-derive/compare/v0.22.0...v0.22.1) (2026-05-16)
 
 
