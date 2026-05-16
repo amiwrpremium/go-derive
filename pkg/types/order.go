@@ -20,49 +20,6 @@ package types
 
 import "github.com/amiwrpremium/go-derive/pkg/enums"
 
-// OrderParams is the request shape for `private/order`.
-//
-// Most fields map directly to the JSON-RPC schema. The four signing fields
-// (Signer, Signature, Nonce, SignatureExpiry) are populated automatically by
-// [github.com/amiwrpremium/go-derive/internal/methods.API.PlaceOrder] using
-// the configured signer; callers building this struct manually must populate
-// them themselves and produce a matching EIP-712 signature.
-type OrderParams struct {
-	// InstrumentName identifies the market.
-	InstrumentName string `json:"instrument_name"`
-	// Direction is buy or sell.
-	Direction enums.Direction `json:"direction"`
-	// OrderType is limit or market.
-	OrderType enums.OrderType `json:"order_type"`
-	// TimeInForce is the order's expiry policy.
-	TimeInForce enums.TimeInForce `json:"time_in_force,omitempty"`
-	// Amount is the order size in base-currency units.
-	Amount Decimal `json:"amount"`
-	// LimitPrice is the price; for market orders this is the slippage cap.
-	LimitPrice Decimal `json:"limit_price"`
-	// MaxFee is the maximum acceptable fee paid for this order.
-	MaxFee Decimal `json:"max_fee"`
-	// SubaccountID is the placing subaccount.
-	SubaccountID int64 `json:"subaccount_id"`
-	// Nonce is the order's monotonic anti-replay nonce.
-	Nonce uint64 `json:"nonce"`
-	// Signer is the signing key's public address (session key, owner, etc.).
-	Signer Address `json:"signer"`
-	// Signature is the hex-encoded EIP-712 signature over the action data.
-	Signature string `json:"signature"`
-	// SignatureExpiry is the Unix timestamp (seconds) after which the
-	// signature is no longer valid.
-	SignatureExpiry int64 `json:"signature_expiry_sec"`
-
-	// Label is a free-form per-order tag, useful for cancel-by-label.
-	Label string `json:"label,omitempty"`
-	// MMP enrols the order in market-maker protection accounting.
-	MMP bool `json:"mmp,omitempty"`
-	// ReduceOnly forces the order to only reduce position size, not flip
-	// or grow it.
-	ReduceOnly bool `json:"reduce_only,omitempty"`
-}
-
 // Order is the canonical order record returned by the API. It carries both
 // the fields the user supplied and the engine's lifecycle state.
 type Order struct {
@@ -166,38 +123,4 @@ type Order struct {
 	// TriggerRejectMessage is the engine's reason if the trigger
 	// fired but the resulting order was rejected.
 	TriggerRejectMessage string `json:"trigger_reject_message,omitempty"`
-}
-
-// CancelOrderParams identifies an order to cancel via `private/cancel`.
-//
-// Either OrderID or Label must be set; if both are present the engine
-// prefers OrderID. The signing fields are populated automatically when
-// using the high-level client.
-type CancelOrderParams struct {
-	// SubaccountID is the placing subaccount.
-	SubaccountID int64 `json:"subaccount_id"`
-	// InstrumentName scopes the cancel to one market (optional).
-	InstrumentName string `json:"instrument_name,omitempty"`
-	// OrderID identifies the specific order to cancel.
-	OrderID string `json:"order_id,omitempty"`
-	// Label cancels every order carrying this label.
-	Label string `json:"label,omitempty"`
-	// Nonce is the cancel-action nonce.
-	Nonce uint64 `json:"nonce,omitempty"`
-	// Signer is the signing key's address.
-	Signer Address `json:"signer,omitempty"`
-	// Signature is the hex EIP-712 signature.
-	Signature string `json:"signature,omitempty"`
-	// SignatureExpiry is the cancel signature's expiry.
-	SignatureExpiry int64 `json:"signature_expiry_sec,omitempty"`
-}
-
-// ReplaceOrderParams atomically cancels one order and places another. The
-// matching engine guarantees there is no window in which neither order is
-// live.
-type ReplaceOrderParams struct {
-	// OrderIDToCancel is the existing order to drop.
-	OrderIDToCancel string `json:"order_id_to_cancel"`
-	// NewOrder is the replacement order spec.
-	NewOrder OrderParams `json:"new_order"`
 }
