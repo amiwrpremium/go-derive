@@ -62,11 +62,11 @@ type Client struct {
 // One of [WithMainnet], [WithTestnet], or [WithCustomNetwork] must be
 // supplied. All other options have sensible defaults: 20-second ping
 // interval, 10 TPS rate limit with 5x burst, auto-reconnect enabled,
-// 5-minute signature expiry.
+// ~17-minute signature expiry.
 func New(opts ...Option) (*Client, error) {
 	c := &config{
 		userAgent:    goderive.UserAgent(),
-		expiry:       300,
+		expiry:       1_000, // seconds (~16m 40s); engine rejects anything <5 min from now
 		tps:          10,
 		burst:        5,
 		pingInterval: 20 * time.Second,

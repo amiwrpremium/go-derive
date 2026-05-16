@@ -24,7 +24,7 @@ func newAPI(t *testing.T, signed bool, sub int64) (*methods.API, *testutil.FakeT
 		T:               ft,
 		Domain:          netconf.Mainnet().EIP712Domain(),
 		Nonces:          auth.NewNonceGen(),
-		SignatureExpiry: 300,
+		SignatureExpiry: 1_000,
 	}
 	api.SetTradeModule(common.HexToAddress(netconf.Mainnet().Contracts.TradeModule))
 	if signed {
