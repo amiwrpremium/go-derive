@@ -7,6 +7,17 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.20.0](https://github.com/amiwrpremium/go-derive/compare/v0.19.0...v0.20.0) (2026-05-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* **contracts:** remove pkg/contracts stub package ([#145](https://github.com/amiwrpremium/go-derive/issues/145))
+
+### Features
+
+* **contracts:** remove pkg/contracts stub package ([#145](https://github.com/amiwrpremium/go-derive/issues/145)) ([45d6bc3](https://github.com/amiwrpremium/go-derive/commit/45d6bc3de1ef35c998f21586cca957486f000cd1))
+
 ## [0.19.0](https://github.com/amiwrpremium/go-derive/compare/v0.18.0...v0.19.0) (2026-05-15)
 
 
