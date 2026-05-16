@@ -59,6 +59,13 @@ A Go SDK for the [Derive](https://docs.derive.xyz/) exchange (formerly Lyra) —
 
 Covers REST (public + private), WebSocket (public + private + subscriptions), and EIP-712 order signing with session keys.
 
+**Out of scope:** on-chain operations (deposit, withdraw, session-key
+registration). Those require an EVM toolchain (e.g.
+[`go-ethereum`](https://github.com/ethereum/go-ethereum)) and aren't
+bundled here — this SDK is the JSON-RPC trading surface only. Once
+funds are deposited via the Derive UI or your own contract calls,
+every order / RFQ / quote / cancel flow runs through this SDK.
+
 ## Status
 
 `v0.x` — pre-1.0; the public API may still change. Track the current
@@ -85,9 +92,11 @@ Requires Go 1.25+.
 
 ## Compatibility
 
-| go-derive | Go versions | Derive API |
-|---|---|---|
-| v0.2.x | 1.25, 1.26 | matches Derive API as of v0.2.13 |
+Built and CI-tested against **Go 1.25 and Go 1.26** on Linux, macOS
+and Windows. Tracks the Derive API as documented at
+[docs.derive.xyz](https://docs.derive.xyz/) — see
+[CHANGELOG.md](./CHANGELOG.md) for the API drift addressed in each
+release.
 
 ## Quick start
 
@@ -103,6 +112,7 @@ import (
     "github.com/amiwrpremium/go-derive/pkg/auth"
     "github.com/amiwrpremium/go-derive/pkg/derive"
     "github.com/amiwrpremium/go-derive/pkg/enums"
+    "github.com/amiwrpremium/go-derive/pkg/types"
 )
 
 func main() {
@@ -126,7 +136,10 @@ func main() {
 
     ctx := context.Background()
 
-    instruments, err := c.REST.GetInstruments(ctx, "BTC", enums.InstrumentTypePerp)
+    instruments, err := c.REST.GetInstruments(ctx, types.InstrumentsQuery{
+        Currency: "BTC",
+        Kind:     enums.InstrumentTypePerp,
+    })
     if err != nil {
         log.Fatal(err)
     }
@@ -141,8 +154,8 @@ See [`examples/`](./examples/) for more — and
 
 ```text
 pkg/derive               top-level facade (REST + WS)
-pkg/rest, pkg/ws         dedicated clients
-pkg/channels             typed WebSocket subscriptions
+pkg/rest                 HTTP-backed JSON-RPC client
+pkg/ws                   WebSocket-backed JSON-RPC + typed subscriptions
 pkg/auth                 EIP-712 signing, session keys
 pkg/types, pkg/enums     domain types, named-string enums
 pkg/errors               sentinel errors + APIError
@@ -156,6 +169,19 @@ internal/retry           exponential backoff
 ```
 
 The Derive API is JSON-RPC 2.0 over both HTTP and WebSocket — same method names, same params. The SDK reflects that: a single `Transport` interface backs both `pkg/rest` and `pkg/ws`, so each method is defined once.
+
+### Which package do I import?
+
+- **`pkg/derive`** — start here. The top-level facade bundles a REST
+  client and a WS client sharing one signer and subaccount, which is
+  what most callers want.
+- **`pkg/rest`** alone — when you only need HTTP RPCs (e.g. periodic
+  history pulls from a non-trading process).
+- **`pkg/ws`** alone — when you only need streaming (e.g. a feed
+  recorder that doesn't place orders).
+
+Both `pkg/rest` and `pkg/ws` expose the full RPC method surface
+independently; the facade is a shortcut, not a feature gate.
 
 See [`docs/architecture.md`](./docs/architecture.md) for the full design.
 
