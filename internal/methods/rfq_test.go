@@ -343,7 +343,7 @@ func TestRFQGetBestQuote_Decode_NoQuote(t *testing.T) {
 	assert.Equal(t, "1000", res.EstimatedTotalCost.String())
 }
 
-func TestOrderQuotePublic_Decode(t *testing.T) {
+func TestGetPublicOrderQuote_Decode(t *testing.T) {
 	api, ft := newAPI(t, true, 7)
 	ft.HandleResult("public/order_quote", map[string]any{
 		"is_valid":                         true,
@@ -360,7 +360,7 @@ func TestOrderQuotePublic_Decode(t *testing.T) {
 		"post_initial_margin":              "120",
 		"post_liquidation_price":           nil,
 	})
-	got, err := api.OrderQuotePublic(context.Background(), validPlaceOrderInput())
+	got, err := api.GetPublicOrderQuote(context.Background(), validPlaceOrderInput())
 	require.NoError(t, err)
 	require.NotNil(t, got)
 	assert.True(t, got.IsValid)
@@ -368,7 +368,7 @@ func TestOrderQuotePublic_Decode(t *testing.T) {
 	assert.Equal(t, "10", got.MaxAmount.String())
 }
 
-func TestOrderQuote_Decode(t *testing.T) {
+func TestGetOrderQuote_Decode(t *testing.T) {
 	api, ft := newAPI(t, true, 7)
 	ft.HandleResult("private/order_quote", map[string]any{
 		"is_valid":               true,
@@ -383,7 +383,7 @@ func TestOrderQuote_Decode(t *testing.T) {
 		"post_initial_margin":    "120",
 		"post_liquidation_price": nil,
 	})
-	got, err := api.OrderQuote(context.Background(), validPlaceOrderInput())
+	got, err := api.GetOrderQuote(context.Background(), validPlaceOrderInput())
 	require.NoError(t, err)
 	require.NotNil(t, got)
 	assert.True(t, got.IsValid)
@@ -392,7 +392,7 @@ func TestOrderQuote_Decode(t *testing.T) {
 	assert.Equal(t, "0", got.PostLiquidationPrice.String(), "null decimal decodes to zero-value")
 }
 
-func TestOrderQuote_Invalid(t *testing.T) {
+func TestGetOrderQuote_Invalid(t *testing.T) {
 	api, ft := newAPI(t, true, 7)
 	ft.HandleResult("private/order_quote", map[string]any{
 		"is_valid":               false,
@@ -407,7 +407,7 @@ func TestOrderQuote_Invalid(t *testing.T) {
 		"post_initial_margin":    "100",
 		"post_liquidation_price": "45000",
 	})
-	got, err := api.OrderQuote(context.Background(), validPlaceOrderInput())
+	got, err := api.GetOrderQuote(context.Background(), validPlaceOrderInput())
 	require.NoError(t, err)
 	assert.False(t, got.IsValid)
 	assert.Equal(t, enums.RFQInvalidReasonInsufficientBuyingPower, got.InvalidReason)

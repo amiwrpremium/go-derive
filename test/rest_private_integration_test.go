@@ -56,13 +56,13 @@ func TestPrivate_GetPositions(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestPrivate_GetCollateral(t *testing.T) {
+func TestPrivate_GetCollaterals(t *testing.T) {
 	env := loadEnv(t)
 	c := newAuthRESTClient(t, env)
 	ctx, cancel := withTimeout(t)
 	defer cancel()
 
-	_, err := c.GetCollateral(ctx)
+	_, err := c.GetCollaterals(ctx)
 	require.NoError(t, err)
 }
 

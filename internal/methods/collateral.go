@@ -14,8 +14,8 @@ import (
 	"github.com/amiwrpremium/go-derive/pkg/types"
 )
 
-// GetCollateral returns the collateral breakdown for the subaccount. Private.
-func (a *API) GetCollateral(ctx context.Context) ([]types.Collateral, error) {
+// GetCollaterals returns the collateral breakdown for the subaccount. Private.
+func (a *API) GetCollaterals(ctx context.Context) ([]types.Collateral, error) {
 	if err := a.requireSubaccount(); err != nil {
 		return nil, err
 	}

@@ -17,7 +17,7 @@ var boom = &derrors.APIError{Code: 9999, Message: "boom"}
 
 // TestNoArgWrappers_PropagateError exercises the APIError-pass-
 // through path on every method, including the formerly-raw
-// `OrderQuote` and `GetPerpImpactTWAP` (now both fully typed
+// `GetOrderQuote` and `GetPerpImpactTWAP` (now both fully typed
 // against `derivexyz/cockpit/orderbook-types`).
 func TestNoArgWrappers_PropagateError(t *testing.T) {
 	t.Run("CancelByNonce", func(t *testing.T) {
@@ -110,10 +110,10 @@ func TestNoArgWrappers_PropagateError(t *testing.T) {
 		_, _, err := api.GetTradeHistory(context.Background(), types.TradeHistoryQuery{}, types.PageRequest{})
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
-	t.Run("OrderQuote", func(t *testing.T) {
+	t.Run("GetOrderQuote", func(t *testing.T) {
 		api, ft := newAPI(t, true, 1)
 		ft.HandleError("private/order_quote", boom)
-		_, err := api.OrderQuote(context.Background(), validPlaceOrderInput())
+		_, err := api.GetOrderQuote(context.Background(), validPlaceOrderInput())
 		assert.ErrorAs(t, err, new(*derrors.APIError))
 	})
 	t.Run("GetPerpImpactTWAP", func(t *testing.T) {

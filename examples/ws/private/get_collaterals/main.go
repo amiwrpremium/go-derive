@@ -1,4 +1,4 @@
-// Lists the subaccount's collateral positions.
+// Fetches collateral over WebSocket.
 package main
 
 import (
@@ -12,7 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/amiwrpremium/go-derive/pkg/auth"
-	"github.com/amiwrpremium/go-derive/pkg/rest"
+	"github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
 func main() {
@@ -38,23 +38,27 @@ func main() {
 		log.Fatalf("signer: %v", err)
 	}
 
-	restNetwork := rest.WithTestnet()
-	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
-		restNetwork = rest.WithMainnet()
-	}
-	c, err := rest.New(restNetwork, rest.WithSigner(signer), rest.WithSubaccount(subaccount))
-	if err != nil {
-		log.Fatalf("rest.New: %v", err)
-	}
-	defer c.Close()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	cols, err := c.GetCollateral(ctx)
+	wsNetwork := ws.WithTestnet()
+	if os.Getenv("DERIVE_NETWORK") == "mainnet" {
+		wsNetwork = ws.WithMainnet()
+	}
+	c, err := ws.New(wsNetwork, ws.WithSigner(signer), ws.WithSubaccount(subaccount))
+	if err != nil {
+		log.Fatalf("ws.New: %v", err)
+	}
+	defer c.Close()
+	if err := c.Connect(ctx); err != nil {
+		log.Fatalf("ws.Connect: %v", err)
+	}
+	if err := c.Login(ctx); err != nil {
+		log.Fatalf("ws.Login: %v", err)
+	}
+	cols, err := c.GetCollaterals(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, c := range cols {
-		fmt.Printf("%-30s %v\n", c.AssetName+":", c.Amount)
-	}
+	fmt.Printf("%-30s %v\n", "count:", len(cols))
 }
