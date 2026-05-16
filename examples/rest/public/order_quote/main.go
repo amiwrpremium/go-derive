@@ -60,7 +60,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	res, err := c.OrderQuotePublic(ctx, types.PlaceOrderInput{
+	res, err := c.GetPublicOrderQuote(ctx, types.PlaceOrderInput{
 		InstrumentName: instrument,
 		Asset:          types.Address(baseAsset),
 		Direction:      enums.DirectionBuy,

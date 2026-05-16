@@ -615,7 +615,7 @@ func cancelBatchParams(filter types.CancelBatchInput, defaultSubaccount int64, i
 	return params
 }
 
-// OrderQuotePublic is the unauthenticated counterpart of
+// GetPublicOrderQuote is the unauthenticated counterpart of
 // [API.GetOrderQuote] — it runs a hypothetical order through the
 // matching engine without submitting and returns the engine's
 // estimates for fill price, fee, and post-trade margin balance.
@@ -624,7 +624,7 @@ func cancelBatchParams(filter types.CancelBatchInput, defaultSubaccount int64, i
 // signed order body (the connection is unauthenticated but the
 // payload is not), so the SDK signs with the configured signer
 // before sending. Same input and result shape as [API.GetOrderQuote].
-func (a *API) OrderQuotePublic(ctx context.Context, in types.PlaceOrderInput) (types.OrderQuoteResult, error) {
+func (a *API) GetPublicOrderQuote(ctx context.Context, in types.PlaceOrderInput) (types.OrderQuoteResult, error) {
 	params, err := a.signedOrderParams(ctx, in)
 	if err != nil {
 		return types.OrderQuoteResult{}, err
