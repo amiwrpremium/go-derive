@@ -7,6 +7,17 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.22.0](https://github.com/amiwrpremium/go-derive/compare/v0.21.0...v0.22.0) (2026-05-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* **methods:** normalize method names to match doc and SDK conventions ([#149](https://github.com/amiwrpremium/go-derive/issues/149))
+
+### Features
+
+* **methods:** normalize method names to match doc and SDK conventions ([#149](https://github.com/amiwrpremium/go-derive/issues/149)) ([a44d4cf](https://github.com/amiwrpremium/go-derive/commit/a44d4cfaaca075cbe314c2ec7fa13f999bb3fa36))
+
 ## [0.21.0](https://github.com/amiwrpremium/go-derive/compare/v0.20.0...v0.21.0) (2026-05-16)
 
 
