@@ -64,7 +64,7 @@ func main() {
 	if err := c.Login(ctx); err != nil {
 		log.Fatalf("ws.Login: %v", err)
 	}
-	res, err := c.OrderQuote(ctx, types.PlaceOrderInput{
+	res, err := c.GetOrderQuote(ctx, types.PlaceOrderInput{
 		InstrumentName: instrument,
 		Asset:          types.Address(baseAsset),
 		Direction:      enums.DirectionBuy,

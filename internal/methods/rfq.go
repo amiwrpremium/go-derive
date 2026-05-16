@@ -616,14 +616,14 @@ func cancelBatchParams(filter types.CancelBatchInput, defaultSubaccount int64, i
 }
 
 // OrderQuotePublic is the unauthenticated counterpart of
-// [API.OrderQuote] — it runs a hypothetical order through the
+// [API.GetOrderQuote] — it runs a hypothetical order through the
 // matching engine without submitting and returns the engine's
 // estimates for fill price, fee, and post-trade margin balance.
 //
 // Wraps `public/order_quote`. The endpoint still requires a fully
 // signed order body (the connection is unauthenticated but the
 // payload is not), so the SDK signs with the configured signer
-// before sending. Same input and result shape as [API.OrderQuote].
+// before sending. Same input and result shape as [API.GetOrderQuote].
 func (a *API) OrderQuotePublic(ctx context.Context, in types.PlaceOrderInput) (types.OrderQuoteResult, error) {
 	params, err := a.signedOrderParams(ctx, in)
 	if err != nil {
@@ -636,7 +636,7 @@ func (a *API) OrderQuotePublic(ctx context.Context, in types.PlaceOrderInput) (t
 	return resp, nil
 }
 
-// OrderQuote runs a hypothetical order through the matching engine
+// GetOrderQuote runs a hypothetical order through the matching engine
 // without submitting and reports the engine's estimates for fill
 // price, fee, and post-trade margin balance. Useful for
 // pre-flighting orders against thin books where the user wants to
@@ -648,7 +648,7 @@ func (a *API) OrderQuotePublic(ctx context.Context, in types.PlaceOrderInput) (t
 //
 // The result shape mirrors `PrivateOrderQuoteResultSchema` in
 // `derivexyz/cockpit/orderbook-types`.
-func (a *API) OrderQuote(ctx context.Context, in types.PlaceOrderInput) (types.OrderQuoteResult, error) {
+func (a *API) GetOrderQuote(ctx context.Context, in types.PlaceOrderInput) (types.OrderQuoteResult, error) {
 	params, err := a.signedOrderParams(ctx, in)
 	if err != nil {
 		return types.OrderQuoteResult{}, err
