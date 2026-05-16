@@ -12,7 +12,7 @@ func TestEIP712Domain_BindsToConfig(t *testing.T) {
 	c := netconf.Mainnet()
 	d := c.EIP712Domain()
 	assert.Equal(t, "Matching", d.Name)
-	assert.Equal(t, "1", d.Version)
+	assert.Equal(t, "1.0", d.Version)
 	assert.Equal(t, c.ChainID, d.ChainID)
 	assert.Equal(t, c.Contracts.MatchingEngine, d.VerifyingContract)
 }

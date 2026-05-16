@@ -58,7 +58,7 @@ func Mainnet() Config {
 		WSURL:       "wss://api.lyra.finance/ws",
 		ExplorerURL: "https://explorer.lyra.finance",
 		Contracts: Contracts{
-			MatchingEngine: "0xB1dE3D5d4e1Fb9e60db9bf7F6F6F9b03F80cA0d8",
+			MatchingEngine: "0xeB8d770ec18DB98Db922E9D83260A585b9F0DeAD",
 			TradeModule:    "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b",
 			DepositModule:  "0x9B3FE5E5a3bcEa5df4E08c41Ce89C4e3Ff01Ace3",
 			WithdrawModule: "0x9d0E8f5b25384C7310CB8C6aE32C8fbeb645d083",
@@ -77,7 +77,7 @@ func Testnet() Config {
 		WSURL:       "wss://api-demo.lyra.finance/ws",
 		ExplorerURL: "https://explorer-prod-testnet-0eakp60405.t.conduit.xyz",
 		Contracts: Contracts{
-			MatchingEngine: "0x6e1dF77Ade8Cd60F9F4F78a888F22Bd3aB52E0BC",
+			MatchingEngine: "0x3cc154e220c2197c5337b7Bd13363DD127Bc0C6E",
 			TradeModule:    "0x87F2863866D85E3192a35A73b388BD625D83f2be",
 			DepositModule:  "0x9B3FE5E5a3bcEa5df4E08c41Ce89C4e3Ff01Ace3",
 			WithdrawModule: "0x9d0E8f5b25384C7310CB8C6aE32C8fbeb645d083",

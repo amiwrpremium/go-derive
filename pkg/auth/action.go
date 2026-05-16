@@ -44,12 +44,20 @@ import (
 )
 
 // actionTypeHash is keccak256 of the canonical EIP-712 type string for
-// Derive's `Action` struct:
+// Derive's `Action` struct, exactly as declared by the on-chain
+// ActionVerifier (https://github.com/derivexyz/v2-matching, src/ActionVerifier.sol):
 //
 //	Action(uint256 subaccountId, uint256 nonce, address module,
-//	       bytes32 data, uint256 expiry, address owner, address signer)
+//	       bytes data, uint256 expiry, address owner, address signer)
+//
+// The `data` field is declared as `bytes` (dynamic), not `bytes32`, even
+// though the encoded value is exactly 32 bytes — EIP-712 pre-hashes dynamic
+// types during struct encoding, so the wire shape is identical but the
+// typehash itself differs. Drift here silently breaks signature verification
+// with a 14014 error; pkg/auth/eip712_pinned_test.go pins the computed value
+// against the docs-published constant.
 var actionTypeHash = keccak([]byte(
-	"Action(uint256 subaccountId,uint256 nonce,address module,bytes32 data,uint256 expiry,address owner,address signer)",
+	"Action(uint256 subaccountId,uint256 nonce,address module,bytes data,uint256 expiry,address owner,address signer)",
 ))
 
 // ActionData is the input to Derive's order/cancel/transfer signing flow.
