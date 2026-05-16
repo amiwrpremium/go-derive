@@ -38,7 +38,8 @@
 package auth
 
 import (
-	"math/rand/v2"
+	"crypto/rand"
+	"encoding/binary"
 	"time"
 )
 
@@ -55,27 +56,40 @@ import (
 // The shape and meaning match the official Python reference at
 // derivexyz/v2-action-signing-python (utils.get_action_nonce) exactly.
 //
-// The engine only requires uniqueness, not strict monotonicity (the
-// Python reference uses non-monotonic `random.randint(0, 999)` and
-// works fine in production). The 1000-bucket suffix gives ample
-// collision headroom — birthday-paradox 50% probability at ~37
-// calls per millisecond, well above any non-HFT workload.
+// The engine only requires uniqueness, not strict monotonicity. The
+// 1000-bucket random suffix gives ample collision headroom —
+// birthday-paradox 50% probability at ~37 calls per millisecond, well
+// above any non-HFT workload.
 //
 // The zero value is usable. NewNonceGen is kept for source
 // compatibility with prior versions.
 type NonceGen struct{}
 
 // NewNonceGen returns a generator. The returned value is safe for
-// concurrent use; math/rand/v2's default Source has internal locking
-// and is auto-seeded from crypto/rand at package init.
+// concurrent use; crypto/rand.Read is goroutine-safe.
 func NewNonceGen() *NonceGen { return &NonceGen{} }
 
 // Next returns a fresh nonce in the documented format,
 // unix_ms*1000 + suffix where suffix ∈ [0, 999]. The engine only
-// requires uniqueness, not cryptographic secrecy, so math/rand/v2
-// is the right tool — using crypto/rand here would buy nothing and
-// cost a syscall per call.
+// requires uniqueness, not cryptographic secrecy — but the repo
+// precedent (see internal/retry/backoff.go) is to source randomness
+// from crypto/rand everywhere to satisfy the security linters
+// without per-call nolint directives. The cost is one OS RNG read
+// of 2 bytes per call, negligible relative to the network round-trip
+// every signed action does anyway.
 func (g *NonceGen) Next() uint64 {
-	//nolint:gosec // G404: see doc comment — nonce uniqueness only.
-	return uint64(time.Now().UTC().UnixMilli())*1000 + uint64(rand.IntN(1000))
+	return uint64(time.Now().UTC().UnixMilli())*1000 + nonceSuffix()
+}
+
+// nonceSuffix returns a uniform value in [0, 999] sourced from
+// crypto/rand. On the off chance crypto/rand.Read fails (it doesn't
+// on Linux/macOS/Windows), this returns 0 — the resulting nonce is
+// still valid because the ms-timestamp prefix dominates the
+// collision space.
+func nonceSuffix() uint64 {
+	var b [2]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		return 0
+	}
+	return uint64(binary.BigEndian.Uint16(b[:])) % 1000
 }
