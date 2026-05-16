@@ -62,6 +62,17 @@ const (
 	// CancelReasonCompliance means the wallet was placed in a restricted
 	// compliance state and its open orders were pulled.
 	CancelReasonCompliance CancelReason = "compliance"
+	// CancelReasonTriggerFailed means a trigger order activated but the
+	// child order the trigger placed could not be created (e.g. the
+	// engine rejected the resulting fill price).
+	CancelReasonTriggerFailed CancelReason = "trigger_failed"
+	// CancelReasonValidationFailed means the engine rejected the order
+	// during a validation step that doesn't map to one of the more
+	// specific reasons.
+	CancelReasonValidationFailed CancelReason = "validation_failed"
+	// CancelReasonAlgoCompleted means an algo order (currently TWAP)
+	// finished its planned slices and its parent order was closed.
+	CancelReasonAlgoCompleted CancelReason = "algo_completed"
 )
 
 // Valid reports whether the receiver is one of the defined cancel reasons.
@@ -73,7 +84,9 @@ func (c CancelReason) Valid() bool {
 	case CancelReasonNone, CancelReasonUserRequest, CancelReasonMMP,
 		CancelReasonInsufficientMargin, CancelReasonSignedMaxFeeTooLow,
 		CancelReasonIOC, CancelReasonCancelOnDisconnect, CancelReasonSessionKey,
-		CancelReasonSubaccountWithdrawn, CancelReasonCompliance:
+		CancelReasonSubaccountWithdrawn, CancelReasonCompliance,
+		CancelReasonTriggerFailed, CancelReasonValidationFailed,
+		CancelReasonAlgoCompleted:
 		return true
 	default:
 		return false

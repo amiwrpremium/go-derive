@@ -27,7 +27,7 @@ package enums
 //
 // Trades, transfers, and other actions that emit an on-chain transaction
 // carry a `tx_status` field that walks through these values: requested
-// → pending → settled (or reverted/ignored on failure).
+// → pending → settled (or reverted/ignored/timed_out on failure).
 type TxStatus string
 
 const (
@@ -41,12 +41,16 @@ const (
 	TxStatusReverted TxStatus = "reverted"
 	// TxStatusIgnored — request superseded or de-duplicated; final.
 	TxStatusIgnored TxStatus = "ignored"
+	// TxStatusTimedOut — the engine gave up waiting for an on-chain
+	// confirmation within its bounded window; final.
+	TxStatusTimedOut TxStatus = "timed_out"
 )
 
 // Valid reports whether the receiver is one of the defined statuses.
 func (s TxStatus) Valid() bool {
 	switch s {
-	case TxStatusRequested, TxStatusPending, TxStatusSettled, TxStatusReverted, TxStatusIgnored:
+	case TxStatusRequested, TxStatusPending, TxStatusSettled,
+		TxStatusReverted, TxStatusIgnored, TxStatusTimedOut:
 		return true
 	default:
 		return false
@@ -56,7 +60,7 @@ func (s TxStatus) Valid() bool {
 // Terminal reports whether the status is final.
 func (s TxStatus) Terminal() bool {
 	switch s {
-	case TxStatusSettled, TxStatusReverted, TxStatusIgnored:
+	case TxStatusSettled, TxStatusReverted, TxStatusIgnored, TxStatusTimedOut:
 		return true
 	default:
 		return false
