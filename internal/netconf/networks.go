@@ -59,7 +59,7 @@ func Mainnet() Config {
 		ExplorerURL: "https://explorer.lyra.finance",
 		Contracts: Contracts{
 			MatchingEngine: "0xB1dE3D5d4e1Fb9e60db9bf7F6F6F9b03F80cA0d8",
-			TradeModule:    "0x87F2863866D85E3192a35A73b388BD625D83f2be",
+			TradeModule:    "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b",
 			DepositModule:  "0x9B3FE5E5a3bcEa5df4E08c41Ce89C4e3Ff01Ace3",
 			WithdrawModule: "0x9d0E8f5b25384C7310CB8C6aE32C8fbeb645d083",
 			TransferModule: "0x01259207A40925b794C8ac320456F7F6c8FE2636",

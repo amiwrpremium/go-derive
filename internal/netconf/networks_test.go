@@ -38,6 +38,21 @@ func TestMainnetTestnet_Distinct(t *testing.T) {
 	assert.NotEqual(t, m.Network, te.Network)
 }
 
+// TestMainnetTestnet_SigningModulesDistinct guards against the
+// copy-paste class of bug where a testnet module address ends up in
+// the mainnet slot (or vice versa). The TradeModule and RFQModule are
+// the two addresses the SDK actually hashes against today via
+// signedOrderParams / signedQuoteParams; using the wrong network's
+// address makes every signature reject server-side.
+func TestMainnetTestnet_SigningModulesDistinct(t *testing.T) {
+	m := netconf.Mainnet()
+	te := netconf.Testnet()
+	assert.NotEqual(t, m.Contracts.TradeModule, te.Contracts.TradeModule,
+		"mainnet TradeModule must not equal testnet TradeModule")
+	assert.NotEqual(t, m.Contracts.RFQModule, te.Contracts.RFQModule,
+		"mainnet RFQModule must not equal testnet RFQModule")
+}
+
 func TestNetwork_String_Mainnet(t *testing.T) {
 	assert.Equal(t, "mainnet", netconf.NetworkMainnet.String())
 }
