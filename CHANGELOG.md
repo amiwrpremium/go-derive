@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.23.0](https://github.com/amiwrpremium/go-derive/compare/v0.22.2...v0.23.0) (2026-05-16)
+
+
+### Features
+
+* **enums:** align CancelReason and TxStatus with documented wire values ([#155](https://github.com/amiwrpremium/go-derive/issues/155)) ([686b404](https://github.com/amiwrpremium/go-derive/commit/686b4044b6b3412f34eefef56c4530e073820c1f))
+
 ## [0.22.2](https://github.com/amiwrpremium/go-derive/compare/v0.22.1...v0.22.2) (2026-05-16)
 
 
