@@ -1,6 +1,12 @@
 // Streams the full ticker channel for one instrument — instrument
 // metadata bundled with live market data. For the bandwidth-friendly
 // compact wire variant, see ws/public/subscribe/ticker.
+//
+// The `ticker` channel was deprecated upstream on 2025-12-01 in favour
+// of `ticker_slim`; this example exists to document the full payload
+// shape and exercises [ws.Client.SubscribeTicker] deliberately. The
+// `//lint:ignore SA1019` comment below silences staticcheck on the
+// intentional deprecated call.
 package main
 
 import (
@@ -34,6 +40,7 @@ func main() {
 	if err := c.Connect(ctx); err != nil {
 		log.Fatalf("ws.Connect: %v", err)
 	}
+	//lint:ignore SA1019 example deliberately demonstrates the deprecated full ticker payload; the slim variant is in the sibling ticker/ example
 	sub, err := c.SubscribeTicker(ctx, instrument, "")
 	if err != nil {
 		log.Fatal(err)
