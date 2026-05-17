@@ -40,10 +40,13 @@ func TestMainnetTestnet_Distinct(t *testing.T) {
 
 // TestMainnetTestnet_SigningModulesDistinct guards against the
 // copy-paste class of bug where a testnet module address ends up in
-// the mainnet slot (or vice versa). The TradeModule and RFQModule are
-// the two addresses the SDK actually hashes against today via
-// signedOrderParams / signedQuoteParams; using the wrong network's
-// address makes every signature reject server-side.
+// the mainnet slot (or vice versa). TradeModule and RFQModule are the
+// two addresses the SDK actually hashes against today via
+// signedOrderParams / signedQuoteParams; Deposit/Withdraw/Transfer
+// modules aren't signed against yet but were silently drifting (same
+// mainnet value in both slots) until the preceding `fix(netconf):`
+// commit. Pinning all five here keeps the door open for those flows
+// without a future debugging session.
 func TestMainnetTestnet_SigningModulesDistinct(t *testing.T) {
 	m := netconf.Mainnet()
 	te := netconf.Testnet()
@@ -51,6 +54,12 @@ func TestMainnetTestnet_SigningModulesDistinct(t *testing.T) {
 		"mainnet TradeModule must not equal testnet TradeModule")
 	assert.NotEqual(t, m.Contracts.RFQModule, te.Contracts.RFQModule,
 		"mainnet RFQModule must not equal testnet RFQModule")
+	assert.NotEqual(t, m.Contracts.DepositModule, te.Contracts.DepositModule,
+		"mainnet DepositModule must not equal testnet DepositModule")
+	assert.NotEqual(t, m.Contracts.WithdrawModule, te.Contracts.WithdrawModule,
+		"mainnet WithdrawModule must not equal testnet WithdrawModule")
+	assert.NotEqual(t, m.Contracts.TransferModule, te.Contracts.TransferModule,
+		"mainnet TransferModule must not equal testnet TransferModule")
 }
 
 func TestNetwork_String_Mainnet(t *testing.T) {
