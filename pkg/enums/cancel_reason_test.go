@@ -23,6 +23,7 @@ func TestCancelReason_Valid_AllArms(t *testing.T) {
 		enums.CancelReasonTriggerFailed,
 		enums.CancelReasonValidationFailed,
 		enums.CancelReasonAlgoCompleted,
+		enums.CancelReasonRFQNoLongerOpen,
 	}
 	for _, c := range cases {
 		t.Run(string(c), func(t *testing.T) {

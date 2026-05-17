@@ -73,6 +73,13 @@ const (
 	// CancelReasonAlgoCompleted means an algo order (currently TWAP)
 	// finished its planned slices and its parent order was closed.
 	CancelReasonAlgoCompleted CancelReason = "algo_completed"
+	// CancelReasonRFQNoLongerOpen is the RFQ-specific reason reported
+	// when an RFQ exits its open state for non-error reasons (the RFQ
+	// owner closed it, all quotes expired, etc.). Order cancellations
+	// never carry this value — it appears only on RFQ and quote cancel
+	// records. Matches the canonical `RfqNoLongerOpen` variant in
+	// derivexyz/cockpit's `orderbook-types/src/types/rfqs/enums.rs`.
+	CancelReasonRFQNoLongerOpen CancelReason = "rfq_no_longer_open"
 )
 
 // Valid reports whether the receiver is one of the defined cancel reasons.
@@ -86,7 +93,7 @@ func (c CancelReason) Valid() bool {
 		CancelReasonIOC, CancelReasonCancelOnDisconnect, CancelReasonSessionKey,
 		CancelReasonSubaccountWithdrawn, CancelReasonCompliance,
 		CancelReasonTriggerFailed, CancelReasonValidationFailed,
-		CancelReasonAlgoCompleted:
+		CancelReasonAlgoCompleted, CancelReasonRFQNoLongerOpen:
 		return true
 	default:
 		return false
