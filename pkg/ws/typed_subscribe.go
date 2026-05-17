@@ -76,6 +76,10 @@ func (c *Client) SubscribeSpotFeed(ctx context.Context, currency string, opts ..
 // string is treated as [IntervalDefault] ([Interval1000]).
 //
 // Wire channel: `ticker.{instrument}.{interval}`.
+//
+// Deprecated: the `ticker` channel was deprecated upstream on
+// 2025-12-01. Use [Client.SubscribeTickerSlim] for new code; the
+// engine may stop emitting on this channel without notice.
 func (c *Client) SubscribeTicker(ctx context.Context, instrument, interval string, opts ...SubscribeOption) (*Subscription[types.InstrumentTickerFeed], error) {
 	if interval == "" {
 		interval = IntervalDefault
