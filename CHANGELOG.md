@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.23.3](https://github.com/amiwrpremium/go-derive/compare/v0.23.2...v0.23.3) (2026-05-17)
+
+
+### Dependencies
+
+* **deps:** update semgrep/semgrep docker digest to 9349edb ([#163](https://github.com/amiwrpremium/go-derive/issues/163)) ([3f811c7](https://github.com/amiwrpremium/go-derive/commit/3f811c70556c21670bf4f926b8ad9de7c602ed8b))
+
 ## [0.23.2](https://github.com/amiwrpremium/go-derive/compare/v0.23.1...v0.23.2) (2026-05-16)
 
 
