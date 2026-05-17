@@ -7,6 +7,23 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.23.4](https://github.com/amiwrpremium/go-derive/compare/v0.23.3...v0.23.4) (2026-05-17)
+
+
+### Bug Fixes
+
+* **auth:** correct testnet Deposit/Withdraw/Transfer module addresses ([#168](https://github.com/amiwrpremium/go-derive/issues/168)) ([8348088](https://github.com/amiwrpremium/go-derive/commit/8348088bed567ef28e79d87a82365c36b3651739))
+
+
+### Dependencies
+
+* **deps:** update github actions ([#164](https://github.com/amiwrpremium/go-derive/issues/164)) ([88537e3](https://github.com/amiwrpremium/go-derive/commit/88537e375902e8ea149478559f171fc3c71ffad9))
+
+
+### Documentation
+
+* **ws:** mark SubscribeTicker deprecated; use SubscribeTickerSlim ([#167](https://github.com/amiwrpremium/go-derive/issues/167)) ([39680e8](https://github.com/amiwrpremium/go-derive/commit/39680e8e52fed8274b3d34fa0b12dedffee10f4b))
+
 ## [0.23.3](https://github.com/amiwrpremium/go-derive/compare/v0.23.2...v0.23.3) (2026-05-17)
 
 
