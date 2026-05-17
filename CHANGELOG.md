@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.23.4](https://github.com/amiwrpremium/go-derive/compare/v0.23.3...v0.23.4) (2026-05-17)
+
+
+### Dependencies
+
+* **deps:** update github actions ([#164](https://github.com/amiwrpremium/go-derive/issues/164)) ([88537e3](https://github.com/amiwrpremium/go-derive/commit/88537e375902e8ea149478559f171fc3c71ffad9))
+
 ## [0.23.3](https://github.com/amiwrpremium/go-derive/compare/v0.23.2...v0.23.3) (2026-05-17)
 
 
