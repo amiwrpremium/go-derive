@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.26.0](https://github.com/amiwrpremium/go-derive/compare/v0.25.0...v0.26.0) (2026-05-18)
+
+
+### Features
+
+* **methods:** add GetWalletsFromSessionKey for public/get_wallets_from_session_key ([#175](https://github.com/amiwrpremium/go-derive/issues/175)) ([f1b77dc](https://github.com/amiwrpremium/go-derive/commit/f1b77dc7e236769df710a71b1e25ed53242dea4c))
+
 ## [0.25.0](https://github.com/amiwrpremium/go-derive/compare/v0.24.0...v0.25.0) (2026-05-18)
 
 
