@@ -414,3 +414,57 @@ func TestGetOrderQuote_Invalid(t *testing.T) {
 	assert.Equal(t, enums.OrderStatusRejected, got.EstimatedOrderStatus)
 	assert.Equal(t, "45000", got.PostLiquidationPrice.String())
 }
+
+func TestSendQuoteDebug_Decode(t *testing.T) {
+	api, ft := newAPI(t, true, 7)
+	ft.HandleResult("public/send_quote_debug", map[string]any{
+		"action_hash":         "0xaaaaaaaa",
+		"encoded_data":        "0xdeadbeef",
+		"encoded_data_hashed": "0xfeedface",
+		"typed_data_hash":     "0xcafebabe",
+	})
+	got, err := api.SendQuoteDebug(context.Background(), types.SendQuoteInput{RFQID: "R1"})
+	require.NoError(t, err)
+	assert.Equal(t, "0xaaaaaaaa", got.ActionHash)
+	assert.Equal(t, "0xdeadbeef", got.EncodedData)
+	assert.Equal(t, "0xfeedface", got.EncodedDataHashed)
+	assert.Equal(t, "0xcafebabe", got.TypedDataHash)
+	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.NotEmpty(t, params["signature"], "signedQuoteParams must populate the signature field")
+	assert.NotEmpty(t, params["signer"], "signedQuoteParams must populate the signer field")
+}
+
+func TestSendQuoteDebug_RequiresSigner(t *testing.T) {
+	api, _ := newAPI(t, false, 0)
+	_, err := api.SendQuoteDebug(context.Background(), types.SendQuoteInput{RFQID: "R1"})
+	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
+}
+
+func TestExecuteQuoteDebug_Decode(t *testing.T) {
+	api, ft := newAPI(t, true, 7)
+	ft.HandleResult("public/execute_quote_debug", map[string]any{
+		"action_hash":         "0xaaaaaaaa",
+		"encoded_data":        "0xdeadbeef",
+		"encoded_data_hashed": "0xfeedface",
+		"encoded_legs":        "0x11111111",
+		"legs_hash":           "0x22222222",
+		"typed_data_hash":     "0xcafebabe",
+	})
+	got, err := api.ExecuteQuoteDebug(context.Background(), types.ExecuteQuoteInput{RFQID: "R1", QuoteID: "Q1"})
+	require.NoError(t, err)
+	assert.Equal(t, "0xaaaaaaaa", got.ActionHash)
+	assert.Equal(t, "0xdeadbeef", got.EncodedData)
+	assert.Equal(t, "0xfeedface", got.EncodedDataHashed)
+	assert.Equal(t, "0x11111111", got.EncodedLegs)
+	assert.Equal(t, "0x22222222", got.LegsHash)
+	assert.Equal(t, "0xcafebabe", got.TypedDataHash)
+	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.NotEmpty(t, params["signature"], "signedExecuteQuoteParams must populate the signature field")
+	assert.NotEmpty(t, params["signer"], "signedExecuteQuoteParams must populate the signer field")
+}
+
+func TestExecuteQuoteDebug_RequiresSigner(t *testing.T) {
+	api, _ := newAPI(t, false, 0)
+	_, err := api.ExecuteQuoteDebug(context.Background(), types.ExecuteQuoteInput{RFQID: "R1", QuoteID: "Q1"})
+	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
+}
