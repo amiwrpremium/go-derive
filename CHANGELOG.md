@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.27.0](https://github.com/amiwrpremium/go-derive/compare/v0.26.0...v0.27.0) (2026-05-18)
+
+
+### Features
+
+* **methods:** add SendQuoteDebug and ExecuteQuoteDebug for RFQ signing pre-flight ([#177](https://github.com/amiwrpremium/go-derive/issues/177)) ([b5514f3](https://github.com/amiwrpremium/go-derive/commit/b5514f307fc5a5b2cbf0948df0141d933418f23d))
+
 ## [0.26.0](https://github.com/amiwrpremium/go-derive/compare/v0.25.0...v0.26.0) (2026-05-18)
 
 
