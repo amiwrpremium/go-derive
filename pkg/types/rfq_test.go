@@ -116,6 +116,41 @@ func TestRFQ_Decode(t *testing.T) {
 	assert.Equal(t, int64(1700000060000), rfq.ValidUntil.Millis())
 }
 
+func TestRFQ_Decode_WithFillRate(t *testing.T) {
+	// `private/poll_rfqs` and `private/get_rfqs` augment the base
+	// RFQ shape with two engine-emitted fill-rate fields.
+	payload := `{
+		"rfq_id": "R2",
+		"subaccount_id": 1,
+		"wallet": "0xabc",
+		"status": "filled",
+		"cancel_reason": "",
+		"legs": [{"instrument_name":"BTC-PERP","direction":"buy","amount":"1"}],
+		"counterparties": [],
+		"label": "",
+		"preferred_direction": "",
+		"reducing_direction": "",
+		"filled_direction": "buy",
+		"filled_pct": "1",
+		"max_total_cost": "10",
+		"min_total_cost": "0",
+		"total_cost": "9.5",
+		"ask_total_cost": "0",
+		"bid_total_cost": "0",
+		"mark_total_cost": "0",
+		"partial_fill_step": "0.1",
+		"fill_rate": "0.85",
+		"recent_fill_rate": "0.72",
+		"valid_until": 1700000060000,
+		"creation_timestamp": 1700000000000,
+		"last_update_timestamp": 1700000001000
+	}`
+	var rfq types.RFQ
+	require.NoError(t, json.Unmarshal([]byte(payload), &rfq))
+	assert.Equal(t, "0.85", rfq.FillRate.String())
+	assert.Equal(t, "0.72", rfq.RecentFillRate.String())
+}
+
 func TestQuote_Decode(t *testing.T) {
 	payload := `{
 		"quote_id": "Q1",
