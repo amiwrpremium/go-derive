@@ -178,3 +178,53 @@ func TestChangeSessionKeyLabel_RequiresSigner(t *testing.T) {
 	_, err := api.ChangeSessionKeyLabel(context.Background(), "anything")
 	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
 }
+
+func TestGetWalletsFromSessionKey_Success(t *testing.T) {
+	api, ft := newAPI(t, false, 0)
+	ft.HandleResult("public/get_wallets_from_session_key", map[string]any{
+		"wallets": []any{
+			"0x1111111111111111111111111111111111111111",
+			"0x2222222222222222222222222222222222222222",
+		},
+	})
+	q := types.WalletsFromSessionKeyQuery{
+		PublicSessionKey: types.MustAddress("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+	}
+	wallets, err := api.GetWalletsFromSessionKey(context.Background(), q)
+	require.NoError(t, err)
+	require.Len(t, wallets, 2)
+	assert.Equal(t, types.MustAddress("0x1111111111111111111111111111111111111111"), wallets[0])
+	assert.Equal(t, types.MustAddress("0x2222222222222222222222222222222222222222"), wallets[1])
+	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.NotEmpty(t, params["public_session_key"])
+}
+
+func TestGetWalletsFromSessionKey_WithScope(t *testing.T) {
+	api, ft := newAPI(t, false, 0)
+	ft.HandleResult("public/get_wallets_from_session_key", map[string]any{
+		"wallets": []any{"0x3333333333333333333333333333333333333333"},
+	})
+	q := types.WalletsFromSessionKeyQuery{
+		PublicSessionKey: types.MustAddress("0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+		Scope:            "admin",
+	}
+	_, err := api.GetWalletsFromSessionKey(context.Background(), q)
+	require.NoError(t, err)
+	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.Equal(t, "admin", params["scope"])
+}
+
+func TestGetWalletsFromSessionKey_OmitsEmptyScope(t *testing.T) {
+	api, ft := newAPI(t, false, 0)
+	ft.HandleResult("public/get_wallets_from_session_key", map[string]any{
+		"wallets": []any{},
+	})
+	q := types.WalletsFromSessionKeyQuery{
+		PublicSessionKey: types.MustAddress("0xcccccccccccccccccccccccccccccccccccccccc"),
+	}
+	_, err := api.GetWalletsFromSessionKey(context.Background(), q)
+	require.NoError(t, err)
+	params := paramsAsMap(t, ft.LastCall().Params)
+	_, hasScope := params["scope"]
+	assert.False(t, hasScope, "scope must be omitted when empty")
+}

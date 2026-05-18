@@ -110,6 +110,36 @@ func (a *API) RegisterScopedSessionKey(ctx context.Context, in types.RegisterSco
 	return resp, nil
 }
 
+// GetWalletsFromSessionKey returns the wallet addresses for which the
+// given session key is registered. Public. Wraps
+// `public/get_wallets_from_session_key`.
+//
+// Reverse lookup: given a session-key EOA, find which wallet(s) it
+// can sign for. Useful at connection time when a session key is
+// configured but the owner wallet isn't known yet, or for ops tooling
+// debugging session-key registrations.
+//
+// Pass [types.WalletsFromSessionKeyQuery.Scope] empty to return all
+// registrations regardless of scope; otherwise valid values are
+// "admin", "account", and "read_only".
+//
+// No authentication required.
+func (a *API) GetWalletsFromSessionKey(ctx context.Context, q types.WalletsFromSessionKeyQuery) ([]types.Address, error) {
+	params := map[string]any{
+		"public_session_key": q.PublicSessionKey.String(),
+	}
+	if q.Scope != "" {
+		params["scope"] = q.Scope
+	}
+	var resp struct {
+		Wallets []types.Address `json:"wallets"`
+	}
+	if err := a.call(ctx, "public/get_wallets_from_session_key", params, &resp); err != nil {
+		return nil, err
+	}
+	return resp.Wallets, nil
+}
+
 // ChangeSessionKeyLabel renames the label on the calling session key.
 // Private. Wraps `private/change_session_key_label`.
 //

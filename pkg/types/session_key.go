@@ -65,6 +65,18 @@ type RegisterScopedSessionKeyInput struct {
 	SignedRawTx string
 }
 
+// WalletsFromSessionKeyQuery is the input to
+// `public/get_wallets_from_session_key`. Resolves a session-key EOA
+// back to the wallet addresses it can sign for.
+type WalletsFromSessionKeyQuery struct {
+	// PublicSessionKey is the session-key EOA to look up. Required.
+	PublicSessionKey Address
+	// Scope optionally filters to registrations of a specific scope.
+	// Valid values: "admin", "account", "read_only". Empty means no
+	// filter — return all matches regardless of scope.
+	Scope string
+}
+
 // RegisterScopedSessionKeyResult is the response from
 // `private/register_scoped_session_key`. The session key is not
 // usable until the carried transaction settles on chain — poll the
