@@ -109,3 +109,32 @@ func (a *API) RegisterScopedSessionKey(ctx context.Context, in types.RegisterSco
 	}
 	return resp, nil
 }
+
+// ChangeSessionKeyLabel renames the label on the calling session key.
+// Private. Wraps `private/change_session_key_label`.
+//
+// The engine identifies the target session key from the auth signature
+// on the request, not from a body parameter — so the call renames
+// whichever key signed the request. To rename a different key, use
+// [API.EditSessionKey] with that key's address.
+//
+// The docs mark this method as WS-only, but the engine accepts it over
+// REST too via the shared JSON-RPC dispatch — go-derive exposes it on
+// both transports.
+//
+// Returns the updated label as confirmed by the engine.
+//
+// Minimum session-key permission level: account.
+func (a *API) ChangeSessionKeyLabel(ctx context.Context, label string) (string, error) {
+	if err := a.requireSigner(); err != nil {
+		return "", err
+	}
+	params := map[string]any{"label": label}
+	var resp struct {
+		Label string `json:"label"`
+	}
+	if err := a.call(ctx, "private/change_session_key_label", params, &resp); err != nil {
+		return "", err
+	}
+	return resp.Label, nil
+}

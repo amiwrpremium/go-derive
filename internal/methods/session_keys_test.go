@@ -156,3 +156,25 @@ func TestRegisterScopedSessionKey_RequiresSigner(t *testing.T) {
 	_, err := api.RegisterScopedSessionKey(context.Background(), types.RegisterScopedSessionKeyInput{})
 	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
 }
+
+func TestChangeSessionKeyLabel_Success(t *testing.T) {
+	api, ft := newAPI(t, true, 0)
+	ft.HandleResult("private/change_session_key_label", map[string]any{
+		"label": "renamed",
+	})
+	got, err := api.ChangeSessionKeyLabel(context.Background(), "renamed")
+	require.NoError(t, err)
+	assert.Equal(t, "renamed", got)
+	params := paramsAsMap(t, ft.LastCall().Params)
+	assert.Equal(t, "renamed", params["label"])
+	_, hasWallet := params["wallet"]
+	assert.False(t, hasWallet, "wallet must not be in params — the engine identifies the target key from the auth signature")
+	_, hasPSK := params["public_session_key"]
+	assert.False(t, hasPSK, "public_session_key must not be in params — calling key is the target")
+}
+
+func TestChangeSessionKeyLabel_RequiresSigner(t *testing.T) {
+	api, _ := newAPI(t, false, 0)
+	_, err := api.ChangeSessionKeyLabel(context.Background(), "anything")
+	assert.ErrorIs(t, err, derrors.ErrUnauthorized)
+}
