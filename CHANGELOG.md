@@ -7,6 +7,13 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.24.0](https://github.com/amiwrpremium/go-derive/compare/v0.23.4...v0.24.0) (2026-05-17)
+
+
+### Features
+
+* **enums:** add CancelReasonRFQNoLongerOpen for RFQ-specific cancels ([#170](https://github.com/amiwrpremium/go-derive/issues/170)) ([53dcfd4](https://github.com/amiwrpremium/go-derive/commit/53dcfd42c8677268b1a4ec899a9c3a322cf4c199))
+
 ## [0.23.4](https://github.com/amiwrpremium/go-derive/compare/v0.23.3...v0.23.4) (2026-05-17)
 
 
