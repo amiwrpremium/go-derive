@@ -131,6 +131,15 @@ type RFQ struct {
 	MarkTotalCost Decimal `json:"mark_total_cost"`
 	// PartialFillStep is the minimum partial-fill increment.
 	PartialFillStep Decimal `json:"partial_fill_step"`
+	// FillRate is the cumulative historical fill rate for this
+	// taker across all RFQs (0…1). Engine-emitted on
+	// `private/poll_rfqs` and `private/get_rfqs` responses; null
+	// before the taker has a history (zero after JSON-null decode).
+	FillRate Decimal `json:"fill_rate,omitempty"`
+	// RecentFillRate is the rolling-window fill rate (engine-defined
+	// window), as a fraction 0…1. Same null-on-wire semantics as
+	// [FillRate].
+	RecentFillRate Decimal `json:"recent_fill_rate,omitempty"`
 	// ValidUntil is the RFQ's expiry (millisecond Unix epoch).
 	ValidUntil MillisTime `json:"valid_until"`
 	// CreationTimestamp is when the RFQ was first received.
