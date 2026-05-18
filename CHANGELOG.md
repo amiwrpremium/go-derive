@@ -7,6 +7,18 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.27.1](https://github.com/amiwrpremium/go-derive/compare/v0.27.0...v0.27.1) (2026-05-18)
+
+
+### Bug Fixes
+
+* **types:** field-level drift fixes (MarginWatch, RFQ fill_rate, InstrumentTicker) ([#181](https://github.com/amiwrpremium/go-derive/issues/181)) ([5349318](https://github.com/amiwrpremium/go-derive/commit/5349318c42d8cb13175e1bbdd305b5ea270d5e93))
+
+
+### Documentation
+
+* note SubscribeTicker deprecation in MIGRATING.md historical entry ([#179](https://github.com/amiwrpremium/go-derive/issues/179)) ([222db2b](https://github.com/amiwrpremium/go-derive/commit/222db2b593d5ce238531af1f95677a22d3758480))
+
 ## [0.27.0](https://github.com/amiwrpremium/go-derive/compare/v0.26.0...v0.27.0) (2026-05-18)
 
 
