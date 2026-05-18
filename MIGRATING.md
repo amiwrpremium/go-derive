@@ -371,7 +371,9 @@ methods.MMPConfig{...}                 types.MMPConfig{...}
 
 ### [#78](https://github.com/amiwrpremium/go-derive/pull/78) — typed `Subscribe*` methods + wire-name drift fix
 
-Sixteen typed convenience methods on `*ws.Client` (`SubscribeOrderBook`, `SubscribeTicker`, etc.). Generic `ws.Subscribe[T]` remains supported.
+Sixteen typed convenience methods on `*ws.Client` (`SubscribeOrderBook`, `SubscribeTickerSlim`, etc.). Generic `ws.Subscribe[T]` remains supported.
+
+> **Note:** `SubscribeTicker` (verbose ticker) was deprecated in v0.23.4 after the upstream `ticker` channel was marked deprecated on 2025-12-01. Use `SubscribeTickerSlim` for new code; the verbose method continues to work but staticcheck will flag callers via SA1019.
 
 **Wire-name drift fix** — only affects code that built channel strings by hand (the typed methods always emitted the right names):
 
