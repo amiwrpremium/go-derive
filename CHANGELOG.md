@@ -7,6 +7,18 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.25.0](https://github.com/amiwrpremium/go-derive/compare/v0.24.0...v0.25.0) (2026-05-18)
+
+
+### Features
+
+* **methods:** add ChangeSessionKeyLabel for private/change_session_key_label ([#172](https://github.com/amiwrpremium/go-derive/issues/172)) ([fd69ba1](https://github.com/amiwrpremium/go-derive/commit/fd69ba14651cb9382ef49f9865808701e3aeb6e0))
+
+
+### Continuous Integration
+
+* exclude auto-generated CHANGELOG.md from typos ([#174](https://github.com/amiwrpremium/go-derive/issues/174)) ([5351e91](https://github.com/amiwrpremium/go-derive/commit/5351e917267beacfb58e58a8cd09746212808468))
+
 ## [0.24.0](https://github.com/amiwrpremium/go-derive/compare/v0.23.4...v0.24.0) (2026-05-17)
 
 
