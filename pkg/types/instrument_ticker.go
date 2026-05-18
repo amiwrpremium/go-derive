@@ -84,6 +84,16 @@ type InstrumentTicker struct {
 	// Nullable on the wire — zero when not applicable.
 	MarkPriceFeeRateCap Decimal `json:"mark_price_fee_rate_cap,omitempty"`
 
+	// ProRataFraction is the maximum fraction of an order eligible
+	// for pro-rata matching at the same price (0 = pure FIFO).
+	ProRataFraction Decimal `json:"pro_rata_fraction,omitempty"`
+	// ProRataAmountStep is the rounding increment when distributing
+	// pro-rata shares.
+	ProRataAmountStep Decimal `json:"pro_rata_amount_step,omitempty"`
+	// FIFOMinAllocation is the minimum size each resting order is
+	// guaranteed via FIFO before pro-rata routing kicks in.
+	FIFOMinAllocation Decimal `json:"fifo_min_allocation,omitempty"`
+
 	// ScheduledActivation is the timestamp at which the instrument
 	// becomes / became active (Unix seconds).
 	ScheduledActivation int64 `json:"scheduled_activation"`
@@ -99,6 +109,12 @@ type InstrumentTicker struct {
 	BestAskPrice Decimal `json:"best_ask_price"`
 	// BestAskAmount is the size resting at [BestAskPrice].
 	BestAskAmount Decimal `json:"best_ask_amount"`
+	// FivePercentBidDepth is the cumulative bid size within 5 % of
+	// the mid price — a coarse liquidity indicator.
+	FivePercentBidDepth Decimal `json:"five_percent_bid_depth,omitempty"`
+	// FivePercentAskDepth is the cumulative ask size within 5 % of
+	// the mid price.
+	FivePercentAskDepth Decimal `json:"five_percent_ask_depth,omitempty"`
 
 	// MarkPrice is the engine's mark price.
 	MarkPrice Decimal `json:"mark_price"`
