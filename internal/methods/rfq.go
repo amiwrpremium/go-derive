@@ -659,3 +659,47 @@ func (a *API) GetOrderQuote(ctx context.Context, in types.PlaceOrderInput) (type
 	}
 	return resp, nil
 }
+
+// SendQuoteDebug returns the engine's internal hashing artefacts for
+// a hypothetical maker quote — useful for validating per-quote
+// EIP-712 signatures in CI before paying gas or risking a live
+// RFQ-state desync. Wraps `public/send_quote_debug`.
+//
+// Public per the docs (no auth headers required), but the request
+// body must carry a valid signed quote — the SDK fills in
+// subaccount id, nonce, signature, signer and expiry exactly as
+// for [API.SendQuote].
+func (a *API) SendQuoteDebug(ctx context.Context, in types.SendQuoteInput) (types.SendQuoteDebugResult, error) {
+	params, err := a.signedQuoteParams(ctx, in)
+	if err != nil {
+		return types.SendQuoteDebugResult{}, err
+	}
+	var resp types.SendQuoteDebugResult
+	if err := a.call(ctx, "public/send_quote_debug", params, &resp); err != nil {
+		return types.SendQuoteDebugResult{}, err
+	}
+	return resp, nil
+}
+
+// ExecuteQuoteDebug returns the engine's internal hashing artefacts
+// for a hypothetical quote execution — useful for validating
+// per-execute EIP-712 signatures in CI before paying gas or risking
+// a live RFQ-state desync. Wraps `public/execute_quote_debug`.
+//
+// Public per the docs (no auth headers required), but the request
+// body must carry a valid signed execute payload — the SDK fills in
+// subaccount id, nonce, signature, signer and expiry exactly as
+// for [API.ExecuteQuote]. The response carries the encoded leg
+// payload separately because executes invert each leg's direction
+// relative to the maker's `send_quote`.
+func (a *API) ExecuteQuoteDebug(ctx context.Context, in types.ExecuteQuoteInput) (types.ExecuteQuoteDebugResult, error) {
+	params, err := a.signedExecuteQuoteParams(ctx, in)
+	if err != nil {
+		return types.ExecuteQuoteDebugResult{}, err
+	}
+	var resp types.ExecuteQuoteDebugResult
+	if err := a.call(ctx, "public/execute_quote_debug", params, &resp); err != nil {
+		return types.ExecuteQuoteDebugResult{}, err
+	}
+	return resp, nil
+}
