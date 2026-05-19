@@ -7,6 +7,18 @@ guidelines.
 This file is maintained by [release-please](https://github.com/googleapis/release-please);
 do not edit it by hand.
 
+## [0.27.2](https://github.com/amiwrpremium/go-derive/compare/v0.27.1...v0.27.2) (2026-05-19)
+
+
+### Dependencies
+
+* **deps:** update codecov/codecov-action action to v6.0.1 ([#182](https://github.com/amiwrpremium/go-derive/issues/182)) ([6627f77](https://github.com/amiwrpremium/go-derive/commit/6627f774db7ecd949c2b72bff6d4ee192f426661))
+
+
+### Documentation
+
+* fix descriptor-channel drift across getting-started, subscriptions, architecture, transports ([#184](https://github.com/amiwrpremium/go-derive/issues/184)) ([6779092](https://github.com/amiwrpremium/go-derive/commit/677909275ee9614b8fe49bb3ff4b303187557ee3))
+
 ## [0.27.1](https://github.com/amiwrpremium/go-derive/compare/v0.27.0...v0.27.1) (2026-05-18)
 
 
