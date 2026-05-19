@@ -57,23 +57,32 @@ c, _ := derive.NewClient(
 
 ```go
 import (
-    "github.com/amiwrpremium/go-derive/pkg/channels/public"
-    "github.com/amiwrpremium/go-derive/pkg/types"
+    "github.com/amiwrpremium/go-derive/pkg/derive"
     "github.com/amiwrpremium/go-derive/pkg/ws"
 )
 
-c, _ := derive.NewClient(derive.WithTestnet())
-defer c.Close()
-c.WS.Connect(ctx)
+ctx := context.Background()
 
-sub, err := ws.Subscribe[types.OrderBook](ctx, c.WS,
-    public.OrderBook{Instrument: "BTC-PERP", Depth: 5})
+c, _ := derive.NewClient(derive.WithTestnet(), derive.WithConnectWS(true))
+defer c.Close()
+
+sub, err := c.WS.SubscribeOrderBook(ctx, "BTC-PERP", ws.GroupDefault, ws.DepthDefault)
+if err != nil { log.Fatal(err) }
 defer sub.Close()
 
 for ob := range sub.Updates() {
-    fmt.Println(ob.Bids[0].Price)
+    if len(ob.Bids) > 0 {
+        fmt.Println(ob.Bids[0].Price)
+    }
 }
 ```
+
+`SubscribeOrderBook` is one of ~16 typed `Subscribe*` methods on
+`*ws.Client` — one per documented channel. See
+[subscriptions.md](./subscriptions.md) for the full list and the
+non-default values for `group`/`depth`/`interval`. The generic
+`ws.Subscribe[T](ctx, c, channelName, decoder, opts...)` form is also
+available for channels not covered by a typed wrapper.
 
 ## Environment variables
 
@@ -85,5 +94,5 @@ The SDK itself reads no env vars. Examples and integration tests do — see
 
 - [architecture.md](./architecture.md) for the layering rationale.
 - [auth.md](./auth.md) for production signing setup.
-- [`examples/`](../examples/) for 80 runnable programs covering every
+- [`examples/`](../examples/) for runnable programs covering every
   RPC method and channel.
