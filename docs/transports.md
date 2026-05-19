@@ -29,24 +29,28 @@ depending on what you need:
   `five_percent_{bid,ask}_depth` fields cover most workflows that
   previously hit the REST orderbook.
 - **Full L2 (any depth, streaming or one-shot)**: subscribe to the
-  WebSocket `orderbook.<instrument>.<group>.<depth>` channel via
-  `pkg/channels/public.OrderBook`. See
+  WebSocket `orderbook.{instrument}.{group}.{depth}` channel via
+  `c.WS.SubscribeOrderBook(ctx, instrument, group, depth)`. See
   [`examples/ws/public/subscribe/orderbook/`](../examples/ws/public/subscribe/orderbook/).
   Cancel after the first message if you only want a snapshot.
 
 ## Both at once: `pkg/derive.Client`
 
 ```go
-c, _ := derive.NewClient(derive.WithTestnet(), derive.WithSigner(s), derive.WithSubaccount(1))
+c, _ := derive.NewClient(
+    derive.WithTestnet(),
+    derive.WithSigner(s),
+    derive.WithSubaccount(1),
+    derive.WithConnectWS(true),
+)
 defer c.Close()
 
 // REST for setup
 insts, _ := c.REST.GetInstruments(ctx, "BTC", enums.InstrumentTypePerp)
 
 // WS for streaming
-c.WS.Connect(ctx)
-c.WS.Login(ctx)
-sub, _ := ws.Subscribe[types.OrderBook](ctx, c.WS, public.OrderBook{Instrument: "BTC-PERP"})
+_ = c.WS.Login(ctx)
+sub, _ := c.WS.SubscribeOrderBook(ctx, "BTC-PERP", ws.GroupDefault, ws.DepthDefault)
 ```
 
 ## Cross-transport equivalence
