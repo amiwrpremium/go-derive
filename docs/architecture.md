@@ -19,7 +19,9 @@ pkg/derive            top-level facade (REST + WS)
    │     │                                          │
    │     └─ embeds ─► internal/methods.API          │
    │                                                │
-   └──► pkg/channels  (typed sub descriptors)       │
+   │  (typed Subscribe* methods on ws.Client        │
+   │   cover every documented channel — see          │
+   │   subscriptions.md)                             │
                                                     │
         pkg/auth   pkg/types  pkg/enums  pkg/errors │
         ─────────────────────────────────────────── │
@@ -96,20 +98,20 @@ Three-level model, all `errors.Is` / `errors.As` compatible:
 | API errors | `*APIError{Code,Message,Data}` | JSON-RPC error from server; `Is` maps codes back to sentinels |
 | Network | `*ConnectionError`, `*TimeoutError` | Wrap transport-level failures; `Unwrap` exposes the original |
 
-The full catalogue of 136 server-side codes lives in
+The full catalogue of server-side codes lives in
 [error-handling.md](./error-handling.md).
 
 ## Numeric scale of the codebase
 
 | Surface | Status |
 |---|---|
-| Public packages | 10 (`pkg/derive`, `rest`, `ws`, `auth`, `types`, `enums`, `errors`, `channels`, `channels/public`, `channels/private`, `contracts`) |
+| Public packages | 7 (`pkg/derive`, `rest`, `ws`, `auth`, `types`, `enums`, `errors`) |
 | Internal packages | 7 (`jsonrpc`, `transport`, `methods`, `netconf`, `codec`, `retry`, `testutil`) |
-| Source files (`pkg/` + `internal/`) | 101 |
-| Unit-test files | 109 |
+| Source files (`pkg/` + `internal/`) | ~160 |
+| Unit-test files | ~137 |
 | `Example_*` functions in package tests | 0 — examples live under `examples/` |
-| Fuzz test files | 8 (`Fuzz*` functions: 10) |
-| Runnable example programs | 91, one per directory under `examples/` |
+| Fuzz test functions | 10 |
+| Runnable example programs | 200+, one per documented method/channel under `examples/` |
 | Integration test files | 7 under `test/`, gated by `-tags=integration` |
 | CI workflows | 24 (ci, lint, extra-lint, codeql, gosec, semgrep, codacy, scorecard, osv-scanner, trivy, gitleaks, trufflehog, dependency-review, license-check, pin-check, release, release-please, verify-release, integration, pr-title, labeler, auto-merge, auto-assign, stale) |
 
@@ -126,9 +128,16 @@ via Derive's contracts directly.
 | Method | Why it's out of scope here |
 |---|---|
 | `private/deposit`, `private/withdraw` | ERC-20 transfer to/from the Derive bridge — needs go-ethereum bindings + signed tx |
-| `private/transfer_erc20`, `private/transfer_position` | inter-subaccount on-chain transfer |
+| `private/transfer_erc20`, `private/transfer_position`, `private/transfer_positions` | inter-subaccount on-chain transfer |
 | `private/create_subaccount` | on-chain subaccount registration |
-| `private/session_keys`, `private/change_session_key_label` | session-key registry plumbing |
-| `public/register_session_key`, `public/deregister_session_key`, `public/build_register_session_key_tx` | session-key registration helpers (admin-side) |
-| `public/create_account`, `public/create_subaccount_debug` | account bootstrap; admin/debug |
-| `public/change_compliance_status`, `public/set_feed_data`, `public/margin_watch` | admin / oracle-write paths |
+| `private/liquidate` | submits an on-chain liquidation auction bid |
+| `public/build_register_session_key_tx`, `public/register_session_key`, `public/deregister_session_key`, `public/register_session_key_via_secret` | session-key registration helpers — wrap an EVM transaction send |
+| `public/create_account_with_secret` | account bootstrap with on-chain registration |
+| `public/change_compliance_status`, `public/set_feed_data`, `public/check_subaccount_drift`, `public/compare_ffi_margin`, `public/get_matching_engine_monitor`, `public/ob_internal_view` | admin / oracle / engine-internal paths |
+| `public/deposit_debug`, `public/withdraw_debug`, `public/create_subaccount_debug`, `private/transfer_position_debug` | debug analogs of the on-chain helpers above |
+
+Session-key management itself **is** wrapped — see
+`private/session_keys`, `private/edit_session_key`,
+`private/register_scoped_session_key`, `private/change_session_key_label`,
+and `public/get_wallets_from_session_key`. The exclusions above are
+specifically the session-key entries that wrap an EVM transaction.
